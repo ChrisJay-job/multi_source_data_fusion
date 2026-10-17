@@ -1,0 +1,31 @@
+.........FF......................F                                       [100%]
+=================================== FAILURES ===================================
+____________ test_secondary_position_must_not_move_fresh_rid_state _____________
+tests/test_review_regressions.py:46: in test_secondary_position_must_not_move_fresh_rid_state
+    assert len(b.tracks) == 1
+E   AssertionError: assert 2 == 1
+E    +  where 2 = len([TargetSnapshot(fusionId='F670358d9eea7-00001', trackSegmentId='S1', aircraftId='SN-A', longitude=117.20000000000002, ...Id='R1', aircraftId=None, lastSeen='2026-04-09T12:00:01+00:00')], qualityFlags=['altitude_datum_unknown'], aliases=[])])
+E    +    where [TargetSnapshot(fusionId='F670358d9eea7-00001', trackSegmentId='S1', aircraftId='SN-A', longitude=117.20000000000002, ...Id='R1', aircraftId=None, lastSeen='2026-04-09T12:00:01+00:00')], qualityFlags=['altitude_datum_unknown'], aliases=[])] = ProcessResponse(sessionId='independent-review', batchId='2', epoch='670358d9eea7', snapshotSeq=2, algorithmVersion='mv...0:00', fusionId='F670358d9eea7-00002', payload={'eventId': 'E670358d9eea7-000004', 'key': 'radar|D1|R1'})], error=None).tracks
+____________ test_realtime_buffer_keeps_accepting_real_measurements ____________
+tests/test_review_regressions.py:57: in test_realtime_buffer_keeps_accepting_real_measurements
+    assert watermarks == sorted(watermarks), "Committed watermark cannot go backwards"
+E   AssertionError: Committed watermark cannot go backwards
+E   assert [datetime.dat...timezone.utc)] == [datetime.dat...timezone.utc)]
+E     
+E     At index 0 diff: datetime.datetime(2026, 10, 17, 8, 39, 22, 172854, tzinfo=datetime.timezone.utc) != datetime.datetime(2026, 4, 9, 12, 0, 1, tzinfo=datetime.timezone.utc)
+E     Use -v to get more diff
+________________ test_idempotency_expired_not_recomputed_as_new ________________
+tests/test_rework_extras.py:51: in test_idempotency_expired_not_recomputed_as_new
+    fp, resp, _ = s.cache[batch_id]
+E   TypeError: cannot unpack non-iterable CacheEntry object
+=============================== warnings summary ===============================
+tests/test_review_regressions.py::test_http_conflict_is_409
+  /usr/local/lib/python3.11/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_review_regressions.py::test_secondary_position_must_not_move_fresh_rid_state
+FAILED tests/test_review_regressions.py::test_realtime_buffer_keeps_accepting_real_measurements
+FAILED tests/test_rework_extras.py::test_idempotency_expired_not_recomputed_as_new
+3 failed, 31 passed, 1 warning in 1.78s

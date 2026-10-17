@@ -1,0 +1,33 @@
+{
+  "mode": "replay",
+  "input_rows": 2502,
+  "unique_observation_ids": 2502,
+  "counts": {
+    "apply_calls": 2502,
+    "position_updates": 2502,
+    "explicit_rejections": 0,
+    "request_errors": 0
+  },
+  "events": {
+    "track_born": 1,
+    "source_bound": 1,
+    "promoted": 1,
+    "predicted": 1
+  },
+  "buffer_before_final_flush": 0,
+  "buffer_after_final_flush": 0,
+  "stored_seen_ids": 2502,
+  "final_total_hits": 2502,
+  "input_times_nondecreasing": true,
+  "source_archive_sha256": null,
+  "python": "3.11.16",
+  "versions": {
+    "numpy": "2.2.5",
+    "scipy": "1.15.2",
+    "pyproj": "3.7.1",
+    "pydantic": "2.11.3",
+    "pytest": "8.3.5",
+    "fastapi": "0.115.12",
+    "httpx": "0.28.1"
+  }
+}

@@ -1,0 +1,38 @@
+# Flow2Spec local state
+.task/
+.Knowledge/update-check.json
+.flow2spec-commit-daily/
+
+# local runtime / bulky data / secrets
+data/*.sql
+data/*.dump
+data/uploads/
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
+output/
+var/
+*.pyc
+docker/pgdata/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+
+# historical review archives stay local (do not commit 2GB / large zips)
+*.zip
+!docs/**/*.zip
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+Desktop.ini
+
+# regenerable reports noise
+reports/**/bundle_verify.txt
+reports/**/_env_probe.py

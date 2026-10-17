@@ -1,0 +1,11 @@
+locked_image: python:3.11-slim
+python: 3.11.16
+fastapi: 0.115.12
+numpy: 2.2.5
+scipy: 1.15.2
+pyproj: 3.7.1
+pydantic: 2.11.3
+pytest: 8.3.5
+requirements.txt: pinned as committed in project root
+pre_fix_regressions: 11 failed (see pre_fix_regressions.log)
+pre_fix_t01_t12: 12 passed (assertions later tightened)

@@ -1,0 +1,4 @@
+[
+  {"observationId":"o1","source":"tj-rid","id":"SN-A","detector":"tcp","aerial_sn":"tcp","longitude":117.20,"latitude":39.13,"altitude":40,"speed":8,"heading":"90","created_at":"2026-04-09T12:00:01"},
+  {"observationId":"o2","source":"tj-pp","id":"SN-A","detector":"30","longitude":117.2002,"latitude":39.13,"altitude":12,"speed":8,"heading":"45","created_at":"2026-04-09T12:00:01.200","source_data":{"sn":"SN-A","deviceId":30,"trackTime":"2026-04-09 12:00:01","az":45,"courseAngle":0}}
+]

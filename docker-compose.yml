@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    container_name: fusion-mvp-pg
+    environment:
+      POSTGRES_USER: fusion
+      POSTGRES_PASSWORD: fusion
+      POSTGRES_DB: fusion_mvp
+    ports:
+      - "127.0.0.1:25432:5432"
+    volumes:
+      - ./docker/pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fusion -d fusion_mvp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: python:3.11-slim
+    container_name: fusion-mvp-api
+    working_dir: /work
+    volumes:
+      - ./:/work
+    environment:
+      PYTHONPATH: /work/src
+    ports:
+      - "127.0.0.1:18089:18089"
+    command: >
+      bash -c "pip install -q -r requirements.txt &&
+      uvicorn fusion_mvp.api:app --host 0.0.0.0 --port 18089"
+    depends_on:
+      - postgres

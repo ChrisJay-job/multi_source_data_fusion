@@ -1,0 +1,155 @@
+openapi: 3.0.3
+info:
+  title: 三源融合 MVP API
+  version: mvp-0.1.1-rework1
+paths:
+  /health:
+    get:
+      summary: 存活
+      responses:
+        "200":
+          description: ok
+  /ready:
+    get:
+      summary: 就绪（校验配置键与单进程状态拥有者）
+      responses:
+        "200":
+          description: ready
+        "503":
+          description: not ready
+  /v1/fusion/process:
+    post:
+      summary: 批处理融合
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessRequest"
+            examples:
+              standard:
+                summary: 标准 Observation
+                value:
+                  sessionId: s1
+                  batchId: b1
+                  mode: replay
+                  processingTime: "2026-04-09T12:00:01+00:00"
+                  observations:
+                    - observationId: o1
+                      source: rid
+                      detectorId: D1
+                      sourceTrackId: SN-A
+                      aircraftId: SN-A
+                      measurementTime: "2026-04-09T12:00:01+00:00"
+                      receivedAt: "2026-04-09T12:00:01+00:00"
+                      timeBasis: measurement
+                      longitude: 117.2
+                      latitude: 39.13
+                      altitude: null
+                      altitudeDatum: unknown
+                      speed: null
+                      heading: null
+                      verticalSpeed: null
+                      qualityFlags: []
+              raw_table:
+                summary: 历史原表行（适配器）
+                value:
+                  sessionId: s1
+                  batchId: b2
+                  mode: replay
+                  processingTime: "2026-04-09T12:00:02+00:00"
+                  observations:
+                    - observationId: o2
+                      source: tj-rid
+                      id: SN-A
+                      detector: tcp
+                      aerial_sn: tcp
+                      longitude: 117.2
+                      latitude: 39.13
+                      altitude: 40
+                      speed: 8
+                      heading: "90"
+                      created_at: "2026-04-09T12:00:02"
+              conflict:
+                summary: 同 batchId 不同内容 → 409
+                value:
+                  sessionId: review-http
+                  batchId: same
+                  mode: replay
+                  processingTime: "2026-04-09T12:00:01+00:00"
+                  observations:
+                    - observationId: b
+                      source: tj-rid
+                      id: SN-B
+                      detector: D1
+                      aerial_sn: tcp
+                      longitude: 117.2
+                      latitude: 39.13
+                      altitude: 40
+                      speed: 8
+                      heading: 45
+                      created_at: "2026-04-09T12:00:01+00:00"
+      responses:
+        "200":
+          description: 成功；逐条坏观测可出现在 rejected，不导致整批失败
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessResponse"
+        "409":
+          description: batch_id_conflict / session_mode_conflict / idempotency_expired
+        "400":
+          description: invalid_processing_time / processing_time_not_monotonic
+        "500":
+          description: batch_rollback（状态已恢复）
+components:
+  schemas:
+    ProcessRequest:
+      type: object
+      required: [sessionId, batchId, processingTime]
+      properties:
+        sessionId: { type: string }
+        batchId: { type: string }
+        mode: { type: string, enum: [realtime, replay] }
+        processingTime: { type: string, format: date-time }
+        observations:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/StandardObservation"
+              - type: object
+                description: 历史原表行
+    StandardObservation:
+      type: object
+      required: [observationId, source, detectorId, sourceTrackId, measurementTime, longitude, latitude]
+      properties:
+        observationId: { type: string }
+        source: { type: string, enum: [rid, spectrum, radar] }
+        detectorId: { type: string }
+        sourceTrackId: { type: string }
+        aircraftId: { type: string, nullable: true }
+        measurementTime: { type: string, format: date-time, description: 必须带时区 }
+        receivedAt: { type: string, format: date-time, nullable: true }
+        timeBasis: { type: string }
+        longitude: { type: number }
+        latitude: { type: number }
+        altitude: { type: number, nullable: true }
+        altitudeDatum: { type: string, nullable: true }
+        speed: { type: number, nullable: true }
+        heading: { type: number, nullable: true }
+        verticalSpeed: { type: number, nullable: true }
+        qualityFlags: { type: array, items: { type: string } }
+    ProcessResponse:
+      type: object
+      properties:
+        sessionId: { type: string }
+        batchId: { type: string }
+        epoch: { type: string }
+        snapshotSeq: { type: integer }
+        algorithmVersion: { type: string }
+        configVersion: { type: string }
+        watermark: { type: string }
+        tracks: { type: array }
+        rejected: { type: array }
+        events: { type: array }
+        error: { type: string, nullable: true }

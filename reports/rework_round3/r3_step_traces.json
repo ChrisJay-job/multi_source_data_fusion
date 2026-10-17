@@ -1,0 +1,93 @@
+{
+  "r3_01": [
+    {
+      "batchId": "a",
+      "watermark": "1970-01-01T00:00:00+00:00",
+      "error": null,
+      "lastObservedAt": null,
+      "positionSource": null,
+      "longitude": null,
+      "latitude": null,
+      "events": [],
+      "rejected": [],
+      "processingTime": "2026-04-09T12:00:01+00:00",
+      "n_obs": 1
+    },
+    {
+      "batchId": "empty",
+      "watermark": "2026-04-09T12:00:01+00:00",
+      "error": null,
+      "lastObservedAt": "2026-04-09T12:00:01+00:00",
+      "positionSource": "rid",
+      "longitude": 117.20000000000002,
+      "latitude": 39.13,
+      "events": [
+        "track_born",
+        "source_bound"
+      ],
+      "rejected": [],
+      "processingTime": "2026-04-09T12:00:03+00:00",
+      "n_obs": 0
+    },
+    {
+      "batchId": "b",
+      "watermark": "2026-04-09T12:00:01+00:00",
+      "error": null,
+      "lastObservedAt": "2026-04-09T12:00:01+00:00",
+      "positionSource": "rid",
+      "longitude": 117.20000000000002,
+      "latitude": 39.13,
+      "events": [],
+      "rejected": [],
+      "processingTime": "2026-04-09T12:00:03.200000+00:00",
+      "n_obs": 1
+    },
+    {
+      "batchId": "flush",
+      "watermark": "2026-04-09T12:00:02.500000+00:00",
+      "error": null,
+      "lastObservedAt": "2026-04-09T12:00:02.500000+00:00",
+      "positionSource": "rid",
+      "longitude": 117.20000000000002,
+      "latitude": 39.13,
+      "events": [],
+      "rejected": [],
+      "processingTime": "2026-04-09T12:00:05+00:00",
+      "n_obs": 0
+    }
+  ],
+  "r3_02": {
+    "rid_then_spectrum": {
+      "batchId": "a",
+      "watermark": "2026-04-09T12:00:01+00:00",
+      "error": null,
+      "lastObservedAt": "2026-04-09T12:00:01+00:00",
+      "positionSource": "rid",
+      "longitude": 117.20000000000002,
+      "latitude": 39.13,
+      "events": [
+        "track_born",
+        "source_bound",
+        "source_bound",
+        "secondary_bind_only"
+      ],
+      "rejected": []
+    },
+    "spectrum_then_rid": {
+      "batchId": "a",
+      "watermark": "2026-04-09T12:00:01+00:00",
+      "error": null,
+      "lastObservedAt": "2026-04-09T12:00:01+00:00",
+      "positionSource": "rid",
+      "longitude": 117.20000000000002,
+      "latitude": 39.13,
+      "events": [
+        "track_born",
+        "source_bound",
+        "source_bound",
+        "secondary_bind_only"
+      ],
+      "rejected": []
+    }
+  }
+}

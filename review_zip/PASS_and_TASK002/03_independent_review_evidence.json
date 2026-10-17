@@ -1,0 +1,76 @@
+{
+  "reviewed_bundle": "TASK-001-attempt-001-rework-round4-review-bundle.zip",
+  "reviewed_archive_sha256": "29370c0243104075832efee751666a20594b81253568c820ef4a68208b0f5d12",
+  "independent_test_command": "PYTHONPATH=src python -m pytest -q",
+  "independent_test_result": "41 passed, 1 warning in 2.15s",
+  "python": "3.12.14",
+  "scope": "software MVP regression baseline only; live synchronized three-source association BLOCKED; field accuracy NOT_TESTED",
+  "engine_sha256": "6ce03fa4e732a470be7be531d5b80fd99393a121960ad02d3e7ecdc68bedc5a9",
+  "audits": {
+    "realtime": {
+      "mode": "realtime",
+      "input_rows": 2502,
+      "unique_observation_ids": 2502,
+      "counts": {
+        "explicit_rejections": 0,
+        "request_errors": 0,
+        "apply_calls": 2502,
+        "position_updates": 2502
+      },
+      "events": {
+        "track_born": 1,
+        "source_bound": 1,
+        "predicted": 2494
+      },
+      "buffer_before_final_flush": 6,
+      "buffer_after_final_flush": 0,
+      "stored_seen_ids": 2502,
+      "final_total_hits": 2502,
+      "input_times_nondecreasing": true,
+      "python": "3.12.14",
+      "versions": {
+        "numpy": "2.2.5",
+        "scipy": "1.15.2",
+        "pyproj": "3.7.1",
+        "pydantic": "2.11.3",
+        "pytest": "8.3.5",
+        "fastapi": "0.115.12",
+        "httpx": "0.28.1"
+      },
+      "legacy_script_archive_sha256": "ba3e3366b21c3a6ad64f2c2aeb42df6e0c0db8fb545f0f5d41fa5791a2c0c676"
+    },
+    "replay": {
+      "mode": "replay",
+      "input_rows": 2502,
+      "unique_observation_ids": 2502,
+      "counts": {
+        "apply_calls": 2502,
+        "position_updates": 2502,
+        "explicit_rejections": 0,
+        "request_errors": 0
+      },
+      "events": {
+        "track_born": 1,
+        "source_bound": 1,
+        "promoted": 1,
+        "predicted": 1
+      },
+      "buffer_before_final_flush": 0,
+      "buffer_after_final_flush": 0,
+      "stored_seen_ids": 2502,
+      "final_total_hits": 2502,
+      "input_times_nondecreasing": true,
+      "python": "3.12.14",
+      "versions": {
+        "numpy": "2.2.5",
+        "scipy": "1.15.2",
+        "pyproj": "3.7.1",
+        "pydantic": "2.11.3",
+        "pytest": "8.3.5",
+        "fastapi": "0.115.12",
+        "httpx": "0.28.1"
+      },
+      "legacy_script_archive_sha256": "ba3e3366b21c3a6ad64f2c2aeb42df6e0c0db8fb545f0f5d41fa5791a2c0c676"
+    }
+  }
+}

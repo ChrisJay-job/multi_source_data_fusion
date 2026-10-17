@@ -1,0 +1,5 @@
+﻿Flow2Spec CLI:       3.6.6
+Flow2Spec Core:      3.8.3
+Core Range:          3.8.3
+Template Version:    3.8.2
+Protocol Version:    2

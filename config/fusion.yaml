@@ -1,0 +1,48 @@
+algorithmVersion: "mvp-0.1.0"
+configVersion: "mvp-0.1.0"
+noiseCalibrated: false
+origin:
+  latitude: 39.13
+  longitude: 117.20
+  comment: "天津一带经验原点，未用未知高度做三维椭球转换"
+kalman:
+  q_pos: 2.0
+  q_vel: 1.5
+  r_rid: 8.0
+  r_spectrum: 25.0
+  r_radar: 40.0
+gates:
+  identity_dt_s: 8.0
+  identity_dist_m: 250.0
+  radar_dt_s: 6.0
+  radar_dist_m: 180.0
+  radar_innov_m: 120.0
+  confirm_hits: 1  # first accepted gated bind confirms; raise for multi-frame confirmation
+  ambiguity_ratio: 1.15
+lifecycle:
+  tentative_to_tracked: 3
+  coast_s: 4.0
+  lost_s: 12.0
+  terminate_s: 30.0
+  predict_horizon_s: 4.0
+rid_fresh_s: 2.5
+reorder_window_s: 2.0
+# Same-event-time main position source preference (stable; input array order must not win).
+primary_source_order: [rid, spectrum, radar]
+session_ttl_s: 3600
+track_ttl_s: 600
+idempotency_ttl_s: 1800
+max_tracks: 400
+max_cache: 200
+speed_unit: m_s
+heading:
+  valid_min: 0.0
+  valid_max: 360.0
+  exclusive_max: true
+altitude:
+  sentinel_candidates: [-2]
+  unknown_datum: true
+sources:
+  tj-rid: rid
+  tj-pp: spectrum
+  tj-leida: radar

@@ -1,0 +1,21 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_empty_batches_advance_committed_cutoff_and_expire_sources ________
+tests/test_round4_event_frontier.py:19: in test_empty_batches_advance_committed_cutoff_and_expire_sources
+    assert r.watermark==ts(8), '2 s reorder window commits through t=8 at processingTime=10'
+E   AssertionError: 2 s reorder window commits through t=8 at processingTime=10
+E   assert '2026-04-09T12:00:01+00:00' == '2026-04-09T12:00:08+00:00'
+E     
+E     - 2026-04-09T12:00:08+00:00
+E     ?                   ^
+E     + 2026-04-09T12:00:01+00:00
+E     ?                   ^
+________ test_old_observation_is_explicitly_rejected_after_empty_period ________
+tests/test_round4_event_frontier.py:28: in test_old_observation_is_explicitly_rejected_after_empty_period
+    assert any(x.observationId=='old-two' and x.reason=='late_beyond_reorder_window' for x in r.rejected)
+E   assert False
+E    +  where False = any(<generator object test_old_observation_is_explicitly_rejected_after_empty_period.<locals>.<genexpr> at 0x78cf7758d150>)
+=========================== short test summary info ============================
+FAILED tests/test_round4_event_frontier.py::test_empty_batches_advance_committed_cutoff_and_expire_sources
+FAILED tests/test_round4_event_frontier.py::test_old_observation_is_explicitly_rejected_after_empty_period
+2 failed in 0.67s

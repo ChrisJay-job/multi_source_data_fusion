@@ -1,0 +1,65 @@
+# 原始字段 → 标准观测。status: confirmed | assumed | degraded
+mappings:
+  - raw: source
+    standard: source
+    transform: "tj-rid→rid, tj-pp→spectrum, tj-leida→radar"
+    status: confirmed
+
+  - raw: id
+    standard: sourceTrackId
+    notes: "来源目标/航迹键；非行唯一键"
+    status: confirmed
+
+  - raw: id (tj-rid)
+    standard: aircraftId
+    notes: "RID 飞行器身份；aerial_sn=tcp 时仍用 id"
+    status: assumed
+
+  - raw: source_data.sn / uavSn (tj-pp)
+    standard: aircraftId
+    status: confirmed
+
+  - raw: aerial_sn
+    standard: (not aircraftId)
+    notes: "RID 样例 tcp=设备侧标记"
+    status: confirmed_not_sn
+
+  - raw: detector / source_data.deviceId / deviceCode / radarId
+    standard: detectorId
+    status: assumed
+
+  - raw: source_data.trackTime
+    standard: measurementTime
+    unit: local-naive→UTC assume
+    status: confirmed_when_present
+
+  - raw: created_at
+    standard: measurementTime
+    timeBasis: created_at_assumed_measure
+    status: assumed
+
+  - raw: created_time
+    standard: receivedAt
+    notes: "可能是入库/导入时间"
+    status: assumed
+
+  - raw: longitude/latitude
+    standard: longitude/latitude
+    unit: WGS84 deg
+    status: confirmed
+
+  - raw: altitude
+    standard: altitude
+    unit: m
+    altitudeDatum: unknown
+    status: degraded
+
+  - raw: speed
+    standard: speed
+    unit: m/s
+    status: assumed
+
+  - raw: heading
+    standard: heading
+    notes: "有效时真北顺时针；>=360 或测向 az 则 null + flag"
+    status: degraded

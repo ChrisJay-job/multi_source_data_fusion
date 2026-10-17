@@ -1,0 +1,23 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+________ test_empty_flush_must_not_invalidate_legal_delayed_observation ________
+tests/test_round3_regressions.py:27: in test_empty_flush_must_not_invalidate_legal_delayed_observation
+    assert end.tracks[0].lastObservedAt == ts(2.5)
+E   AssertionError: assert '2026-04-09T12:00:01+00:00' == '2026-04-09T1....500000+00:00'
+E     
+E     - 2026-04-09T12:00:02.500000+00:00
+E     ?                   ^^^^^^^^
+E     + 2026-04-09T12:00:01+00:00
+E     ?                   ^
+_______ test_same_time_source_order_does_not_change_rid_primary_position _______
+tests/test_round3_regressions.py:41: in test_same_time_source_order_does_not_change_rid_primary_position
+    assert a.longitude == pytest.approx(b.longitude,abs=1e-10)
+E   assert 117.20000000000002 == 117.20004848484848 ± 1.0e-10
+E     
+E     comparison failed
+E     Obtained: 117.20000000000002
+E     Expected: 117.20004848484848 ± 1.0e-10
+=========================== short test summary info ============================
+FAILED tests/test_round3_regressions.py::test_empty_flush_must_not_invalidate_legal_delayed_observation
+FAILED tests/test_round3_regressions.py::test_same_time_source_order_does_not_change_rid_primary_position
+2 failed in 0.76s

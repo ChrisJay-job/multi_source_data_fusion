@@ -1,0 +1,8 @@
+3.11.16 (main, Sep 19 2026, 01:04:43) [GCC 14.2.0]
+numpy 2.2.5
+scipy 1.15.2
+pyproj 3.7.1
+pydantic 2.11.3
+pytest 8.3.5
+fastapi 0.115.12
+httpx 0.28.1

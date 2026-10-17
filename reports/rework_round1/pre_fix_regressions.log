@@ -1,0 +1,32 @@
+FFFFFFFFFFF                                                              [100%]
+=================================== FAILURES ===================================
+/work/tests/test_review_regressions.py:37: AssertionError: Nearby consistent RID should fill the radar entity
+/work/tests/test_review_regressions.py:48: assert 117.20004545454547 == 117.20000000000002 ± 1.0e-10
+/work/tests/test_review_regressions.py:56: AssertionError: 2 s reorder buffer must process t=4 by t=6
+/work/tests/test_review_regressions.py:66: AssertionError: assert 3 == 1
+/work/tests/test_review_regressions.py:84: AssertionError: Returning batch_rollback must undo the first mutation
+/work/tests/test_review_regressions.py:96: AssertionError: assert (None is None and not [Rejected(observationId=None, reason='missing_time', detail=None, rawRef={'id': None})])
+/work/tests/test_review_regressions.py:104: AssertionError: assert (Observation(observationId='bad', source='rid', detectorId='D1', sourceTrackId='SN-A', aircraftId='SN-A', measurementTi...verticalSpeed=None, qualityFlags=['altitude_datum_unknown'], rawRef={'line_no': 0, 'file': 'live', 'source': 'tj-rid'}) is None)
+/work/tests/test_review_regressions.py:110: AssertionError: az-like heading is not verified course
+/work/tests/test_review_regressions.py:118: AssertionError: Same batchId with changed processingTime is a conflict
+/work/tests/test_review_regressions.py:124: AssertionError: Rejected identity match must not re-enter unconditional merge
+/work/tests/test_review_regressions.py:138: AssertionError: assert 200 == 409
+=============================== warnings summary ===============================
+tests/test_review_regressions.py::test_http_conflict_is_409
+  /usr/local/lib/python3.11/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_review_regressions.py::test_radar_then_rid_really_fills_existing_identity
+FAILED tests/test_review_regressions.py::test_secondary_position_must_not_move_fresh_rid_state
+FAILED tests/test_review_regressions.py::test_realtime_buffer_keeps_accepting_real_measurements
+FAILED tests/test_review_regressions.py::test_cross_batch_duplicate_does_not_confirm_track
+FAILED tests/test_review_regressions.py::test_batch_failure_rolls_back_mutations
+FAILED tests/test_review_regressions.py::test_standard_observation_contract_works
+FAILED tests/test_review_regressions.py::test_out_of_range_longitude_is_rejected
+FAILED tests/test_review_regressions.py::test_unverified_spectrum_bearing_not_used_as_heading
+FAILED tests/test_review_regressions.py::test_idempotency_hash_includes_reference_time
+FAILED tests/test_review_regressions.py::test_sn_spatial_conflict_not_merged_only_by_identity
+FAILED tests/test_review_regressions.py::test_http_conflict_is_409 - Assertio...
+11 failed, 1 warning in 0.96s

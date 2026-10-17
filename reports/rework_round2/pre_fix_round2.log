@@ -1,0 +1,20 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+/work/tests/test_round2_regressions.py:42: AssertionError: Ordered in-window data must reach the filter
+/work/tests/test_round2_regressions.py:50: assert 2 == 1
+/work/tests/test_round2_regressions.py:58: assert 2 == 1
+/work/tests/test_round2_regressions.py:69: AssertionError: assert None == 'observation_id_conflict'
+/work/tests/test_round2_regressions.py:83: AssertionError: Secondary prediction and lifecycle must not integrate dt twice
+/work/tests/test_round2_regressions.py:93: AssertionError: LSA unmatch cannot call a looser nearest-neighbour path
+/work/tests/test_round2_regressions.py:102: AssertionError: assert (None is not None or 3 == 1)
+/work/tests/test_round2_regressions.py:108: AssertionError: assert None == 'relative_takeoff'
+=========================== short test summary info ============================
+FAILED tests/test_round2_regressions.py::test_irregular_realtime_no_silent_stale_updates
+FAILED tests/test_round2_regressions.py::test_duplicates_inside_one_batch_update_once
+FAILED tests/test_round2_regressions.py::test_duplicate_while_buffered_is_not_applied_twice
+FAILED tests/test_round2_regressions.py::test_observation_id_conflict_is_atomic_batch_error
+FAILED tests/test_round2_regressions.py::test_secondary_prediction_does_not_double_advance_filter
+FAILED tests/test_round2_regressions.py::test_global_gate_cannot_be_bypassed_by_fallback
+FAILED tests/test_round2_regressions.py::test_cache_eviction_does_not_allow_old_batch_to_be_new
+FAILED tests/test_round2_regressions.py::test_output_contains_height_datum - ...
+8 failed in 0.84s

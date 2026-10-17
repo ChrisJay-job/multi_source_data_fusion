@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>三源融合 MVP 演示</title>
+  <style>
+    :root { --bg:#0f1419; --panel:#1a2332; --text:#e7ecf3; --muted:#8b9bb4; --rid:#4cc9f0; --pp:#90be6d; --radar:#f9c74f; --pred:#f94144; }
+    body { margin:0; font-family: "Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:16px 20px; border-bottom:1px solid #243044; }
+    h1 { margin:0; font-size:20px; letter-spacing:.02em; }
+    .sub { color:var(--muted); font-size:13px; margin-top:4px; }
+    main { display:grid; grid-template-columns: 1fr 360px; gap:12px; padding:12px; }
+    canvas { width:100%; height:70vh; background:#111827; border:1px solid #243044; border-radius:8px; }
+    .panel { background:var(--panel); border-radius:8px; padding:12px; overflow:auto; max-height:78vh; }
+    button, input, select { background:#243044; color:var(--text); border:1px solid #334155; border-radius:6px; padding:8px 10px; }
+    button { cursor:pointer; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th, td { border-bottom:1px solid #243044; padding:6px 4px; text-align:left; }
+    .tag { display:inline-block; padding:2px 6px; border-radius:4px; font-size:11px; }
+    .rid { background:rgba(76,201,240,.2); color:var(--rid); }
+    .spectrum { background:rgba(144,190,109,.2); color:var(--pp); }
+    .radar { background:rgba(249,199,79,.2); color:var(--radar); }
+    .pred { color:var(--pred); }
+    pre { white-space:pre-wrap; font-size:11px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>RID / 频谱 / 雷达 三源融合 MVP</h1>
+    <div class="sub">本地米制轨迹 · 无在线底图 · predicted 用红色虚线区分</div>
+  </header>
+  <main>
+    <div>
+      <canvas id="cv" width="1000" height="700"></canvas>
+      <div class="row" style="margin-top:8px">
+        <button id="btnSynth">跑合成交叉场景</button>
+        <button id="btnHealth">检查 /health</button>
+        <span id="meta" class="sub"></span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="row">
+        <input id="api" value="" style="flex:1" placeholder="API base (空=同源)" />
+      </div>
+      <table>
+        <thead><tr><th>fusionId</th><th>SN</th><th>来源</th><th>模式</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <h3 style="font-size:13px;color:var(--muted)">事件</h3>
+      <pre id="events"></pre>
+    </div>
+  </main>
+  <script>
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+    const trails = new Map();
+    function base() { return document.getElementById('api').value.replace(/\/$/, ''); }
+    async function postProcess(body) {
+      const r = await fetch(base() + '/v1/fusion/process', {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+      });
+      return r.json();
+    }
+    function draw() {
+      ctx.clearRect(0,0,cv.width,cv.height);
+      ctx.strokeStyle = '#243044';
+      for (let i=0;i<10;i++) {
+        ctx.beginPath(); ctx.moveTo(i*100,0); ctx.lineTo(i*100,cv.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,i*70); ctx.lineTo(cv.width,i*70); ctx.stroke();
+      }
+      for (const [fid, pts] of trails) {
+        if (pts.length < 2) continue;
+        ctx.beginPath();
+        pts.forEach((p,i) => {
+          const x = 500 + p.x * 8, y = 350 - p.y * 8;
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        });
+        const last = pts[pts.length-1];
+        ctx.strokeStyle = last.mode === 'predicted' ? '#f94144' : '#4cc9f0';
+        ctx.setLineDash(last.mode === 'predicted' ? [6,4] : []);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#e7ecf3';
+        ctx.fillText(fid, 500 + last.x*8 + 6, 350 - last.y*8);
+      }
+    }
+    function updateTable(resp) {
+      const tb = document.getElementById('tbody');
+      tb.innerHTML = '';
+      for (const t of resp.tracks || []) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${t.fusionId}</td><td>${t.aircraftId||'-'}</td><td>${(t.sources||[]).map(s=>`<span class="tag ${s}">${s}</span>`).join(' ')}</td><td class="${t.positionMode==='predicted'?'pred':''}">${t.positionMode}/${t.trackStatus}</td>`;
+        tb.appendChild(tr);
+        const originLon = 117.20, originLat = 39.13;
+        const x = (t.longitude - originLon) * 85000;
+        const y = (t.latitude - originLat) * 111000;
+        if (!trails.has(t.fusionId)) trails.set(t.fusionId, []);
+        trails.get(t.fusionId).push({x,y,mode:t.positionMode});
+      }
+      document.getElementById('events').textContent = JSON.stringify(resp.events||[], null, 2);
+      document.getElementById('meta').textContent = `epoch=${resp.epoch} seq=${resp.snapshotSeq} wm=${resp.watermark}`;
+      draw();
+    }
+    function obs(kind, id, lon, lat, t, extra={}) {
+      const source = kind==='rid'?'tj-rid':kind==='spectrum'?'tj-pp':'tj-leida';
+      return Object.assign({
+        observationId: id + '-' + t, source, id, detector: kind==='radar'?'25040':kind==='spectrum'?'30':'tcp',
+        aerial_sn: kind==='rid'?'tcp':null,
+        longitude: lon, latitude: lat, altitude: 40, speed: 8, heading: '90',
+        created_at: t,
+        source_data: kind==='spectrum'?{sn:id,deviceId:30,trackTime:t.replace('T',' ').slice(0,19),az:45,courseAngle:0}:null
+      }, extra);
+    }
+    document.getElementById('btnHealth').onclick = async () => {
+      const r = await fetch(base() + '/health');
+      alert(await r.text());
+    };
+    document.getElementById('btnSynth').onclick = async () => {
+      trails.clear();
+      await fetch(base() + '/v1/fusion/reset/demo', {method:'POST'});
+      const t0 = new Date('2026-04-09T12:00:00Z');
+      const steps = [];
+      for (let i=0;i<12;i++) {
+        const t = new Date(t0.getTime()+i*1000).toISOString();
+        const aLon = 117.20 + i*0.00005, aLat = 39.13;
+        const bLon = 117.20 + 0.0006 - i*0.00005, bLat = 39.13 + 0.00002;
+        const batch = [
+          obs('radar','rA', aLon, aLat, t),
+          obs('radar','rB', bLon, bLat, t),
+        ];
+        if (i>=4) batch.push(obs('rid','SN-DEMO', aLon, aLat, t));
+        if (i>=6) batch.push(obs('spectrum','SN-DEMO', aLon+0.00002, aLat, t));
+        if (i===9) batch.length = 0; // empty advance / coast
+        const resp = await postProcess({sessionId:'demo', batchId:'d'+i, mode:'replay', processingTime:t, observations:batch});
+        updateTable(resp);
+        await new Promise(r=>setTimeout(r, 120));
+      }
+    };
+  </script>
+</body>
+</html>
