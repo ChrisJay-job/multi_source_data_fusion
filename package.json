@@ -1,0 +1,28 @@
+{
+  "name": "multi_source_data_fusion",
+  "version": "1.0.0",
+  "description": "1–2 天可运行、可回放、可检查的最小实现。原始 SQL **只读**；需要库时用隔离端口 `25432`。",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChrisJay-job/multi_source_data_fusion.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ChrisJay-job/multi_source_data_fusion/issues"
+  },
+  "homepage": "https://github.com/ChrisJay-job/multi_source_data_fusion#readme",
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}

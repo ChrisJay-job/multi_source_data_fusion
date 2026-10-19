@@ -102,6 +102,150 @@ paths:
           description: invalid_processing_time / processing_time_not_monotonic
         "500":
           description: batch_rollback（状态已恢复）
+  /v1/workbench/scenarios:
+    get:
+      summary: 列出预置与已存场景
+      responses:
+        "200":
+          description: scenarios 数组含 name／notes
+  /v1/workbench/scenarios/{name}:
+    get:
+      summary: 获取场景定义（含航点与三源配置）
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Scenario JSON
+        "404":
+          description: scenario_not_found
+  /v1/workbench/scenarios/save:
+    post:
+      summary: 保存编辑后场景到 scenarios/
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, scenario]
+              properties:
+                name: { type: string }
+                scenario: { type: object }
+      responses:
+        "200":
+          description: ok + path
+  /v1/workbench/run/scenario:
+    post:
+      summary: 生成观测并跑真实 FusionSession；评估侧保留真值
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scenarioName: { type: string }
+                mode: { type: string, enum: [realtime, replay] }
+                seed: { type: integer, nullable: true }
+                scenario: { type: object, description: 编辑器覆盖体；提供时优先于 name }
+      responses:
+        "200":
+          description: snapshots／observations／evaluation／counts／truth_*
+  /v1/workbench/import/preview:
+    post:
+      summary: 预览映射（不定义正式回放数据集）
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+                mapping_json: { type: string }
+                max_rows: { type: integer }
+      responses:
+        "200":
+          description: preview_only=true；stored_as 供正式 run 重解析
+  /v1/workbench/run/import:
+    post:
+      summary: 正式回放（重解析原文；忽略预览缓存）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportRunRequest"
+      responses:
+        "200":
+          description: 含 observations 供画布原始层
+        "400":
+          description: 解析失败或路径非法
+  /v1/workbench/datasets/{dataset_id}/observations:
+    get:
+      summary: 有界翻页（流式筛选后分页；不物化 offset 前缀）
+      parameters:
+        - in: path
+          name: dataset_id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: path
+          schema: { type: string }
+          description: 可选 sandbox 相对路径（data/…）；优先于仅按 uploads/dataset_id 查找
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 2000, default: 50 }
+        - in: query
+          name: timeFrom
+          schema: { type: string }
+        - in: query
+          name: timeTo
+          schema: { type: string }
+        - in: query
+          name: detectorId
+          schema: { type: string }
+        - in: query
+          name: lonMin
+          schema: { type: number }
+        - in: query
+          name: lonMax
+          schema: { type: number }
+        - in: query
+          name: latMin
+          schema: { type: number }
+        - in: query
+          name: latMax
+          schema: { type: number }
+      responses:
+        "200":
+          description: n/has_more/next_offset/filters/materialized；达到 limit≠文件一定还有数据（看 has_more）
+        "400":
+          description: invalid_pagination 等
+  /v1/workbench/local-data:
+    get:
+      summary: 列出 data/ 下可读文件
+      responses:
+        "200":
+          description: files[]
+  /v1/workbench/run/local:
+    post:
+      summary: 受限目录正式回放
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportRunRequest"
+      responses:
+        "200":
+          description: 同 run/import
 components:
   schemas:
     ProcessRequest:
@@ -149,7 +293,48 @@ components:
         algorithmVersion: { type: string }
         configVersion: { type: string }
         watermark: { type: string }
-        tracks: { type: array }
+        tracks:
+          type: array
+          items:
+            $ref: "#/components/schemas/TargetSnapshot"
         rejected: { type: array }
         events: { type: array }
         error: { type: string, nullable: true }
+    TargetSnapshot:
+      type: object
+      properties:
+        fusionId: { type: string }
+        aircraftId: { type: string, nullable: true }
+        stateTime: { type: string, format: date-time }
+        displayStateTime: { type: string, format: date-time }
+        positionMode: { type: string }
+        positionSource: { type: string, nullable: true }
+        longitude: { type: number }
+        latitude: { type: number }
+        sources: { type: array, items: { type: string } }
+        sourceTracks:
+          type: array
+          items:
+            type: object
+            properties:
+              source: { type: string }
+              detectorId: { type: string }
+              sourceTrackId: { type: string }
+              aircraftId: { type: string, nullable: true }
+              bindingStatus: { type: string, enum: [candidate, confirmed] }
+    ImportRunRequest:
+      type: object
+      required: [path]
+      properties:
+        path: { type: string, description: uploads/ 或 data/ 相对路径 }
+        mode: { type: string, enum: [realtime, replay] }
+        mapping: { type: object }
+        maxRows: { type: integer, nullable: true, description: 筛选命中后的上限 }
+        timeFrom: { type: string, nullable: true }
+        timeTo: { type: string, nullable: true }
+        detectorId: { type: string, nullable: true }
+        lonMin: { type: number, nullable: true }
+        lonMax: { type: number, nullable: true }
+        latMin: { type: number, nullable: true }
+        latMax: { type: number, nullable: true }
+        truncated: { type: boolean, default: false }

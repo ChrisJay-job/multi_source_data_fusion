@@ -1,0 +1,84 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+___________________ test_detector_filter_precedes_page_limit ___________________
+
+dataset = <module 'fusion_mvp.api' from '/workspace/scratch/8deb2d43d4c5/review_task002_r4/src/fusion_mvp/api.py'>
+
+    def test_detector_filter_precedes_page_limit(dataset):
+        r=dataset.dataset_observations('rows.jsonl',offset=0,limit=1,detectorId='D2')
+>       assert r['n']==1 and r['observations'][0]['observationId']=='o2',r
+E       AssertionError: {'accepted': 0, 'datasetId': 'rows.jsonl', 'filters': {'detectorId': 'D2', 'latMax': None, 'latMin': None, 'lonMax': None, ...}, 'limit': 1, ...}
+E       assert (0 == 1)
+
+task002_rework_r5/test_task002_round5.py:14: AssertionError
+____________________ test_region_filter_precedes_page_limit ____________________
+
+dataset = <module 'fusion_mvp.api' from '/workspace/scratch/8deb2d43d4c5/review_task002_r4/src/fusion_mvp/api.py'>
+
+    def test_region_filter_precedes_page_limit(dataset):
+        r=dataset.dataset_observations('rows.jsonl',offset=0,limit=1,lonMin=117.2)
+>       assert r['n']==1 and r['observations'][0]['observationId']=='o2',r
+E       AssertionError: {'accepted': 0, 'datasetId': 'rows.jsonl', 'filters': {'detectorId': None, 'latMax': None, 'latMin': None, 'lonMax': None, ...}, 'limit': 1, ...}
+E       assert (0 == 1)
+
+task002_rework_r5/test_task002_round5.py:18: AssertionError
+_____________ test_offset_is_skipped_without_materializing_prefix ______________
+
+dataset = <module 'fusion_mvp.api' from '/workspace/scratch/8deb2d43d4c5/review_task002_r4/src/fusion_mvp/api.py'>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb82bbab530>
+
+    def test_offset_is_skipped_without_materializing_prefix(dataset,monkeypatch):
+        original=dataset._load_observations
+        held=[]
+        def spy(*a,**kw):
+            r=original(*a,**kw)
+            held.append(len(r.get('observations') or []))
+            return r
+        monkeypatch.setattr(dataset,'_load_observations',spy)
+        r=dataset.dataset_observations('rows.jsonl',offset=2,limit=1)
+        assert r['n']==1,r
+>       assert not held or max(held)<=1,f'page size 1, materialized {held} rows including skipped prefix'
+E       AssertionError: page size 1, materialized [3] rows including skipped prefix
+E       assert (not [3] or 3 <= 1)
+E        +  where 3 = max([3])
+
+task002_rework_r5/test_task002_round5.py:30: AssertionError
+________________ test_same_time_reused_key_is_not_definite_pass ________________
+
+    def test_same_time_reused_key_is_not_definite_pass():
+        from fusion_mvp.workbench.evaluator import evaluate_run
+        t='2026-04-09T12:00:01Z'
+        rows=[dict(observationId='a',source='radar',detectorId='D',sourceTrackId='R',aircraftId=None,measurementTime=t),
+              dict(observationId='b',source='radar',detectorId='D',sourceTrackId='R',aircraftId=None,measurementTime=t),
+              dict(observationId='ridb',source='rid',detectorId='D',sourceTrackId='RB',aircraftId='SN-B',measurementTime=t)]
+        tr=dict(fusionId='F-B',aircraftId='SN-B',sources=['rid','radar'],sourceTracks=[
+            dict(source='radar',detectorId='D',sourceTrackId='R',aircraftId=None,lastSeen=t),
+            dict(source='rid',detectorId='D',sourceTrackId='RB',aircraftId='SN-B',lastSeen=t)])
+        r=evaluate_run(snapshots_by_time=[dict(processingTime=t,watermark=t,tracks=[tr])],delivered_obs=rows,
+            obs_truth_map={'a':'TRUTH-A','b':'TRUTH-B','ridb':'TRUTH-B'},events=[],rejected=[],expected_stable_entities={'TRUTH-B':{'rid','radar'}})
+>       assert r['entity_check']['status']!='PASS',r
+E       AssertionError: {'attribution_errors': [], 'denominators': {'delivered_observations': 3, 'note': '全过程评估；来源键按观测时刻分段；稳定窗逐帧检查', 'rejected...ok': True, 'sources': ['radar', 'rid'], ...}], 'no_known_attribution_errors': True, 'ok': True, 'status': 'PASS'}, ...}
+E       assert 'PASS' != 'PASS'
+
+task002_rework_r5/test_task002_round5.py:43: AssertionError
+__________________ test_formal_replay_respects_device_filter ___________________
+
+dataset = <module 'fusion_mvp.api' from '/workspace/scratch/8deb2d43d4c5/review_task002_r4/src/fusion_mvp/api.py'>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb8611fcd40>
+
+    def test_formal_replay_respects_device_filter(dataset,monkeypatch):
+        monkeypatch.setattr(dataset,'ROOT',dataset.UPLOAD_DIR)
+        req=dataset.ImportRunRequest(path='rows.jsonl',maxRows=10,detectorId='D2')
+        r=dataset.run_import(req)
+>       assert r['n_observations']==2 and all(o['detectorId']=='D2' for o in r['observations']),r['n_observations']
+E       AssertionError: 3
+E       assert (3 == 2)
+
+task002_rework_r5/test_task002_round5.py:49: AssertionError
+=========================== short test summary info ============================
+FAILED task002_rework_r5/test_task002_round5.py::test_detector_filter_precedes_page_limit
+FAILED task002_rework_r5/test_task002_round5.py::test_region_filter_precedes_page_limit
+FAILED task002_rework_r5/test_task002_round5.py::test_offset_is_skipped_without_materializing_prefix
+FAILED task002_rework_r5/test_task002_round5.py::test_same_time_reused_key_is_not_definite_pass
+FAILED task002_rework_r5/test_task002_round5.py::test_formal_replay_respects_device_filter
+5 failed in 0.62s

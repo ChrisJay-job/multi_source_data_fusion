@@ -1,0 +1,79 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+______________ test_stable_window_checks_missing_entity_in_middle ______________
+
+    def test_stable_window_checks_missing_entity_in_middle():
+        rows=[dict(observationId='a',source='rid',detectorId='D',sourceTrackId='R',aircraftId='SN-A')]
+        snaps=[dict(processingTime=f'2026-04-09T12:00:0{i}Z',tracks=([track('SN-A')] if i!=2 else [])) for i in (1,2,3)]
+        r=ev(snaps,rows,{'a':'TRUTH-A'},{'TRUTH-A':{'rid'}},('2026-04-09T12:00:01Z','2026-04-09T12:00:03Z'))
+>       assert not r['entity_check']['ok'],r
+E       AssertionError: {'attribution_errors': [], 'denominators': {'delivered_observations': 1, 'note': '全过程评估；历史误绑/重复不因最终恢复抹掉', 'rejected_ob...tails': [{'fusionId': 'F', 'ok': True, 'sources': ['rid'], 'truth_id': 'TRUTH-A'}], 'ok': True, 'status': 'PASS'}, ...}
+E       assert not True
+
+task002_rework_r3/test_task002_round3.py:14: AssertionError
+____________ test_time_separated_radar_key_reuse_is_not_false_merge ____________
+
+    def test_time_separated_radar_key_reuse_is_not_false_merge():
+        rows=[dict(observationId='a',source='radar',detectorId='D',sourceTrackId='R',aircraftId=None,measurementTime='2026-04-09T12:00:01Z'),
+              dict(observationId='b',source='radar',detectorId='D',sourceTrackId='R',aircraftId=None,measurementTime='2026-04-09T12:10:01Z')]
+        a=track(None,source='radar',fid='F-A'); a.update(trackSegmentId='1')
+        b=track(None,source='radar',fid='F-B'); b.update(trackSegmentId='2')
+        snaps=[dict(processingTime='2026-04-09T12:00:01Z',tracks=[a]),dict(processingTime='2026-04-09T12:10:01Z',tracks=[b])]
+        r=ev(snaps,rows,{'a':'TRUTH-A','b':'TRUTH-B'})
+>       assert not r['false_merges'] and not r['attribution_errors'],r
+E       AssertionError: {'attribution_errors': [{'at': '2026-04-09T12:00:01Z', 'fusionId': 'F-A', 'reason': 'ambiguous_key', 'sourceKey': 'rad... {'details': [{'error': 'false_attribution_or_merge', 'n_attr': 2, 'n_merge': 2}], 'ok': False, 'status': 'FAIL'}, ...}
+E       assert (not [{'at': '2026-04-09T12:00:01Z', 'fusionId': 'F-A', 'truth_ids': ['TRUTH-A', 'TRUTH-B']}, {'at': '2026-04-09T12:10:01Z', 'fusionId': 'F-B', 'truth_ids': ['TRUTH-A', 'TRUTH-B']}])
+
+task002_rework_r3/test_task002_round3.py:23: AssertionError
+__________________ test_no_expected_rule_does_not_claim_pass ___________________
+
+    def test_no_expected_rule_does_not_claim_pass():
+        rows=[dict(observationId='a',source='rid',detectorId='D',sourceTrackId='R',aircraftId='SN-A')]
+        r=ev([dict(tracks=[track('SN-A')])],rows,{'a':'TRUTH-A'})
+>       assert r['entity_check']['status']=='NOT_TESTED',r
+E       AssertionError: {'attribution_errors': [], 'denominators': {'delivered_observations': 1, 'note': '全过程评估；历史误绑/重复不因最终恢复抹掉', 'rejected_ob...'snapshots_evaluated': 1}, 'duplicate_targets': [], 'entity_check': {'details': [], 'ok': True, 'status': 'PASS'}, ...}
+E       assert 'PASS' == 'NOT_TESTED'
+E         
+E         - NOT_TESTED
+E         + PASS
+
+task002_rework_r3/test_task002_round3.py:28: AssertionError
+________________ test_oversized_json_rejected_before_read_text _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-4/test_oversized_json_rejected_b0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f08aec3f560>
+
+    def test_oversized_json_rejected_before_read_text(tmp_path, monkeypatch):
+        from pathlib import Path
+        from fusion_mvp.workbench.importer import import_tabular, MappingTemplate
+        path=tmp_path/'large.json'
+        with path.open('wb') as f: f.truncate(32_000_001)
+        original=Path.read_text
+        def guarded(self,*args,**kwargs):
+            if self==path:
+                raise AssertionError('oversized JSON read before size guard')
+            return original(self,*args,**kwargs)
+        monkeypatch.setattr(Path,'read_text',guarded)
+>       result=import_tabular(path,MappingTemplate(),max_rows=1)
+
+task002_rework_r3/test_task002_round3.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+review_task002_r2/src/fusion_mvp/workbench/importer.py:354: in import_tabular
+    text = path.read_text(encoding="utf-8")
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/pytest-of-root/pytest-4/test_oversized_json_rejected_b0/large.json')
+args = (), kwargs = {'encoding': 'utf-8'}
+
+    def guarded(self,*args,**kwargs):
+        if self==path:
+>           raise AssertionError('oversized JSON read before size guard')
+E           AssertionError: oversized JSON read before size guard
+
+task002_rework_r3/test_task002_round3.py:38: AssertionError
+=========================== short test summary info ============================
+FAILED task002_rework_r3/test_task002_round3.py::test_stable_window_checks_missing_entity_in_middle
+FAILED task002_rework_r3/test_task002_round3.py::test_time_separated_radar_key_reuse_is_not_false_merge
+FAILED task002_rework_r3/test_task002_round3.py::test_no_expected_rule_does_not_claim_pass
+FAILED task002_rework_r3/test_task002_round3.py::test_oversized_json_rejected_before_read_text
+4 failed in 0.72s

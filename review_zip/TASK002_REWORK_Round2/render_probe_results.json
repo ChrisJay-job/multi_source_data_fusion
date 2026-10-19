@@ -1,0 +1,20 @@
+{
+  "only_A_filter": {
+    "selected": "A",
+    "fused_points": 0,
+    "fused_history_lines": 0,
+    "expected_points": 1
+  },
+  "hide_prediction_history": {
+    "prediction_checkbox": false,
+    "solid_history_segments": [
+      {
+        "n": 3,
+        "color": "#f72585",
+        "dashed": false
+      }
+    ],
+    "expected_predicted_positions_in_solid_history": 0
+  },
+  "verification_type": "Node execution of actual canvas module with stub canvas, not browser"
+}

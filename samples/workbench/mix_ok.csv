@@ -1,0 +1,4 @@
+observationId,source,detectorId,sourceTrackId,aircraftId,measurementTime,longitude,latitude,altitude
+w-1,rid,DET,SN-W1,SN-W1,2026-04-09T12:00:01+00:00,117.2001,39.1301,
+w-2,spectrum,DET,SN-W1,SN-W1,2026-04-09T12:00:02+00:00,117.20012,39.13008,
+w-3,radar,DET,R-W1,,2026-04-09T12:00:03+00:00,117.20015,39.13005,

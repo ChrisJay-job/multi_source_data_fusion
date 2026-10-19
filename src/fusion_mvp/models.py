@@ -44,6 +44,7 @@ class SourceTrackRef(BaseModel):
     sourceTrackId: str
     aircraftId: Optional[str] = None
     lastSeen: str
+    bindingStatus: Optional[Literal["candidate", "confirmed"]] = None  # from engine BoundSource.confirmed
 
 
 class TargetSnapshot(BaseModel):

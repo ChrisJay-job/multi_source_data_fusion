@@ -1,0 +1,17 @@
+{
+  "reviewed_archive_sha256": "887d0c6bda705fefa4a5c557d9a84da41e003f44d210b4e1cc207496c4e49caa",
+  "original_suite": "59 passed, 1 warning in 4.74s",
+  "new_regressions": "4 failed in 0.75s",
+  "python": "3.12.14",
+  "versions": {
+    "pytest": "8.3.5",
+    "numpy": "2.2.5",
+    "scipy": "1.15.2",
+    "pyproj": "3.7.1",
+    "fastapi": "0.115.12",
+    "pydantic": "2.11.3",
+    "httpx": "0.28.1"
+  },
+  "browser_review": "submitted Playwright script/JSON/screenshot inspected; no independent browser execution",
+  "node_review": "actual render module executed under stub canvas"
+}

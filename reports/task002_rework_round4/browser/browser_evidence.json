@@ -1,0 +1,139 @@
+{
+  "base": "http://127.0.0.1:18089",
+  "steps": [
+    {
+      "step": "ready",
+      "ok": true,
+      "at": "2026-10-17T11:16:59.851Z"
+    },
+    {
+      "step": "draw_adds_B_not_A",
+      "ok": true,
+      "detail": "{\"aN\":2,\"bN\":3}",
+      "at": "2026-10-17T11:17:00.542Z"
+    },
+    {
+      "step": "real_mouse_drag_moves_without_add",
+      "ok": true,
+      "detail": "{\"dragMeta\":{\"before\":3,\"x0\":0,\"y0\":200,\"clientX\":690,\"clientY\":225},\"afterDrag\":{\"n\":3,\"x0\":46.06958762886602,\"y0\":176.47058823529412,\"suppress\":false}}",
+      "at": "2026-10-17T11:17:00.757Z"
+    },
+    {
+      "step": "add_after_drag_works",
+      "ok": true,
+      "detail": "4",
+      "at": "2026-10-17T11:17:00.848Z"
+    },
+    {
+      "step": "pred_layer_toggle",
+      "ok": true,
+      "detail": "{\"predOn\":true,\"predOff\":false}",
+      "at": "2026-10-17T11:17:01.338Z"
+    },
+    {
+      "step": "only_A_filter",
+      "ok": true,
+      "detail": "{\"truthA\":true,\"truthB\":false,\"planB\":false}",
+      "at": "2026-10-17T11:17:01.373Z"
+    },
+    {
+      "step": "counts_label",
+      "ok": true,
+      "detail": "当前投递81／绑定5／拒绝0｜全程更新114／投递161 @43",
+      "at": "2026-10-17T11:17:01.375Z"
+    },
+    {
+      "step": "counts_from_snapshot",
+      "ok": true,
+      "detail": "{\"delivered_at_t\":1,\"binds_at_t\":0,\"rejected_at_t\":0,\"pending_buffer\":1,\"run_total_updates\":114,\"run_total_delivered\":161,\"atSnapshot\":0,\"source\":\"snapshot.counts_at\"}",
+      "at": "2026-10-17T11:17:01.375Z"
+    },
+    {
+      "step": "scenario_save_reload",
+      "ok": true,
+      "detail": "r4_browser_sc",
+      "at": "2026-10-17T11:17:02.476Z"
+    },
+    {
+      "step": "page_save_load_assume_utc",
+      "ok": true,
+      "detail": "{\"tz\":\"assume_utc\",\"raw\":true}",
+      "at": "2026-10-17T11:17:03.359Z"
+    },
+    {
+      "step": "queue_has_two_files",
+      "ok": true,
+      "detail": "[{\"path\":\"data/uploads/f9b70d16b2c54637bc8b03b8f3aa964a_r4_rid.csv\",\"tz\":\"UTC\",\"assume\":false},{\"path\":\"data/uploads/4dd76e69946045b1831083a0c4fb0451_r4_radar.csv\",\"tz\":\"Asia/Shanghai\",\"assume\":false}]",
+      "at": "2026-10-17T11:17:04.470Z"
+    },
+    {
+      "step": "run_sends_configured_queue",
+      "ok": true,
+      "detail": "[\"data/uploads/f9b70d16b2c54637bc8b03b8f3aa964a_r4_rid.csv\",\"data/uploads/4dd76e69946045b1831083a0c4fb0451_r4_radar.csv\"]",
+      "at": "2026-10-17T11:17:04.496Z"
+    },
+    {
+      "step": "multi_http_ok",
+      "ok": true,
+      "detail": "status=200 body={\"sessionId\":\"wb-26983c1c88\",\"epoch\":\"0e69f7a7125e\",\"mode\":\"replay\",\"counts\":{\"delivered\":6,\"unique_received\":6,\"pending_buffer\":0,\"processed_updates\":3,\"source_binds\":2,\"bind_only\":3,\"rejected\":0,\"duplicate_received\":0,\"processed_hits\":3,\"empty_ticks\":0,\"flush_batches\":1},\"snapshots\":[{\"batchId\":\"b1\",\"processingTime\":\"2026-04-09T12:00:01+00:00\",\"watermark\":\"2026-04-09T12:00:01+00:00\",\"tracks\":[{\"",
+      "at": "2026-10-17T11:17:04.549Z"
+    },
+    {
+      "step": "multi_replay_two_sources",
+      "ok": true,
+      "detail": "{\"n\":6,\"sources\":[\"radar\",\"rid\"],\"parts\":[{\"path\":\"data/uploads/f9b70d16b2c54637bc8b03b8f3aa964a_r4_rid.csv\",\"n\":3,\"n_errors\":0,\"by_source\":{\"rid\":3},\"ok\":true,\"scanned\":3,\"skipped_outside_window\":0,\"truncated\":false,\"window\":{\"timeFrom\":null,\"timeTo\":null}},{\"path\":\"data/uploads/4dd76e69946045b1831083a0c4fb0451_r4_radar.csv\",\"n\":3,\"n_errors\":0,\"by_source\":{\"radar\":3},\"ok\":true,\"scanned\":3,\"skipped_outside_window\":0,\"truncated\":false,\"window\":{\"timeFrom\":null,\"timeTo\":null}}],\"combined\":true}",
+      "at": "2026-10-17T11:17:04.768Z"
+    },
+    {
+      "step": "counts_at_after_multi",
+      "ok": true,
+      "detail": "{\"delivered_at_t\":2,\"binds_at_t\":2,\"rejected_at_t\":0,\"pending_buffer\":0,\"run_total_updates\":3,\"run_total_delivered\":6,\"atSnapshot\":0,\"source\":\"snapshot.counts_at\"}",
+      "at": "2026-10-17T11:17:04.770Z"
+    },
+    {
+      "step": "queue_replace_three",
+      "ok": true,
+      "detail": "3",
+      "at": "2026-10-17T11:17:05.767Z"
+    },
+    {
+      "step": "local_sql_listed",
+      "ok": true,
+      "detail": "files=12; full 2GB not replayed in browser (NOT_TESTED full-file)",
+      "at": "2026-10-17T11:17:05.891Z",
+      "note": true
+    },
+    {
+      "step": "window_fields_set",
+      "ok": true,
+      "detail": "timeFrom/to + maxRows=1 ready for formal import",
+      "at": "2026-10-17T11:17:05.914Z",
+      "note": true
+    },
+    {
+      "step": "no_page_errors",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-17T11:17:05.914Z"
+    },
+    {
+      "step": "real_multi_source_association",
+      "ok": true,
+      "detail": "BLOCKED",
+      "at": "2026-10-17T11:17:05.915Z",
+      "note": true
+    },
+    {
+      "step": "field_accuracy",
+      "ok": true,
+      "detail": "NOT_TESTED",
+      "at": "2026-10-17T11:17:05.915Z",
+      "note": true
+    }
+  ],
+  "page_errors": [],
+  "pass": true,
+  "verification_type": "playwright_round4_real_mouse_and_page_paths",
+  "real_multi_source": "BLOCKED",
+  "field_accuracy": "NOT_TESTED"
+}

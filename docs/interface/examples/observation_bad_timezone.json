@@ -1,0 +1,9 @@
+{
+  "observationId": "ex-bad-tz",
+  "source": "rid",
+  "detectorId": "DET-RID",
+  "sourceTrackId": "SN-A-001",
+  "aircraftId": "SN-A-001",
+  "measurementTime": "2026-04-09 12:00:01",
+  "comment": "无时区：标准入口应拒绝或要求显式假设档；禁止默默补 UTC"
+}

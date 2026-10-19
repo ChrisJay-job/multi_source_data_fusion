@@ -1,0 +1,29 @@
+{
+  "verification_type": "Actual JS with stub DOM/canvas, not browser E2E",
+  "only_A_truth_filter": {
+    "allows_B_truth": true,
+    "allows_B_plan": true,
+    "expected": false
+  },
+  "drag_waypoint": {
+    "after_drag_point_count": 3,
+    "expected": 2
+  },
+  "select_B_then_draw": {
+    "edited_first_x": 1,
+    "expected": 99
+  },
+  "load_mapping_template": {
+    "actual_tz": "Asia/Shanghai",
+    "expected_tz": "UTC",
+    "actual_raw_sn": false,
+    "expected_raw_sn": true
+  },
+  "new_file_selection_after_previous_run": {
+    "sent_files": [
+      "data/old.csv"
+    ],
+    "selected": "new.csv",
+    "expected": "new dataset replaces old queue or explicit editable queue"
+  }
+}

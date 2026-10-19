@@ -1,0 +1,49 @@
+{
+  "base": "http://127.0.0.1:18089",
+  "steps": [
+    {
+      "step": "ready",
+      "ok": true,
+      "at": "2026-10-17T11:00:32.518Z"
+    },
+    {
+      "step": "draw_edits_B_not_A",
+      "ok": true,
+      "detail": "{\"aN\":2,\"bN\":3,\"bLast\":{\"x_m\":181.91580756013747,\"y_m\":120.58823529411764,\"dwell_s\":0},\"editing\":true}",
+      "at": "2026-10-17T11:00:33.257Z"
+    },
+    {
+      "step": "drag_does_not_add_point",
+      "ok": true,
+      "detail": "{\"before\":3,\"after\":3,\"suppress\":false}",
+      "at": "2026-10-17T11:00:33.315Z"
+    },
+    {
+      "step": "only_A_all_layers",
+      "ok": true,
+      "detail": "{\"truthA\":true,\"truthB\":false,\"planB\":false,\"fused\":[\"SN-A-001\"]}",
+      "at": "2026-10-17T11:00:33.815Z"
+    },
+    {
+      "step": "counts_label_current_vs_total",
+      "ok": true,
+      "detail": "当前投递1／绑定1／拒绝0｜全程更新114／投递161 @0",
+      "at": "2026-10-17T11:00:33.980Z"
+    },
+    {
+      "step": "mapping_template_restores_tz",
+      "ok": true,
+      "detail": "{\"tz\":\"assume_utc\",\"raw\":true}",
+      "at": "2026-10-17T11:00:34.514Z"
+    },
+    {
+      "step": "no_page_errors",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-17T11:00:34.514Z"
+    }
+  ],
+  "page_errors": [],
+  "pass": true,
+  "verification_type": "playwright_round3_assertions"
+}

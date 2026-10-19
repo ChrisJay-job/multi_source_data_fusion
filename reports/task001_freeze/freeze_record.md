@@ -11,7 +11,9 @@
 | 包 SHA-256 | `29370c0243104075832efee751666a20594b81253568c820ef4a68208b0f5d12` |
 | engine.py SHA-256 | `6ce03fa4e732a470be7be531d5b80fd99393a121960ad02d3e7ecdc68bedc5a9` |
 | 工作区 vs 审查对象 | **一致** |
-| Tag | `task-001-three-source-fusion-mvp-v1` |
+| Tag | `task-001-three-source-fusion-mvp-v1` → `ed972014a0d7813ef805915502854b0f4260a058` |
+| Commit | `a80553fd43e1349fa2dfdfa670e1f92b7fcdca71`（branch `main`，未 push） |
+| 路径 | `d:\zwyl\02_algo_project\multi_source_data_fusion` |
 
 ## 通过边界（冻结时保留）
 

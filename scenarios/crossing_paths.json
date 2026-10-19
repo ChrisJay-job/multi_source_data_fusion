@@ -1,0 +1,129 @@
+{
+  "name": "crossing_paths",
+  "seed": 20261017,
+  "duration_s": 35.0,
+  "algorithmHint": "mvp-0.1.0",
+  "notes": "交叉航线：A RID 横向、B 频谱纵向",
+  "aircraft": [
+    {
+      "label": "A",
+      "truth_id": "TRUTH-A",
+      "rid_sn": "SN-A-001",
+      "speed_mps": 12,
+      "takeoff_offset_s": 0.0,
+      "waypoints": [
+        {
+          "x_m": -50,
+          "y_m": 100,
+          "dwell_s": 0.0
+        },
+        {
+          "x_m": 450,
+          "y_m": 100,
+          "dwell_s": 0.0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1.0,
+          "pos_noise_m": 3.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true
+        },
+        "spectrum": {
+          "period_s": 1.0,
+          "pos_noise_m": 5.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        },
+        "radar": {
+          "period_s": 1.0,
+          "pos_noise_m": 5.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        }
+      }
+    },
+    {
+      "label": "B",
+      "truth_id": "TRUTH-B",
+      "rid_sn": "SN-B-002",
+      "speed_mps": 12,
+      "takeoff_offset_s": 0.0,
+      "waypoints": [
+        {
+          "x_m": 200,
+          "y_m": -50,
+          "dwell_s": 0.0
+        },
+        {
+          "x_m": 200,
+          "y_m": 350,
+          "dwell_s": 0.0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1.0,
+          "pos_noise_m": 5.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        },
+        "spectrum": {
+          "period_s": 1.0,
+          "pos_noise_m": 8.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true
+        },
+        "radar": {
+          "period_s": 1.0,
+          "pos_noise_m": 5.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        }
+      }
+    }
+  ]
+}

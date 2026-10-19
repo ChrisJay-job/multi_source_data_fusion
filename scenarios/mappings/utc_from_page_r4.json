@@ -1,0 +1,21 @@
+{
+  "field_map": {
+    "observationId": "observationId",
+    "source": "source",
+    "sourceTrackId": "id",
+    "aircraftId": "aircraftId",
+    "measurementTime": "created_at",
+    "longitude": "longitude",
+    "latitude": "latitude",
+    "altitude": "altitude",
+    "detectorId": "detector",
+    "speed": "speed",
+    "heading": "heading",
+    "verticalSpeed": "verticalSpeed",
+    "altitudeDatum": "altitudeDatum",
+    "receivedAt": "receivedAt"
+  },
+  "source_timezone": null,
+  "assume_utc_naive": true,
+  "treat_raw_id_as_aircraftId": true
+}

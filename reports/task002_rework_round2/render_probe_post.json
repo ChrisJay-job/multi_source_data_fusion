@@ -1,0 +1,17 @@
+﻿{
+  "only_A_filter": {
+    "selected": "A",
+    "fused_points": 1,
+    "fused_history_lines": 1,
+    "expected_points": 1
+  },
+  "hide_prediction_history": {
+    "prediction_checkbox": false,
+    "solid_history_segments": [],
+    "predicted_positions_bridged_in_solid": false,
+    "expected_predicted_positions_in_solid_history": 0
+  },
+  "pass_only_A": true,
+  "pass_hide_pred": true,
+  "verification_type": "Node execution of actual canvas module with stub canvas, not browser"
+}

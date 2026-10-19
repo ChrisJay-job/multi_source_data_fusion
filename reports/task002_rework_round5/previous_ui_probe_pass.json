@@ -1,0 +1,40 @@
+{
+  "verification_type": "Actual app.js event handlers with DOM/network stubs; not browser E2E",
+  "queue_preserves_configured_files": {
+    "pass": true,
+    "expected_paths": [
+      "data/rid.csv",
+      "data/radar.csv"
+    ],
+    "sent": [
+      {
+        "path": "data/rid.csv",
+        "mapping": {
+          "source_timezone": "UTC"
+        }
+      },
+      {
+        "path": "data/radar.csv",
+        "mapping": {
+          "source_timezone": "Asia/Shanghai"
+        }
+      }
+    ]
+  },
+  "page_saved_utc_template": {
+    "pass": true,
+    "template": {
+      "field_map": {},
+      "source_timezone": null,
+      "assume_utc_naive": true,
+      "treat_raw_id_as_aircraftId": false
+    },
+    "actual_tz": "assume_utc",
+    "expected_tz": "assume_utc"
+  },
+  "future_rejection_at_start": {
+    "pass": true,
+    "actual": 0,
+    "expected": 0
+  }
+}

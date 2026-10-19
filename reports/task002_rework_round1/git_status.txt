@@ -1,0 +1,57 @@
+﻿## task-002-fusion-validation-workbench
+ M .gitignore
+ M README.md
+ M docs/openapi.yaml
+ M reports/task001_freeze/freeze_record.md
+ M requirements.txt
+ M src/fusion_mvp/api.py
+ M src/fusion_mvp/engine.py
+ M src/fusion_mvp/models.py
+?? .Knowledge/
+?? .cursor/
+?? data/
+?? demo/workbench/
+?? docs/interface/
+?? node_modules/
+?? package-lock.json
+?? package.json
+?? reports/change_manifest.md
+?? reports/data_profile.json
+?? reports/data_profile.md
+?? reports/field_mapping.md
+?? reports/performance.json
+?? reports/performance.md
+?? reports/real_replay.json
+?? reports/review_summary.md
+?? reports/task002/
+?? reports/task002_rework_round1/
+?? reports/test_results.md
+?? review_zip/REWORK_Round1/independent_probe_results.json
+?? review_zip/REWORK_Round1/review_regression_baseline.txt
+?? review_zip/REWORK_Round1/test_review_regressions.py
+?? review_zip/REWORK_Round2/audit_continuous.py
+?? review_zip/REWORK_Round2/continuous_audit_replay.json
+?? review_zip/REWORK_Round2/continuous_audit_results.json
+?? review_zip/REWORK_Round2/round2_regression_baseline.txt
+?? review_zip/REWORK_Round2/test_round2_regressions.py
+?? review_zip/REWORK_Round3/independent_audit_realtime.json
+?? review_zip/REWORK_Round3/independent_audit_replay.json
+?? review_zip/REWORK_Round3/round3_regression_baseline.txt
+?? review_zip/REWORK_Round3/test_round3_regressions.py
+?? review_zip/REWORK_Round4/baseline.txt
+?? review_zip/REWORK_Round4/reference_event_frontier_fix.patch
+?? review_zip/REWORK_Round4/reference_patch_test_summary.txt
+?? review_zip/REWORK_Round4/reference_realtime_audit.json
+?? review_zip/REWORK_Round4/reference_replay_audit.json
+?? review_zip/REWORK_Round4/test_round4_event_frontier.py
+?? review_zip/TASK002_REWORK_Round1/
+?? samples/workbench/
+?? scenarios/
+?? scripts/_finalize_task002_hash.py
+?? scripts/_w01_body.json
+?? scripts/browser_workbench_evidence.mjs
+?? scripts/pack_task002_bundle.py
+?? scripts/probe_canvas_round1.cjs
+?? src/fusion_mvp/workbench/
+?? tests/test_task002_review.py
+?? tests/test_workbench_w01_w10.py

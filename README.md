@@ -7,19 +7,27 @@
 - Docker（本机 WindowsApps Python 为占位，推荐容器）
 - 勿连生产库 / 已占用 `5432`/`15432`
 
-## 启动 API
+## 启动 API／验证台
 
 ```bash
 docker compose up api
-# 默认映射见 docker-compose；若 18088 占用可改宿主端口
+# 宿主端口 18089；占用时改 docker-compose.yml
 ```
 
 或：
 
 ```bash
 docker run --rm -p 127.0.0.1:18089:18089 -v "%CD%":/work -w /work -e PYTHONPATH=/work/src python:3.11-slim bash -c "pip install -q -r requirements.txt && uvicorn fusion_mvp.api:app --host 0.0.0.0 --port 18089"
-# 浏览器 http://127.0.0.1:18089/
 ```
+
+- 验证台：<http://127.0.0.1:18089/>
+- 旧演示：<http://127.0.0.1:18089/demo>
+- 健康：<http://127.0.0.1:18089/ready>
+
+TASK-001 基线 tag：`task-001-three-source-fusion-mvp-v1` → commit `a80553fd…`（本地，未 push）。  
+TASK-002：**FROZEN（本地）** tag `task-002-fusion-validation-workbench-v1`（分支 `task-002-fusion-validation-workbench`，未 push）。  
+冻结记录：`reports/task002_freeze/freeze_record.md`。  
+验证边界保留：真实三源关联 **BLOCKED**；现场精度 **NOT_TESTED**；全量约 2GB SQL **NOT_TESTED**。
 
 ## 测试
 

@@ -1,0 +1,8 @@
+﻿{
+  "rendered_at_snapshot": 0,
+  "visible_raw_points": 2,
+  "expected_visible_raw_points": 2,
+  "raw_polylines": [],
+  "pass_no_future_and_no_cross_track": true,
+  "verification_type": "render-logic stub (not browser E2E)"
+}

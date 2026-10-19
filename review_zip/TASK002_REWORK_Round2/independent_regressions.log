@@ -1,0 +1,26 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_____________ test_actual_sql_works_with_the_pages_default_mapping _____________
+task002_rework_r2/test_task002_round2.py:18: in test_actual_sql_works_with_the_pages_default_mapping
+    assert result['n_observations']==1,result
+E   AssertionError: {'by_source': {}, 'cooccurrence_note': '仅时间范围重叠不能标同目标同步；跨源共现需人工／评估模块确认', 'error_count': 1, 'errors_sample': [{'flags': ['missing_time'], 'line': 1, 'reason': 'bad_measurement_time'}], ...}
+E   assert 0 == 1
+_________ test_realtime_empty_ticks_are_included_in_processing_counts __________
+task002_rework_r2/test_task002_round2.py:26: in test_realtime_empty_ticks_are_included_in_processing_counts
+    assert result['counts']['processed_updates']==2,result['counts']
+E   AssertionError: {'delivered': 2, 'pending_buffer': 0, 'processed_hits': 1, 'processed_updates': 1, ...}
+E   assert 1 == 2
+_________ test_wrong_midflight_binding_is_not_erased_by_final_recovery _________
+task002_rework_r2/test_task002_round2.py:42: in test_wrong_midflight_binding_is_not_erased_by_final_recovery
+    assert r['false_merges'] or r['attribution_errors'] or not r['entity_check']['ok']
+E   assert ([] or [] or not True)
+_____________ test_duplicate_entity_cannot_have_entity_check_pass ______________
+task002_rework_r2/test_task002_round2.py:50: in test_duplicate_entity_cannot_have_entity_check_pass
+    assert not r['entity_check']['ok']
+E   assert not True
+=========================== short test summary info ============================
+FAILED task002_rework_r2/test_task002_round2.py::test_actual_sql_works_with_the_pages_default_mapping
+FAILED task002_rework_r2/test_task002_round2.py::test_realtime_empty_ticks_are_included_in_processing_counts
+FAILED task002_rework_r2/test_task002_round2.py::test_wrong_midflight_binding_is_not_erased_by_final_recovery
+FAILED task002_rework_r2/test_task002_round2.py::test_duplicate_entity_cannot_have_entity_check_pass
+4 failed in 0.75s

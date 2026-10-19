@@ -1,0 +1,15 @@
+{
+  "reviewed_archive_sha256": "553fb45485b467e7ae2be963b9abeee6e89fe8dc299aeb06698e951cbc9a3a51",
+  "original_suite": "52 passed, 1 warning in 3.03s",
+  "new_regressions": "7 failed, 1 warning in 0.97s",
+  "browser_e2e": "NOT_TESTED; render logic only via Node canvas stub",
+  "python": "3.12.14",
+  "versions": {
+    "pytest": "8.3.5",
+    "fastapi": "0.115.12",
+    "numpy": "2.2.5",
+    "scipy": "1.15.2",
+    "pydantic": "2.11.3",
+    "httpx": "0.28.1"
+  }
+}

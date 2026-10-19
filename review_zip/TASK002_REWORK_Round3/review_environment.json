@@ -1,0 +1,13 @@
+{
+  "reviewed_sha256": "a58cc6db7e66e8c6d1e95569bb8af9fd9c7fe2ef117d1d5f32104e4266b6dd55",
+  "python": "3.12.14",
+  "dependencies": "requirements.txt installed",
+  "submitted_environment": "Docker Python 3.11",
+  "existing_suite": "63 passed, 1 warning, 5.11s",
+  "new_regressions": "4 failed, 0.72s; see independent_regressions.log",
+  "previous_render_probe": "both pass",
+  "new_ui_probe": "5 discrepancies; actual submitted app.js/canvas.js executed with stubs",
+  "browser_scope": "submitted Playwright source and report reviewed; no independent browser E2E",
+  "engine_comparison_to_previous_bundle": "identical engine.py",
+  "verdict": "REWORK_REQUIRED"
+}

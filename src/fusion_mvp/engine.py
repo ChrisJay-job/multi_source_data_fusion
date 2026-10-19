@@ -950,8 +950,12 @@ class FusionSession:
                     sources=srcs,  # type: ignore[arg-type]
                     sourceTracks=[
                         SourceTrackRef(
-                            source=b.source, detectorId=b.detectorId, sourceTrackId=b.sourceTrackId,
-                            aircraftId=b.aircraftId, lastSeen=iso(b.lastSeen),
+                            source=b.source,
+                            detectorId=b.detectorId,
+                            sourceTrackId=b.sourceTrackId,
+                            aircraftId=b.aircraftId,
+                            lastSeen=iso(b.lastSeen),
+                            bindingStatus="confirmed" if b.confirmed else "candidate",
                         )
                         for b in tr.bindings.values()
                     ],

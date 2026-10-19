@@ -1,0 +1,103 @@
+{
+  "base": "http://127.0.0.1:18089",
+  "steps": [
+    {
+      "step": "ready",
+      "ok": true,
+      "at": "2026-10-19T01:49:44.025Z"
+    },
+    {
+      "step": "preview_stored",
+      "ok": true,
+      "detail": "data/uploads/32179f8bcdc44314b57e19e816ec0197_r5_filter_rows.jsonl",
+      "at": "2026-10-19T01:49:44.848Z"
+    },
+    {
+      "step": "page0_detector_D2",
+      "ok": true,
+      "detail": "{\"n\":1,\"id\":\"o2\",\"has_more\":true}",
+      "at": "2026-10-19T01:49:44.916Z"
+    },
+    {
+      "step": "page1_detector_D2",
+      "ok": true,
+      "detail": "{\"datasetId\":\"data/uploads/32179f8bcdc44314b57e19e816ec0197_r5_filter_rows.jsonl\",\"path\":\"data/uploads/32179f8bcdc44314b57e19e816ec0197_r5_filter_rows.jsonl\",\"offset\":1,\"limit\":1,\"n\":1,\"accepted\":2,\"scanned\":3,\"skipped_filter\":1,\"skipped_offset\":1,\"has_more\":false,\"next_offset\":null,\"materialized\":1,\"truncated\":false,\"filters\":{\"timeFrom\":null,\"timeTo\":null,\"detectorId\":\"D2\",\"lonMin\":null,\"lonMax\":null,\"latMin\":null,\"latMax\":null},\"observations\":[{\"observationId\":\"o3\",\"source\":\"rid\",\"detectorId\":\"D2\",\"sourceTrackId\":\"R\",\"aircraftId\":\"SN\",\"measurementTime\":\"2026-04-09T12:00:03+00:00\",\"receivedAt\":\"2026-04-09T12:00:03+00:00\",\"timeBasis\":\"measurement\",\"longitude\":117.4,\"latitude\":39.13,\"altitude\":null,\"altitudeDatum\":\"unknown\",\"speed\":null,\"heading\":null,\"verticalSpeed\":null,\"qualityFlags\":[\"receivedAt_proxied_from_measurement\"],\"rawRef\":{\"line\":3,\"receivedAtBasis\":\"proxy_measurementTime\"}}],\"n_errors\":0,\"errors_sample\":[]}",
+      "at": "2026-10-19T01:49:45.183Z"
+    },
+    {
+      "step": "formal_replay_D2_only",
+      "ok": true,
+      "detail": "{\"n\":2,\"dets\":[\"D2\"],\"ids\":[\"o2\",\"o3\"],\"filters\":{\"timeFrom\":null,\"timeTo\":null,\"detectorId\":\"D2\",\"lonMin\":null,\"lonMax\":null,\"latMin\":null,\"latMax\":null}}",
+      "at": "2026-10-19T01:49:45.294Z"
+    },
+    {
+      "step": "page_region_lonMin",
+      "ok": true,
+      "detail": "{\"datasetId\":\"data/uploads/32179f8bcdc44314b57e19e816ec0197_r5_filter_rows.jsonl\",\"path\":\"data/uploads/32179f8bcdc44314b57e19e816ec0197_r5_filter_rows.jsonl\",\"offset\":0,\"limit\":1,\"n\":1,\"accepted\":2,\"scanned\":3,\"skipped_filter\":1,\"skipped_offset\":0,\"has_more\":true,\"next_offset\":1,\"materialized\":1,\"truncated\":true,\"filters\":{\"timeFrom\":null,\"timeTo\":null,\"detectorId\":null,\"lonMin\":117.2,\"lonMax\":null,\"latMin\":null,\"latMax\":null},\"observations\":[{\"observationId\":\"o2\",\"source\":\"rid\",\"detectorId\":\"D2\",\"sourceTrackId\":\"R\",\"aircraftId\":\"SN\",\"measurementTime\":\"2026-04-09T12:00:02+00:00\",\"receivedAt\":\"2026-04-09T12:00:02+00:00\",\"timeBasis\":\"measurement\",\"longitude\":117.3,\"latitude\":39.13,\"altitude\":null,\"altitudeDatum\":\"unknown\",\"speed\":null,\"heading\":null,\"verticalSpeed\":null,\"qualityFlags\":[\"receivedAt_proxied_from_measurement\"],\"rawRef\":{\"line\":2,\"receivedAtBasis\":\"proxy_measurementTime\"}}],\"n_errors\":0,\"errors_sample\":[]}",
+      "at": "2026-10-19T01:49:45.418Z"
+    },
+    {
+      "step": "formal_replay_region",
+      "ok": true,
+      "detail": "{\"n\":2,\"ids\":[\"o2\",\"o3\"],\"minLon\":117.3}",
+      "at": "2026-10-19T01:49:46.270Z"
+    },
+    {
+      "step": "formal_late_window",
+      "ok": true,
+      "detail": "{\"n\":1,\"id\":\"o3\"}",
+      "at": "2026-10-19T01:49:47.167Z"
+    },
+    {
+      "step": "local_sql_filter_D2",
+      "ok": true,
+      "detail": "{\"ok\":true,\"n\":2,\"dets\":[\"D2\",\"D2\"],\"filters\":{\"timeFrom\":null,\"timeTo\":null,\"detectorId\":\"D2\",\"lonMin\":null,\"lonMax\":null,\"latMin\":null,\"latMax\":null},\"tracks\":2}",
+      "at": "2026-10-19T01:49:47.358Z"
+    },
+    {
+      "step": "local_sql_to_fusion",
+      "ok": true,
+      "detail": "n=2 tracks_final≈2; full 2GB NOT_TESTED",
+      "note": true,
+      "at": "2026-10-19T01:49:47.359Z"
+    },
+    {
+      "step": "queue_still_two",
+      "ok": true,
+      "detail": "2",
+      "at": "2026-10-19T01:49:48.490Z"
+    },
+    {
+      "step": "no_page_errors",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T01:49:48.490Z"
+    },
+    {
+      "step": "real_multi_source",
+      "ok": true,
+      "detail": "BLOCKED",
+      "note": true,
+      "at": "2026-10-19T01:49:48.490Z"
+    },
+    {
+      "step": "field_accuracy",
+      "ok": true,
+      "detail": "NOT_TESTED",
+      "note": true,
+      "at": "2026-10-19T01:49:48.490Z"
+    },
+    {
+      "step": "full_2gb_sql",
+      "ok": true,
+      "detail": "NOT_TESTED",
+      "note": true,
+      "at": "2026-10-19T01:49:48.490Z"
+    }
+  ],
+  "page_errors": [],
+  "pass": true,
+  "verification_type": "playwright_round5_filter_page_replay",
+  "real_multi_source": "BLOCKED",
+  "field_accuracy": "NOT_TESTED"
+}

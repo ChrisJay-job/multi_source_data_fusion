@@ -1,0 +1,4 @@
+measurementTime,sourceTrackId,detectorId,source,longitude,latitude
+2026-04-09T12:00:01Z,RAD-1,DET-RADAR,radar,117.2005,39.1302
+2026-04-09T12:00:02Z,RAD-1,DET-RADAR,radar,117.2015,39.1307
+2026-04-09T12:00:03Z,RAD-1,DET-RADAR,radar,117.2025,39.1312

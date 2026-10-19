@@ -6,7 +6,8 @@
 # local runtime / bulky data / secrets
 data/*.sql
 data/*.dump
-data/uploads/
+data/uploads/*
+!data/uploads/.gitkeep
 __pycache__/
 .pytest_cache/
 .venv/
@@ -36,3 +37,7 @@ Desktop.ini
 # regenerable reports noise
 reports/**/bundle_verify.txt
 reports/**/_env_probe.py
+
+# local browser tooling
+node_modules/
+package-lock.json

@@ -1,0 +1,18 @@
+{
+  "rendered_at_snapshot": 0,
+  "visible_raw_points": 3,
+  "expected_visible_raw_points": 2,
+  "raw_polylines": [
+    {
+      "n": 3,
+      "color": "#4cc9f0"
+    }
+  ],
+  "fused_points": 1,
+  "notes": [
+    "Future raw observations are already visible",
+    "One polyline joins sourceTrack A and B",
+    "No fused historical polyline is generated; only current point"
+  ],
+  "verification_type": "render-logic execution with canvas stub, not browser E2E"
+}

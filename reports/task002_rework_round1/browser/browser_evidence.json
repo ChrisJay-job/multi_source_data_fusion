@@ -1,0 +1,86 @@
+{
+  "base": "http://127.0.0.1:18089",
+  "page_errors": [],
+  "steps": [
+    {
+      "step": "open_workbench",
+      "ok": true,
+      "detail": "http://127.0.0.1:18089/",
+      "at": "2026-10-17T10:21:01.288Z"
+    },
+    {
+      "step": "health",
+      "ok": true,
+      "detail": "ready mvp-0.1.0",
+      "at": "2026-10-17T10:21:01.859Z"
+    },
+    {
+      "step": "load_editor",
+      "ok": true,
+      "detail": "aircraft_blocks=3",
+      "at": "2026-10-17T10:21:02.309Z"
+    },
+    {
+      "step": "run_starts_at_t0",
+      "ok": true,
+      "detail": "seek=0/87",
+      "at": "2026-10-17T10:21:03.217Z"
+    },
+    {
+      "step": "filter_only_fused",
+      "ok": true,
+      "detail": "screenshot 01_only_fused.png",
+      "at": "2026-10-17T10:21:03.741Z"
+    },
+    {
+      "step": "filter_hide_pred",
+      "ok": true,
+      "detail": "screenshot 02_hide_pred.png",
+      "at": "2026-10-17T10:21:04.185Z"
+    },
+    {
+      "step": "filter_only_A",
+      "ok": true,
+      "detail": "screenshot 03_only_A.png",
+      "at": "2026-10-17T10:21:04.561Z"
+    },
+    {
+      "step": "filter_only_rid",
+      "ok": true,
+      "detail": "screenshot 04_only_rid.png",
+      "at": "2026-10-17T10:21:05.046Z"
+    },
+    {
+      "step": "play_advances",
+      "ok": true,
+      "detail": "seek=2",
+      "at": "2026-10-17T10:21:06.494Z"
+    },
+    {
+      "step": "step",
+      "ok": true,
+      "detail": "seek=3",
+      "at": "2026-10-17T10:21:06.549Z"
+    },
+    {
+      "step": "seek_to_start",
+      "ok": true,
+      "detail": "seek=0",
+      "at": "2026-10-17T10:21:06.773Z"
+    },
+    {
+      "step": "rerun_after_edit",
+      "ok": true,
+      "detail": "duration=35",
+      "at": "2026-10-17T10:21:08.417Z"
+    },
+    {
+      "step": "real_tab",
+      "ok": true,
+      "detail": "选择 data/aircraft_flight_data.sql (2105.45 MB)选择 data/uploads/3a0417335d8549c4989722e2dc86a1c0_review.csv.meta.json (0.00 MB)选择 data/uploads/5924e05b95fe46fb9040af9be4f76077_review.csv.meta.json (0.00 MB)选择 data/uploads/605392978df847f98a93f87becc73f22_review.csv.meta.json (0.00 MB)选择 data/uploads/8f2669f8e89c4105b633c558d623fc1c_review.csv.meta.json (0.00 MB)选择 data/uploads/b1d2afcb94834b5fba3886149d915285_review.csv.meta.json (0.00 MB)选择 data/uploads/be8d399868b543a396366bfeeb974aa9_review.csv.meta.json (0.00 MB)选择 data/uploads/e5e0bb79b3284313bd9217448c29c607_aircraft_flight_data.sql (2105.45 MB)",
+      "at": "2026-10-17T10:21:08.884Z"
+    }
+  ],
+  "pass": true,
+  "verification_type": "playwright_chromium_headless"
+}

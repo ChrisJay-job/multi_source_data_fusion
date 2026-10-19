@@ -1,0 +1,8 @@
+﻿TASK-001 freeze tag=task-001-three-source-fusion-mvp-v1
+TASK-001 freeze commit=a80553fd43e1349fa2dfdfa670e1f92b7fcdca71
+branch=task-002-fusion-validation-workbench
+HEAD=a80553fd43e1349fa2dfdfa670e1f92b7fcdca71
+status=REVIEW_READY
+attempt=001
+round=1
+pushed=false

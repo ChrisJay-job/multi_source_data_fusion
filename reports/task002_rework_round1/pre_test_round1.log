@@ -1,0 +1,24 @@
+FFFFFFF                                                                  [100%]
+=================================== FAILURES ===================================
+/work/tests/test_task002_review.py:23: AssertionError: assert 0 == 1
+/work/tests/test_task002_review.py:23: AssertionError: assert 0 == 1
+/work/tests/test_task002_review.py:29: AssertionError: assert {'flags': ['timezone_required'], 'line': 1, 'reason': 'bad_measurement_time'} is None
+/work/tests/test_task002_review.py:50: AssertionError: Preview of two rows must not silently replace a three-row run
+/work/tests/test_task002_review.py:55: AssertionError: Current frontend requires observations to draw source layers
+/work/tests/test_task002_review.py:70: AssertionError: Radar-A falsely bound to C must fail evaluation
+/work/tests/test_task002_review.py:81: AssertionError: Changing arrival order must not falsify measurement timestamps
+=============================== warnings summary ===============================
+../usr/local/lib/python3.11/site-packages/starlette/testclient.py:37
+  /usr/local/lib/python3.11/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_task002_review.py::test_sql_recognizes_actual_dump_and_column_list[INSERT INTO "public"."aircraft_flight_data" VALUES ('A',117.2,39.13,40,8,90,'2026-04-09 12:00:01','tj-rid',NULL,'tcp','D',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);\n]
+FAILED tests/test_task002_review.py::test_sql_recognizes_actual_dump_and_column_list[INSERT INTO "public"."aircraft_flight_data" ("id","longitude","latitude") VALUES ('A',117.2,39.13);\n]
+FAILED tests/test_task002_review.py::test_explicit_named_timezone_is_applied
+FAILED tests/test_task002_review.py::test_preview_limit_is_not_actual_replay_dataset
+FAILED tests/test_task002_review.py::test_real_import_response_provides_raw_tracks_for_existing_canvas
+FAILED tests/test_task002_review.py::test_evaluator_catches_wrong_radar_truth_binding
+FAILED tests/test_task002_review.py::test_reorder_models_arrival_not_false_measurement_time
+7 failed, 1 warning in 1.45s

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-19",
+  "reviewed_sha256": "05fd9f8ab55e6b63180edc695e9be20246d729c6c70eabf7ef01e0f8bb04181c",
+  "python": "3.12.14",
+  "dependencies": "installed from requirements.txt",
+  "submitted_environment": "Docker Python 3.11",
+  "existing_tests": "71 passed, 1 warning, 4.80s",
+  "previous_js_probe": "independently run; 3/3 PASS; see previous_ui_probe_pass.json",
+  "new_tests": "5 failed, 0.62s; see independent_regressions.log",
+  "browser_scope": "submitted Playwright source and report reviewed; no independent browser E2E",
+  "engine_py": "identical to Round3",
+  "verdict": "REWORK_REQUIRED",
+  "remaining_root_categories": ["filter/page/replay selection consistency and bounded collection", "same-key same-time attribution ambiguity"]
+}

@@ -1,0 +1,100 @@
+{
+  "base": "http://127.0.0.1:18089",
+  "page_errors": [],
+  "steps": [
+    {
+      "step": "open",
+      "ok": true,
+      "detail": "http://127.0.0.1:18089/",
+      "at": "2026-10-17T10:42:47.768Z"
+    },
+    {
+      "step": "health",
+      "ok": true,
+      "at": "2026-10-17T10:42:48.233Z"
+    },
+    {
+      "step": "editor_loaded",
+      "ok": true,
+      "at": "2026-10-17T10:42:48.779Z"
+    },
+    {
+      "step": "seek_starts_0",
+      "ok": true,
+      "at": "2026-10-17T10:42:49.189Z"
+    },
+    {
+      "step": "mid_has_tracks",
+      "ok": true,
+      "detail": "{\"tIndex\":43,\"nTracks\":3,\"labels\":[\"A\",\"B\",\"C\"],\"fusionIds\":[\"F17f0736aa46f-00001\",\"F17f0736aa46f-00002\",\"F17f0736aa46f-00003\"],\"aircraftIds\":[\"SN-A-001\",\"SN-B-002\",\"SN-C-003\"]}",
+      "at": "2026-10-17T10:42:49.409Z"
+    },
+    {
+      "step": "only_A_fusion",
+      "ok": true,
+      "detail": "{\"allowedFusion\":[\"SN-A-001\"],\"forbiddenPresent\":false,\"obsA\":21}",
+      "at": "2026-10-17T10:42:49.548Z"
+    },
+    {
+      "step": "pred_layer_off",
+      "ok": true,
+      "detail": "{\"idx\":4,\"hasPred\":true,\"modes\":[\"predicted\"]}",
+      "at": "2026-10-17T10:42:49.740Z"
+    },
+    {
+      "step": "step_advances",
+      "ok": true,
+      "detail": "before=10 after=11",
+      "at": "2026-10-17T10:42:49.946Z"
+    },
+    {
+      "step": "pause_holds",
+      "ok": true,
+      "detail": "11 vs 11",
+      "at": "2026-10-17T10:42:50.597Z"
+    },
+    {
+      "step": "disable_C_spectrum_ui",
+      "ok": true,
+      "at": "2026-10-17T10:42:50.950Z"
+    },
+    {
+      "step": "run_body_has_scenario",
+      "ok": true,
+      "detail": "[\"scenarioName\",\"mode\",\"seed\",\"scenario\"]",
+      "at": "2026-10-17T10:42:53.018Z"
+    },
+    {
+      "step": "run_body_C_spectrum_off",
+      "ok": true,
+      "detail": "enabled=false",
+      "at": "2026-10-17T10:42:53.018Z"
+    },
+    {
+      "step": "field_map_form",
+      "ok": true,
+      "detail": "fmap=14",
+      "at": "2026-10-17T10:42:53.577Z"
+    },
+    {
+      "step": "local_no_meta",
+      "ok": true,
+      "detail": "选择 data/aircraft_flight_data.sql (2105.45 MB)选择 data/uploads/e5e0bb79b3284313bd9217448c29c607_aircraft_flight_data.sql (2105.45 MB)",
+      "at": "2026-10-17T10:42:53.578Z"
+    },
+    {
+      "step": "tz_shanghai_default",
+      "ok": true,
+      "detail": "Asia/Shanghai",
+      "at": "2026-10-17T10:42:53.581Z"
+    },
+    {
+      "step": "no_page_errors",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-17T10:42:53.694Z"
+    }
+  ],
+  "pass": true,
+  "verification_type": "playwright_chromium_with_assertions"
+}

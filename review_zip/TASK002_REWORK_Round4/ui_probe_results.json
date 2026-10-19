@@ -1,0 +1,48 @@
+{
+  "verification_type": "Actual app.js event handlers with DOM/network stubs; not browser E2E",
+  "queue_preserves_configured_files": {
+    "pass": false,
+    "expected_paths": [
+      "data/rid.csv",
+      "data/radar.csv"
+    ],
+    "sent": [
+      {
+        "path": "data/new.csv",
+        "mapping": {
+          "field_map": {
+            "measurementTime": "created_at",
+            "sourceTrackId": "id",
+            "detectorId": "detector",
+            "source": "source",
+            "longitude": "longitude",
+            "latitude": "latitude",
+            "altitude": "altitude"
+          },
+          "source_timezone": null,
+          "assume_utc_naive": false,
+          "treat_raw_id_as_aircraftId": false
+        },
+        "maxRows": 100,
+        "source": null,
+        "preview_n": 1
+      }
+    ]
+  },
+  "page_saved_utc_template": {
+    "pass": false,
+    "template": {
+      "field_map": {},
+      "source_timezone": null,
+      "assume_utc_naive": true,
+      "treat_raw_id_as_aircraftId": false
+    },
+    "actual_tz": "Asia/Shanghai",
+    "expected_tz": "assume_utc"
+  },
+  "future_rejection_at_start": {
+    "pass": false,
+    "actual": 1,
+    "expected": 0
+  }
+}
