@@ -128,6 +128,9 @@ class WorkbenchRunner:
         obs_truth_map: Optional[dict[str, str]] = None,
         expected_stable_entities: Optional[dict[str, set[str]]] = None,
         stable_window: Optional[tuple[str, str]] = None,
+        eval_phases: Optional[list[dict[str, Any]]] = None,
+        scenario: Optional[dict[str, Any]] = None,
+        scenario_t0: Optional[str] = None,
         time_step_s: Optional[float] = None,
     ) -> dict[str, Any]:
         sid = session_id or f"wb-{uuid4().hex[:10]}"
@@ -228,6 +231,7 @@ class WorkbenchRunner:
 
         eval_out = None
         if obs_truth_map is not None:
+            life = (self.cfg or {}).get("lifecycle") or {}
             eval_out = evaluate_run(
                 snapshots_by_time=snapshots,
                 obs_truth_map=obs_truth_map,
@@ -236,6 +240,11 @@ class WorkbenchRunner:
                 events=events,
                 expected_stable_entities=expected_stable_entities,
                 stable_window=stable_window,
+                eval_phases=eval_phases,
+                scenario=scenario,
+                lifecycle_cfg=life,
+                rid_fresh_s=float((self.cfg or {}).get("rid_fresh_s") or 2.5),
+                scenario_t0=scenario_t0,
             )
 
         return {
@@ -249,42 +258,40 @@ class WorkbenchRunner:
             "final_tracks": snapshots[-1]["tracks"] if snapshots else [],
             "evaluation": eval_out,
             "stable_window": list(stable_window) if stable_window else None,
+            "eval_phases": eval_phases,
             "truth_leaked_to_algorithm": not leak_ok,
             "truth_leak_check": "scanned_process_inputs_for_truth_keys",
         }
 
     def run_scenario_bundle(self, bundle: dict[str, Any], *, mode: str = "realtime") -> dict[str, Any]:
-        expected = {
-            "TRUTH-A": {"rid"},
-            "TRUTH-B": {"spectrum"},
-            "TRUTH-C": {"rid", "spectrum", "radar"},
-        }
+        from .scenario import (
+            evaluation_phases_from_bundle,
+            expected_sources_from_scenario,
+            stable_window_from_bundle,
+        )
+
+        sc = bundle.get("scenario") or {}
+        expected = expected_sources_from_scenario(sc) or None
         clean = []
         for o in bundle["observations"]:
             row = {k: v for k, v in o.items() if k not in {"truth_id", "truthId", "expectedFusionId"}}
             clean.append(row)
-        name = bundle.get("scenario", {}).get("name")
-        stable_window = None
-        if name == "three_aircraft_primary":
-            # After confirmation (~12s), before end-of-scenario source drop-off
-            t0_raw = bundle.get("t0")
-            if t0_raw:
-                t0_dt = datetime.fromisoformat(str(t0_raw).replace("Z", "+00:00"))
-            else:
-                mts = [o.get("measurementTime") for o in clean if o.get("measurementTime")]
-                t0_dt = datetime.fromisoformat(min(mts).replace("Z", "+00:00")) if mts else None
-            duration = float((bundle.get("scenario") or {}).get("duration_s") or 40.0)
-            if t0_dt is not None:
-                stable_window = (
-                    (t0_dt + timedelta(seconds=12.0)).isoformat(),
-                    (t0_dt + timedelta(seconds=max(15.0, duration - 5.0))).isoformat(),
-                )
+        phases = evaluation_phases_from_bundle(bundle) if expected else []
+        stable_window = stable_window_from_bundle(bundle) if expected else None
+        # No meaningful evaluable phase → do not claim entity completeness PASS
+        if expected and not any(p.get("available") and p.get("window") for p in phases):
+            expected = None
+            phases = []
+            stable_window = None
         return self.run_batch_replay(
             clean,
             mode=mode,
             obs_truth_map=bundle.get("obs_truth_map"),
-            expected_stable_entities=expected if name == "three_aircraft_primary" else None,
+            expected_stable_entities=expected,
             stable_window=stable_window,
+            eval_phases=phases or None,
+            scenario=sc,
+            scenario_t0=bundle.get("t0"),
             batch_size=40,
             time_step_s=1.0 if mode == "realtime" else None,
         )

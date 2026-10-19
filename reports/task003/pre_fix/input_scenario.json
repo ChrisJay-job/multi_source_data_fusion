@@ -1,0 +1,240 @@
+{
+  "name": "three_aircraft_primary",
+  "seed": 20261019,
+  "duration_s": 40,
+  "algorithmHint": "mvp-0.1.0",
+  "notes": "首要验收：A仅RID、B仅频谱、C三源；稳定后3个实体且C同源归并",
+  "aircraft": [
+    {
+      "label": "A",
+      "truth_id": "TRUTH-A",
+      "rid_sn": "SN-A-001",
+      "speed_mps": 10,
+      "takeoff_offset_s": 0,
+      "waypoints": [
+        {
+          "x_m": 0,
+          "y_m": 0,
+          "dwell_s": 0
+        },
+        {
+          "x_m": 400,
+          "y_m": 40,
+          "dwell_s": 0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1,
+          "pos_noise_m": 3,
+          "bias_east_m": 0,
+          "bias_north_m": 0,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true
+        },
+        "spectrum": {
+          "period_s": 1,
+          "pos_noise_m": 5,
+          "bias_east_m": 0,
+          "bias_north_m": 0,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        },
+        "radar": {
+          "period_s": 1,
+          "pos_noise_m": 5,
+          "bias_east_m": 0,
+          "bias_north_m": 0,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        }
+      }
+    },
+    {
+      "label": "B",
+      "truth_id": "TRUTH-B",
+      "rid_sn": "SN-B-002",
+      "speed_mps": 10,
+      "takeoff_offset_s": 0.5,
+      "waypoints": [
+        {
+          "x_m": 0,
+          "y_m": 200,
+          "dwell_s": 0
+        },
+        {
+          "x_m": 400,
+          "y_m": 240,
+          "dwell_s": 0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1,
+          "pos_noise_m": 5,
+          "bias_east_m": 0,
+          "bias_north_m": 0,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        },
+        "spectrum": {
+          "period_s": 1.2,
+          "pos_noise_m": 8,
+          "bias_east_m": 2,
+          "bias_north_m": 0,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true
+        },
+        "radar": {
+          "period_s": 1,
+          "pos_noise_m": 5,
+          "bias_east_m": 0,
+          "bias_north_m": 0,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        }
+      }
+    },
+    {
+      "label": "C",
+      "truth_id": "TRUTH-C",
+      "rid_sn": "SN-C-003",
+      "speed_mps": 11,
+      "takeoff_offset_s": 1,
+      "waypoints": [
+        {
+          "x_m": 50,
+          "y_m": 100,
+          "dwell_s": 0
+        },
+        {
+          "x_m": 450,
+          "y_m": 120,
+          "dwell_s": 0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1,
+          "pos_noise_m": 3,
+          "bias_east_m": 0,
+          "bias_north_m": 0,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        },
+        "spectrum": {
+          "period_s": 1.5,
+          "pos_noise_m": 10,
+          "bias_east_m": 0,
+          "bias_north_m": -3,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false
+        },
+        "radar": {
+          "period_s": 2,
+          "pos_noise_m": 15,
+          "bias_east_m": 0,
+          "bias_north_m": 0,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "clock_bias_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true
+        }
+      }
+    },
+    {
+      "label": "D",
+      "truth_id": "TRUTH-D",
+      "rid_sn": "SN-X-4",
+      "speed_mps": 12,
+      "takeoff_offset_s": 0,
+      "waypoints": [
+        {
+          "x_m": 0,
+          "y_m": 160,
+          "dwell_s": 0
+        },
+        {
+          "x_m": 300,
+          "y_m": 160,
+          "dwell_s": 0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "enabled": true,
+          "period_s": 1,
+          "pos_noise_m": 3,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null
+        },
+        "spectrum": {
+          "enabled": true,
+          "period_s": 1,
+          "pos_noise_m": 8,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null
+        },
+        "radar": {
+          "enabled": true,
+          "period_s": 2,
+          "pos_noise_m": 15,
+          "delay_s": 0,
+          "drop_prob": 0,
+          "reorder_window_s": 0,
+          "outage": [],
+          "radar_id_swap_at_s": null
+        }
+      }
+    }
+  ]
+}

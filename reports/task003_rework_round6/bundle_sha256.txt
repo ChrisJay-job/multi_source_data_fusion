@@ -1,0 +1,2 @@
+aed2f61ae43f643e9fc10513387c326a252b6f27a4571ed4b3158bf68093b880  TASK-003-attempt-001-rework-round6-review-bundle.zip
+# external hash only; not embedded inside the zip

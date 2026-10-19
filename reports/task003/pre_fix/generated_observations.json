@@ -1,0 +1,112 @@
+{
+  "n_obs": 197,
+  "radar_ids": [
+    "radar-C",
+    "radar-C-v2",
+    "radar-D",
+    "radar-D-v2"
+  ],
+  "obs_truth_map_n": 197,
+  "obs_sample": [
+    {
+      "observationId": "syn-20261019-00001",
+      "source": "rid",
+      "detectorId": "DET-RID",
+      "sourceTrackId": "SN-A-001",
+      "aircraftId": "SN-A-001",
+      "measurementTime": "2026-04-09T12:00:00+00:00",
+      "receivedAt": "2026-04-09T12:00:00+00:00",
+      "timeBasis": "measurement",
+      "longitude": 117.20008375307795,
+      "latitude": 39.12998504952888,
+      "altitude": null,
+      "altitudeDatum": "unknown",
+      "speed": null,
+      "heading": null,
+      "verticalSpeed": null,
+      "qualityFlags": [
+        "synthetic"
+      ]
+    },
+    {
+      "observationId": "syn-20261019-00095",
+      "source": "rid",
+      "detectorId": "DET-RID",
+      "sourceTrackId": "SN-X-4",
+      "aircraftId": "SN-X-4",
+      "measurementTime": "2026-04-09T12:00:00+00:00",
+      "receivedAt": "2026-04-09T12:00:00+00:00",
+      "timeBasis": "measurement",
+      "longitude": 117.20003743369163,
+      "latitude": 39.13146881582021,
+      "altitude": null,
+      "altitudeDatum": "unknown",
+      "speed": null,
+      "heading": null,
+      "verticalSpeed": null,
+      "qualityFlags": [
+        "synthetic"
+      ]
+    },
+    {
+      "observationId": "syn-20261019-00136",
+      "source": "spectrum",
+      "detectorId": "DET-SPECTRUM",
+      "sourceTrackId": "SN-X-4",
+      "aircraftId": "SN-X-4",
+      "measurementTime": "2026-04-09T12:00:00+00:00",
+      "receivedAt": "2026-04-09T12:00:00+00:00",
+      "timeBasis": "measurement",
+      "longitude": 117.19986717544467,
+      "latitude": 39.131371467002964,
+      "altitude": null,
+      "altitudeDatum": "unknown",
+      "speed": null,
+      "heading": null,
+      "verticalSpeed": null,
+      "qualityFlags": [
+        "synthetic"
+      ]
+    },
+    {
+      "observationId": "syn-20261019-00177",
+      "source": "radar",
+      "detectorId": "DET-RADAR",
+      "sourceTrackId": "radar-D",
+      "aircraftId": null,
+      "measurementTime": "2026-04-09T12:00:00+00:00",
+      "receivedAt": "2026-04-09T12:00:00+00:00",
+      "timeBasis": "measurement",
+      "longitude": 117.20013230446408,
+      "latitude": 39.1315250089756,
+      "altitude": null,
+      "altitudeDatum": "unknown",
+      "speed": null,
+      "heading": null,
+      "verticalSpeed": null,
+      "qualityFlags": [
+        "synthetic"
+      ]
+    },
+    {
+      "observationId": "syn-20261019-00042",
+      "source": "spectrum",
+      "detectorId": "DET-SPECTRUM",
+      "sourceTrackId": "SN-B-002",
+      "aircraftId": "SN-B-002",
+      "measurementTime": "2026-04-09T12:00:00.500000+00:00",
+      "receivedAt": "2026-04-09T12:00:00.500000+00:00",
+      "timeBasis": "measurement",
+      "longitude": 117.20012085281974,
+      "latitude": 39.13174793323309,
+      "altitude": null,
+      "altitudeDatum": "unknown",
+      "speed": null,
+      "heading": null,
+      "verticalSpeed": null,
+      "qualityFlags": [
+        "synthetic"
+      ]
+    }
+  ]
+}

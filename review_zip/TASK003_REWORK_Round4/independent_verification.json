@@ -1,0 +1,10 @@
+{
+  "bundle_sha256": "8d5dfe40707a3ddb175f75158876e28ab67fd03416d1a07294854dcc44449e4c",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "full_regression": "92 passed, 1 warning in 105.99s",
+  "previous_phase_counterexamples": "2 passed in 3.50s",
+  "new_lifecycle_counterexamples": "3 failed in 3.01s",
+  "node": "original episode + history probes passed",
+  "browser": "submitted script/JSON reviewed; no independent browser execution",
+  "conclusion": "REWORK_REQUIRED"
+}

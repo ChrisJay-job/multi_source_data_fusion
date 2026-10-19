@@ -1,0 +1,6 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+/work/tests/test_task003_recovery_evaluation.py:23: AssertionError: {'entity_check': {'details': [{'at': '2026-04-09T12:00:08+00:00', 'fusionId': 'F58c27b3662fa-00001', 'ok': True, 'sour...ors': True, 'ok': True, 'status': 'PASS'}, 'stable_window': ['2026-04-09T12:00:08+00:00', '2026-04-09T12:00:11+00:00']}
+=========================== short test summary info ============================
+FAILED tests/test_task003_recovery_evaluation.py::test_missing_target_after_outage_recovery_cannot_pass_whole_run
+1 failed in 0.74s

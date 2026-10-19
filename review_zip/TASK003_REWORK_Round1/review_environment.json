@@ -1,0 +1,10 @@
+{
+ "reviewed_sha256":"952182a63de37fec1d201e43b4add6001e86ac48768d3779f1a3b4be2627f90b",
+ "runtime":"Python3.12.14; requirements.txt installed; submitted Docker3.11",
+ "existing_tests":"83 passed, 1 warning, 14.86s",
+ "new_regressions":"2 failed, 0.60s",
+ "scenario_reruns":{"four_original":"PASS, 197 observations","four_explicit_swap20":"PASS, 197 observations","seven":"PASS, 375 observations"},
+ "render_probe":"actual canvas.js, seven run 250 snapshots: fused history lines=0, pink points=1; current/pred/raw/truth/plan disabled",
+ "browser_scope":"submitted scripts and reports reviewed, no independent browser E2E",
+ "verdict":"REWORK_REQUIRED"
+}

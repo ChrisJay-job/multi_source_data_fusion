@@ -1,0 +1,56 @@
+{
+  "verification_type": "actual JS with stubs, not browser E2E",
+  "fused_only": {
+    "tIndex": 212,
+    "history_lines": [
+      {
+        "n": 33,
+        "color": "#f72585",
+        "dash": false
+      },
+      {
+        "n": 32,
+        "color": "#f72585",
+        "dash": false
+      },
+      {
+        "n": 32,
+        "color": "#f72585",
+        "dash": false
+      },
+      {
+        "n": 32,
+        "color": "#f72585",
+        "dash": false
+      },
+      {
+        "n": 27,
+        "color": "#f72585",
+        "dash": false
+      },
+      {
+        "n": 43,
+        "color": "#f72585",
+        "dash": false
+      },
+      {
+        "n": 16,
+        "color": "#f72585",
+        "dash": false
+      }
+    ],
+    "history_line_count": 7,
+    "history_and_current_points": 0,
+    "snapshots": 250
+  },
+  "result_panel": {
+    "html": "<div>当前时刻：预期可见 <b>—</b> · 算法目标 <b>0</b></div><div class=\"muted\">整次评估（仿真，非现场准确率）：<b>FAIL</b> · ok=false</div><div class=\"muted\">无目标</div>",
+    "shows_FAIL": true,
+    "anomaly_html": "<li data-ai=\"0\" data-seek=\"2026-04-09T12:00:01Z\" data-t=\"1775736001000\" data-fid=\"F-A\">误关联 F-A：TRUTH-A/TRUTH-C @ 2026-04-09T12:00:01Z</li>",
+    "anomaly_has_merge": true
+  },
+  "expired_sources": {
+    "algorithm_active": [],
+    "page_active": []
+  }
+}

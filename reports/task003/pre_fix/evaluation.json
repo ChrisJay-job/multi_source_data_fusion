@@ -1,0 +1,1360 @@
+{
+  "n_tracks_final": 4,
+  "n_delivered": 197,
+  "n_rejected": 0,
+  "false_merges": [
+    {
+      "fusionId": "Fa3f894d2dd7e-00001",
+      "truth_ids": [
+        "TRUTH-A",
+        "TRUTH-C"
+      ],
+      "via": "radar|DET-RADAR|radar-C-v2",
+      "at": "2026-04-09T12:00:39+00:00"
+    },
+    {
+      "fusionId": "Fa3f894d2dd7e-00001",
+      "truth_ids": [
+        "TRUTH-A",
+        "TRUTH-C"
+      ],
+      "at": "2026-04-09T12:00:43+00:00"
+    }
+  ],
+  "attribution_errors": [
+    {
+      "fusionId": "Fa3f894d2dd7e-00001",
+      "sourceKey": "radar|DET-RADAR|radar-C-v2",
+      "track_truth": "TRUTH-A",
+      "obs_truths": [
+        "TRUTH-C"
+      ],
+      "reason": "foreign_source_bound",
+      "at": "2026-04-09T12:00:39+00:00"
+    }
+  ],
+  "undetermined": [],
+  "duplicate_targets": [],
+  "fusion_to_truth": {
+    "Fa3f894d2dd7e-00001": "TRUTH-A",
+    "Fa3f894d2dd7e-00002": "TRUTH-D",
+    "Fa3f894d2dd7e-00003": "TRUTH-B"
+  },
+  "entity_check": {
+    "ok": false,
+    "details": [
+      {
+        "error": "false_attribution_or_merge",
+        "n_attr": 1,
+        "n_merge": 2,
+        "n_dup": 0
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:12+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:12+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:12+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:12+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:12.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:12.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:12.500000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:12.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:13+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:13+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:13+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:13+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:13.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:13.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:13.700000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:13.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:14+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:14+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:14+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:14+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:14.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:14.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:14.900000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:14.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:15+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:15+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:15+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:15+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:16+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:16+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:16+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:16+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:16.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:16.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:16.100000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:16.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:17+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:17+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:17+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:17+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:17.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:17.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:17.300000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:17.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:18+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:18+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:18+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:18+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:18.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:18.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:18.500000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:18.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:19+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:19+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:19+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:19+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:19.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:19.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:19.700000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:19.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:20+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:20+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:20+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:20+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:20.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:20.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:20.900000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:20.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:21+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:21+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:21+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:21+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:22+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:22+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:22+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:22+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:22.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:22.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:22.100000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:22.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:23+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:23+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:23+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:23+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:23.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:23.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:23.300000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:23.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:24+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:24+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:24+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:24+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:24.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:24.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:24.500000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:24.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:25+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:25+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:25+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:25+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:25.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:25.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:25.700000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:25.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:26+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:26+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:26+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:26+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:26.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:26.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:26.900000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:26.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:27+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:27+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:27+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:27+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:28+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:28+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:28+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:28+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:28.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:28.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:28.100000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:28.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:29+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:29+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:29+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:29+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:29.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:29.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:29.300000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:29.300000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:30+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:30+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:30+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:30+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:30.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:30.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:30.500000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:30.500000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:31+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:31+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:31+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:31+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:31.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:31.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:31.700000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:31.700000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:32+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:32+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:32+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:32+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:32.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:32.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:32.900000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:32.900000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:33+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:33+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:33+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:33+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:34+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:34+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:34+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:34+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:34.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:34.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:34.100000+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:34.100000+00:00"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "sources": [
+          "rid"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:35+00:00"
+      },
+      {
+        "truth_id": "TRUTH-B",
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "sources": [
+          "spectrum"
+        ],
+        "ok": true,
+        "at": "2026-04-09T12:00:35+00:00"
+      },
+      {
+        "truth_id": "TRUTH-C",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:35+00:00"
+      },
+      {
+        "error": "extra_entities",
+        "fusionIds": [
+          "Fa3f894d2dd7e-00002"
+        ],
+        "at": "2026-04-09T12:00:35+00:00"
+      }
+    ],
+    "status": "FAIL",
+    "no_known_attribution_errors": false
+  },
+  "event_types": [
+    "bind_regate_fail",
+    "predicted",
+    "reacquired",
+    "secondary_bind_only",
+    "source_bound",
+    "track_born"
+  ],
+  "denominators": {
+    "delivered_observations": 197,
+    "rejected_observations": 0,
+    "snapshots_evaluated": 75,
+    "note": "全过程评估；同键同刻保留真值集合；稳定窗逐帧检查"
+  }
+}

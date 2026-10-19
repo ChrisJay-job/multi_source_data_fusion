@@ -1,0 +1,2141 @@
+[
+  {
+    "processingTime": "2026-04-09T12:00:30+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:26.900000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:27+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:30.500000+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:28.100000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:27+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:31+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:28.100000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:31.700000+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:28+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:29.300000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:32+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:29.300000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:32.900000+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:30.500000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:29+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:33+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:31+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:31+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:31+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:30+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:30.500000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:31+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:34+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:31.700000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:31+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:34.100000+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:31.700000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:31+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:35+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:32.900000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:35.300000+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:32+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:32.900000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:36+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:32.900000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:36.500000+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:34.100000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:33+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:37+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:34.100000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:37.700000+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:34+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:35.300000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:38+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:35.300000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:38.900000+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:36.500000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:35+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:39+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:37+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:37+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:37+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:36+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:36.500000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:37+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:40+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:38+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:38+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:38+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:38+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:37.700000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:37+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "processingTime": "2026-04-09T12:00:43+00:00",
+    "tracks": [
+      {
+        "fusionId": "Fa3f894d2dd7e-00001",
+        "aircraftId": "SN-A-001",
+        "sources": [
+          "rid",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-A-001",
+            "aircraftId": "SN-A-001",
+            "lastSeen": "2026-04-09T12:00:40+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:39+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00002",
+        "aircraftId": "SN-X-4",
+        "sources": [
+          "rid",
+          "spectrum",
+          "radar"
+        ],
+        "sourceTracks": [
+          {
+            "source": "rid",
+            "detectorId": "DET-RID",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:40+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-X-4",
+            "aircraftId": "SN-X-4",
+            "lastSeen": "2026-04-09T12:00:40+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:18+00:00",
+            "bindingStatus": "confirmed"
+          },
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-D-v2",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:40+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00003",
+        "aircraftId": "SN-B-002",
+        "sources": [
+          "spectrum"
+        ],
+        "sourceTracks": [
+          {
+            "source": "spectrum",
+            "detectorId": "DET-SPECTRUM",
+            "sourceTrackId": "SN-B-002",
+            "aircraftId": "SN-B-002",
+            "lastSeen": "2026-04-09T12:00:38.900000+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      },
+      {
+        "fusionId": "Fa3f894d2dd7e-00004",
+        "aircraftId": null,
+        "sources": [],
+        "sourceTracks": [
+          {
+            "source": "radar",
+            "detectorId": "DET-RADAR",
+            "sourceTrackId": "radar-C",
+            "aircraftId": null,
+            "lastSeen": "2026-04-09T12:00:19+00:00",
+            "bindingStatus": "confirmed"
+          }
+        ]
+      }
+    ]
+  }
+]

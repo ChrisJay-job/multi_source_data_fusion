@@ -46,7 +46,7 @@ if wb_dir.exists():
 
 
 class ScenarioRunRequest(BaseModel):
-    scenarioName: str = "three_aircraft_primary"
+    scenarioName: str = "seven_aircraft_combinations"
     mode: str = "realtime"
     seed: Optional[int] = None
     scenario: Optional[dict[str, Any]] = None  # editor body; overrides name when present

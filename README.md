@@ -25,9 +25,9 @@ docker run --rm -p 127.0.0.1:18089:18089 -v "%CD%":/work -w /work -e PYTHONPATH=
 - 健康：<http://127.0.0.1:18089/ready>
 
 TASK-001 基线 tag：`task-001-three-source-fusion-mvp-v1` → commit `a80553fd…`（本地，未 push）。  
-TASK-002：**FROZEN（本地）** tag `task-002-fusion-validation-workbench-v1`（分支 `task-002-fusion-validation-workbench`，未 push）。  
-冻结记录：`reports/task002_freeze/freeze_record.md`。  
-验证边界保留：真实三源关联 **BLOCKED**；现场精度 **NOT_TESTED**；全量约 2GB SQL **NOT_TESTED**。
+TASK-002：**FROZEN（本地）** tag `task-002-fusion-validation-workbench-v1` → `5749a240…`（未 push）。  
+TASK-003：**FROZEN（本地）** tag `task-003-workbench-usability-and-association-v1`（未 push）。七机可用性、轨迹显示与关联评估契约见 `reports/task003*`；冻结记录 `TASK-003-local-freeze-record.md`。  
+验证边界保留：真实三源关联 **BLOCKED**；现场精度 **NOT_TESTED**；全量约 2GB SQL **NOT_TESTED**；全部目标坐标逐点浏览器验收未完整覆盖。不代表客户/现场验收通过。
 
 ## 测试
 

@@ -1,0 +1,35 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_arbitrary_id_spelling_does_not_bypass_motion_gates ____________
+
+    def test_arbitrary_id_spelling_does_not_bypass_motion_gates():
+        a,ra=run_new('new-id');b,rb=run_new('R-v2')
+>       assert len(ra.tracks)==len(rb.tracks), {'unrelated_id_targets':len(ra.tracks),'suffix_id_targets':len(rb.tracks),'suffix_events':[e.type for e in rb.events]}
+E       AssertionError: {'suffix_events': ['radar_id_swap_handoff', 'source_bound'], 'suffix_id_targets': 1, 'unrelated_id_targets': 2}
+E       assert 2 == 1
+E        +  where 2 = len([TargetSnapshot(fusionId='F5a3176d2b655-00001', trackSegmentId='S1', aircraftId=None, longitude=117.20000000000002, la...None, lastSeen='2026-04-09T12:00:01+00:00', bindingStatus='confirmed')], qualityFlags=['heading_missing'], aliases=[])])
+E        +    where [TargetSnapshot(fusionId='F5a3176d2b655-00001', trackSegmentId='S1', aircraftId=None, longitude=117.20000000000002, la...None, lastSeen='2026-04-09T12:00:01+00:00', bindingStatus='confirmed')], qualityFlags=['heading_missing'], aliases=[])] = ProcessResponse(sessionId='review', batchId='b1', epoch='5a3176d2b655', snapshotSeq=2, algorithmVersion='mvp-0.1.0', c...12:00:01+00:00', fusionId='F5a3176d2b655-00001', payload={'eventId': 'E5a3176d2b655-000008', 'gap': 1.0})], error=None).tracks
+E        +  and   1 = len([TargetSnapshot(fusionId='F121e8b6fbb68-00001', trackSegmentId='S1', aircraftId=None, longitude=117.20108771544413, la...None, lastSeen='2026-04-09T12:00:01+00:00', bindingStatus='confirmed')], qualityFlags=['heading_missing'], aliases=[])])
+E        +    where [TargetSnapshot(fusionId='F121e8b6fbb68-00001', trackSegmentId='S1', aircraftId=None, longitude=117.20108771544413, la...None, lastSeen='2026-04-09T12:00:01+00:00', bindingStatus='confirmed')], qualityFlags=['heading_missing'], aliases=[])] = ProcessResponse(sessionId='review', batchId='b1', epoch='121e8b6fbb68', snapshotSeq=2, algorithmVersion='mvp-0.1.0', c...:00', fusionId='F121e8b6fbb68-00001', payload={'eventId': 'E121e8b6fbb68-000005', 'key': 'radar|D|R-v2'})], error=None).tracks
+
+task003_rework_r1/test_task003_review.py:15: AssertionError
+___________ test_handoff_preserves_same_device_one_to_one_assignment ___________
+
+    def test_handoff_preserves_same_device_one_to_one_assignment():
+        s=FusionSession('review',load_config())
+        s.process('b0','2026-04-09T12:00:00Z',[obs('a','R',0,0)],'replay')
+        r=s.process('b1','2026-04-09T12:00:01Z',[obs('b','R-v2',1,20),obs('c','R-v3',1,30)],'replay')
+        handoffs=[e for e in r.events if e.type=='radar_id_swap_handoff']
+        fids=[e.fusionId for e in handoffs]
+>       assert len(fids)==len(set(fids)), {'handoff_fids':fids,'tracks':len(r.tracks)}
+E       AssertionError: {'handoff_fids': ['Fe7e544a77a50-00001', 'Fe7e544a77a50-00001'], 'tracks': 1}
+E       assert 2 == 1
+E        +  where 2 = len(['Fe7e544a77a50-00001', 'Fe7e544a77a50-00001'])
+E        +  and   1 = len({'Fe7e544a77a50-00001'})
+E        +    where {'Fe7e544a77a50-00001'} = set(['Fe7e544a77a50-00001', 'Fe7e544a77a50-00001'])
+
+task003_rework_r1/test_task003_review.py:23: AssertionError
+=========================== short test summary info ============================
+FAILED task003_rework_r1/test_task003_review.py::test_arbitrary_id_spelling_does_not_bypass_motion_gates
+FAILED task003_rework_r1/test_task003_review.py::test_handoff_preserves_same_device_one_to_one_assignment
+2 failed in 0.60s

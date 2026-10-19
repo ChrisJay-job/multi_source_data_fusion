@@ -1,0 +1,12 @@
+{
+  "verification_type": "actual JS with stubs, not browser",
+  "prediction_history": {
+    "expected": "actual predicted history polyline with dashed styling",
+    "line_count": 0,
+    "points": 4
+  },
+  "terminated_history": {
+    "expected": "previous committed historical line remains after target termination",
+    "line_count": 0
+  }
+}

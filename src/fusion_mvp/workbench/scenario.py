@@ -111,11 +111,31 @@ def load_scenario(path: str | Path) -> Scenario:
     )
 
 
+def _line(x0, y0, x1, y1) -> list[Waypoint]:
+    return [Waypoint(x0, y0), Waypoint(x1, y1)]
+
+
+def _src(
+    *,
+    rid: bool = False,
+    spectrum: bool = False,
+    radar: bool = False,
+    radar_swap: Optional[float] = None,
+) -> dict[str, SourceNoise]:
+    return {
+        "rid": SourceNoise(period_s=1.0, pos_noise_m=3.0, enabled=rid),
+        "spectrum": SourceNoise(period_s=1.2, pos_noise_m=8.0, bias_east_m=2.0 if spectrum else 0.0, enabled=spectrum),
+        "radar": SourceNoise(
+            period_s=2.0,
+            pos_noise_m=15.0,
+            enabled=radar,
+            radar_id_swap_at_s=radar_swap,
+        ),
+    }
+
+
 def preset_three_aircraft() -> Scenario:
     """W01 primary: A=RID, B=spectrum, C=RID+spectrum+radar → 3 fused entities."""
-    def line(x0, y0, x1, y1):
-        return [Waypoint(x0, y0), Waypoint(x1, y1)]
-
     return Scenario(
         name="three_aircraft_primary",
         seed=20261017,
@@ -126,7 +146,7 @@ def preset_three_aircraft() -> Scenario:
                 label="A",
                 truth_id="TRUTH-A",
                 rid_sn="SN-A-001",
-                waypoints=line(0, 0, 400, 40),
+                waypoints=_line(0, 0, 400, 40),
                 speed_mps=10,
                 sources={
                     "rid": SourceNoise(period_s=1.0, pos_noise_m=3.0, enabled=True),
@@ -138,7 +158,7 @@ def preset_three_aircraft() -> Scenario:
                 label="B",
                 truth_id="TRUTH-B",
                 rid_sn="SN-B-002",
-                waypoints=line(0, 200, 400, 240),
+                waypoints=_line(0, 200, 400, 240),
                 speed_mps=10,
                 takeoff_offset_s=0.5,
                 sources={
@@ -151,7 +171,7 @@ def preset_three_aircraft() -> Scenario:
                 label="C",
                 truth_id="TRUTH-C",
                 rid_sn="SN-C-003",
-                waypoints=line(50, 100, 450, 120),
+                waypoints=_line(50, 100, 450, 120),
                 speed_mps=11,
                 takeoff_offset_s=1.0,
                 sources={
@@ -161,6 +181,40 @@ def preset_three_aircraft() -> Scenario:
                 },
             ),
         ],
+    )
+
+
+def preset_seven_aircraft() -> Scenario:
+    """Default demo: seven source-combination aircraft on parallel routes (~300m spacing)."""
+    # y = 0,300,...,1800 — ~300m lanes; length ~500m
+    specs = [
+        ("A", "TRUTH-A", "SN-A-001", 0.0, 0, True, False, False),
+        ("B", "TRUTH-B", "SN-B-002", 0.5, 300, False, True, False),
+        ("C", "TRUTH-C", None, 1.0, 600, False, False, True),  # anonymous radar; no forged SN
+        ("D", "TRUTH-D", "SN-D-004", 0.2, 900, True, True, False),
+        ("E", "TRUTH-E", "SN-E-005", 0.4, 1200, True, False, True),
+        ("F", "TRUTH-F", "SN-F-006", 0.6, 1500, False, True, True),
+        ("G", "TRUTH-G", "SN-G-007", 0.3, 1800, True, True, True),
+    ]
+    aircraft = []
+    for label, tid, sn, takeoff, y0, rid, spectrum, radar in specs:
+        aircraft.append(
+            AircraftSpec(
+                label=label,
+                truth_id=tid,
+                rid_sn=sn,
+                waypoints=_line(0, y0, 500, y0 + 20),
+                speed_mps=10 + (0 if label == "A" else 1),
+                takeoff_offset_s=takeoff,
+                sources=_src(rid=rid, spectrum=spectrum, radar=radar),
+            )
+        )
+    return Scenario(
+        name="seven_aircraft_combinations",
+        seed=20261019,
+        duration_s=40.0,
+        notes="默认七机：A–G 覆盖 RID/频谱/雷达全部七种来源组合；平行航线间隔约300m",
+        aircraft=aircraft,
     )
 
 
@@ -240,9 +294,8 @@ def generate_observations(
             period = max(cfg.period_s, 0.2)
             tick = ac.takeoff_offset_s
             local_tid = f"{source}-{ac.label}"
+            # null = no swap; never invent a hidden 20s swap
             radar_swap_at = cfg.radar_id_swap_at_s
-            if radar_swap_at is None and source == "radar":
-                radar_swap_at = 20.0  # default for C-radar scenario demos
             while tick <= scenario.duration_s + 1e-9:
                 if any(a <= tick <= b for a, b in cfg.outage):
                     tick += period
@@ -441,6 +494,7 @@ def preset_identity_conflict() -> Scenario:
 
 
 PRESET_BUILDERS = {
+    "seven_aircraft_combinations": preset_seven_aircraft,
     "three_aircraft_primary": preset_three_aircraft,
     "crossing_paths": preset_crossing,
     "identity_late": preset_identity_late,
@@ -450,6 +504,193 @@ PRESET_BUILDERS = {
     "delay_reorder": preset_delay_reorder,
     "identity_conflict": preset_identity_conflict,
 }
+
+
+def expected_sources_from_scenario(scenario: Scenario | dict) -> dict[str, set[str]]:
+    """Derive truth_id → enabled sources from actual aircraft list (not name-hardcoded)."""
+    aircraft = scenario.aircraft if isinstance(scenario, Scenario) else scenario.get("aircraft") or []
+    out: dict[str, set[str]] = {}
+    for a in aircraft:
+        if isinstance(a, AircraftSpec):
+            tid = a.truth_id
+            sources = a.sources
+            enabled = {k for k, cfg in sources.items() if cfg.enabled}
+        else:
+            tid = a.get("truth_id") or a.get("truthId")
+            sources = a.get("sources") or {}
+            enabled = {k for k, cfg in sources.items() if (cfg or {}).get("enabled")}
+        if tid and enabled:
+            out[str(tid)] = enabled
+    return out
+
+
+def _bundle_t0(bundle: dict[str, Any]) -> Optional[datetime]:
+    t0_raw = bundle.get("t0")
+    if t0_raw:
+        return datetime.fromisoformat(str(t0_raw).replace("Z", "+00:00"))
+    mts = [o.get("measurementTime") for o in (bundle.get("observations") or []) if o.get("measurementTime")]
+    if not mts:
+        return None
+    return datetime.fromisoformat(min(mts).replace("Z", "+00:00"))
+
+
+def _enabled_outages(aircraft: list) -> list[tuple[float, float]]:
+    out: list[tuple[float, float]] = []
+    for a in aircraft:
+        sources = a.get("sources") or {}
+        for cfg in sources.values():
+            if not (cfg or {}).get("enabled"):
+                continue
+            for pair in (cfg or {}).get("outage") or []:
+                try:
+                    a0, b0 = float(pair[0]), float(pair[1])
+                except (TypeError, ValueError, IndexError):
+                    continue
+                out.append((a0, b0))
+    return out
+
+
+def _merge_outage_intervals(intervals: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """Merge overlapping or contiguous [start,end] outage intervals."""
+    if not intervals:
+        return []
+    xs = sorted((float(a), float(b)) for a, b in intervals if b > a)
+    out: list[list[float]] = [[xs[0][0], xs[0][1]]]
+    for a, b in xs[1:]:
+        if a <= out[-1][1]:  # overlap or touch at boundary
+            out[-1][1] = max(out[-1][1], b)
+        else:
+            out.append([a, b])
+    return [(a, b) for a, b in out]
+
+
+def _adaptive_confirm_s(aircraft: list, default: float = 4.0) -> float:
+    """Confirm delay after outage end: at least default, also ≥2× max enabled period."""
+    periods: list[float] = []
+    for a in aircraft:
+        sources = a.get("sources") or {}
+        for cfg in sources.values():
+            if not (cfg or {}).get("enabled"):
+                continue
+            try:
+                periods.append(float((cfg or {}).get("period_s") or 1.0))
+            except (TypeError, ValueError):
+                periods.append(1.0)
+    max_p = max(periods) if periods else 1.0
+    return max(float(default), 2.0 * max_p)
+
+
+def evaluation_phases_from_bundle(
+    bundle: dict[str, Any],
+    *,
+    confirm_s: Optional[float] = None,
+    min_len_s: float = 3.0,
+) -> list[dict[str, Any]]:
+    """Build evaluable phases covering pre-outage, each outage (lifecycle), and each recovery.
+
+    Uses all outage boundaries (merged), not only global earliest/latest extrema. Mid-run
+    recoveries between multiple outages are first-class phases. A required recovery that
+    cannot form a window is marked unavailable so the whole run cannot be labeled PASS
+    from end fragments alone.
+    """
+    sc = bundle.get("scenario") or {}
+    duration = float(sc.get("duration_s") or 40.0)
+    aircraft = sc.get("aircraft") or []
+    t0_dt = _bundle_t0(bundle)
+    if t0_dt is None:
+        return []
+    max_takeoff = 0.0
+    for a in aircraft:
+        max_takeoff = max(max_takeoff, float(a.get("takeoff_offset_s") or 0.0))
+    conf = float(confirm_s) if confirm_s is not None else _adaptive_confirm_s(aircraft)
+    merged = _merge_outage_intervals(_enabled_outages(aircraft))
+    phases: list[dict[str, Any]] = []
+    start_s = max(8.0, max_takeoff + 8.0)
+
+    def _win(a_s: float, b_s: float) -> tuple[str, str]:
+        return (
+            (t0_dt + timedelta(seconds=a_s)).isoformat(),
+            (t0_dt + timedelta(seconds=b_s)).isoformat(),
+        )
+
+    def _add_full(name: str, a_s: float, b_s: float) -> None:
+        if b_s - a_s < min_len_s:
+            return
+        phases.append({"name": name, "mode": "full", "window": _win(a_s, b_s), "available": True})
+
+    def _add_outage(name: str, a_s: float, b_s: float) -> None:
+        if b_s - a_s < 1.0:
+            return
+        # Lifecycle phases may be shorter than full min_len; still must be checked.
+        phases.append(
+            {
+                "name": name,
+                "mode": "lifecycle",
+                "window": _win(a_s, b_s),
+                "available": True,
+                "outage_s": [a_s, b_s],
+            }
+        )
+
+    if not merged:
+        _add_full("stable", start_s, duration - 2.0)
+        return phases
+
+    # Pre-first-outage active window
+    first_start = merged[0][0]
+    if first_start > start_s:
+        _add_full("pre_outage", start_s, min(duration - 2.0, first_start - 1.0))
+
+    for i, (oa, ob) in enumerate(merged):
+        _add_outage(f"outage_{i}", oa, min(ob, duration))
+        # Recovery until next outage (or end)
+        next_start = merged[i + 1][0] if i + 1 < len(merged) else None
+        rec_a = ob + conf
+        if next_start is not None:
+            rec_b = next_start - 1.0
+            if rec_b - rec_a >= min_len_s:
+                _add_full(f"recovery_{i}", rec_a, rec_b)
+            elif rec_b > rec_a:
+                # Gap exists but too short — still mark coverage hole if mid recoveries matter
+                phases.append(
+                    {
+                        "name": f"recovery_{i}",
+                        "mode": "full",
+                        "window": None,
+                        "available": False,
+                        "reason": "recovery_window_too_short",
+                        "outage_end_s": ob,
+                        "confirm_s": conf,
+                        "next_outage_s": next_start,
+                    }
+                )
+            # else: contiguous outages after merge — no mid recovery expected
+        else:
+            rec_b = duration - 2.0
+            if rec_b - rec_a >= min_len_s:
+                _add_full(f"recovery_{i}" if i > 0 else "recovery", rec_a, rec_b)
+            else:
+                phases.append(
+                    {
+                        "name": "recovery",
+                        "mode": "full",
+                        "window": None,
+                        "available": False,
+                        "reason": "recovery_window_too_short",
+                        "outage_end_s": ob,
+                        "confirm_s": conf,
+                    }
+                )
+    return phases
+
+
+def stable_window_from_bundle(bundle: dict[str, Any]) -> Optional[tuple[str, str]]:
+    """Primary stable window (first available phase). Prefer evaluation_phases_from_bundle."""
+    phases = evaluation_phases_from_bundle(bundle)
+    for ph in phases:
+        if ph.get("available") and ph.get("window"):
+            return tuple(ph["window"])  # type: ignore[return-value]
+    return None
 
 
 def get_preset(name: str) -> Scenario:

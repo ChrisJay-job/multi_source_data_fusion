@@ -1,0 +1,11 @@
+PROBE_PASS
+
+{
+  "verification_type": "actual JS with stubs, not browser E2E",
+  "fused_only": {
+    "tIndex": 212,
+    "history_lines": [
+      {
+        "n": 33,
+        "color": "#f72585",
+        "dash": false

@@ -1,0 +1,394 @@
+{
+  "steps": [
+    {
+      "step": "ready_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:43:48.147Z"
+    },
+    {
+      "step": "default_seven_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:43:48.174Z"
+    },
+    {
+      "step": "no_h_overflow_1366",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1366,\"clientWidth\":1366}",
+      "at": "2026-10-19T06:43:48.188Z"
+    },
+    {
+      "step": "route_edit_active_1366",
+      "ok": true,
+      "detail": "pts=2",
+      "at": "2026-10-19T06:43:48.748Z"
+    },
+    {
+      "step": "drag_no_extra_route_points_1366",
+      "ok": true,
+      "detail": "before=2 after=2",
+      "at": "2026-10-19T06:43:48.847Z"
+    },
+    {
+      "step": "click_adds_route_point_1366",
+      "ok": true,
+      "detail": "before=2 afterClick=3",
+      "at": "2026-10-19T06:43:48.932Z"
+    },
+    {
+      "step": "g_speed_changed_1366",
+      "ok": true,
+      "detail": "speed=13.5",
+      "at": "2026-10-19T06:43:48.956Z"
+    },
+    {
+      "step": "g_waypoints_changed_1366",
+      "ok": true,
+      "detail": "waypoints",
+      "at": "2026-10-19T06:43:48.956Z"
+    },
+    {
+      "step": "other_A_unchanged_1366",
+      "ok": true,
+      "detail": "A",
+      "at": "2026-10-19T06:43:48.956Z"
+    },
+    {
+      "step": "other_B_unchanged_1366",
+      "ok": true,
+      "detail": "B",
+      "at": "2026-10-19T06:43:48.956Z"
+    },
+    {
+      "step": "other_C_unchanged_1366",
+      "ok": true,
+      "detail": "C",
+      "at": "2026-10-19T06:43:48.956Z"
+    },
+    {
+      "step": "other_D_unchanged_1366",
+      "ok": true,
+      "detail": "D",
+      "at": "2026-10-19T06:43:48.956Z"
+    },
+    {
+      "step": "other_E_unchanged_1366",
+      "ok": true,
+      "detail": "E",
+      "at": "2026-10-19T06:43:48.956Z"
+    },
+    {
+      "step": "other_F_unchanged_1366",
+      "ok": true,
+      "detail": "F",
+      "at": "2026-10-19T06:43:48.956Z"
+    },
+    {
+      "step": "reload_g_speed_1366",
+      "ok": true,
+      "detail": "{\"speed\":13.5,\"nWp\":3}",
+      "at": "2026-10-19T06:43:50.108Z"
+    },
+    {
+      "step": "run_request_g_speed_1366",
+      "ok": true,
+      "detail": "{\"speed\":13.5}",
+      "at": "2026-10-19T06:44:09.348Z"
+    },
+    {
+      "step": "run_reflects_g_speed_1366",
+      "ok": true,
+      "detail": "{\"scenarioSpeed\":13.5,\"nSnap\":250,\"nObs\":375,\"draftSpeed\":13.5}",
+      "at": "2026-10-19T06:44:09.350Z"
+    },
+    {
+      "step": "mid_fused_polyline_1366",
+      "ok": true,
+      "detail": "n=1",
+      "at": "2026-10-19T06:44:09.491Z"
+    },
+    {
+      "step": "mid_fused_coords_match_snapshot_1366",
+      "ok": true,
+      "detail": "{\"ok\":true,\"nHist\":8564,\"nFused\":1,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}",
+      "at": "2026-10-19T06:44:09.497Z"
+    },
+    {
+      "step": "mid_pred_polyline_1366",
+      "ok": true,
+      "detail": "n=1 sample=[[2.1484114630661373,1800.9288605932907],[2.1484114630661373,1800.9288605932907]]",
+      "at": "2026-10-19T06:44:09.497Z"
+    },
+    {
+      "step": "pred_off_1366",
+      "ok": true,
+      "detail": "{\"pred\":0,\"fused\":2}",
+      "at": "2026-10-19T06:44:09.503Z"
+    },
+    {
+      "step": "term_no_live_tracks_1366",
+      "ok": true,
+      "detail": "{\"live\":0,\"fusedLines\":[{\"kind\":\"poly\",\"n\":38,\"color\":\"#f72585\",\"dashed\":false,\"label\":null,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}],\"currentPts\":0}",
+      "at": "2026-10-19T06:44:09.520Z"
+    },
+    {
+      "step": "term_keeps_committed_history_1366",
+      "ok": true,
+      "detail": "{\"live\":0,\"fusedLines\":[{\"kind\":\"poly\",\"n\":38,\"color\":\"#f72585\",\"dashed\":false,\"label\":null,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}],\"currentPts\":0}",
+      "at": "2026-10-19T06:44:09.520Z"
+    },
+    {
+      "step": "product_anomaly_items_1366",
+      "ok": true,
+      "detail": "[{\"text\":\"误关联 Fd114127eb691-00001：TRUTH-A/TRUTH-B via round3_fixture @ 2026-04-09T12:00:20.200000+00:00\",\"seek\":\"2026-04-09T12:00:20.200000+00:00\",\"fid\":\"Fd114127eb691-00001\"},{\"text\":\"missing_entity TRUTH-X Fd114127eb691-00001 @ 2026-04-09T12:00:20.200000+00:00\",\"seek\":\"2026-04-09T12:00:20.200000+00:00\",\"fid\":\"Fd114127eb691-00001\"}]",
+      "at": "2026-10-19T06:44:09.526Z"
+    },
+    {
+      "step": "product_fail_panel_1366",
+      "ok": true,
+      "detail": "当前时刻：预期可见 7 · 算法目标 0整次评估（仿真，非现场准确率）：FAIL · ok=false无目标",
+      "at": "2026-10-19T06:44:09.526Z"
+    },
+    {
+      "step": "product_anomaly_seek_1366",
+      "ok": true,
+      "detail": "{\"beforeIdx\":249,\"afterSeek\":{\"idx\":125,\"clock\":\"2026-04-09T12:00:20.200000+00:00\",\"pinned\":\"Fd114127eb691-00001\",\"seekLabel\":\"126/250\",\"panel\":\"当前时刻：预期可见 7 · 算法目标 7整次评估（仿真，非现场准确率）：FAIL · ok=falseSN-A-001 · 00001：活跃源=RID · 主位置=RIDSN-D-004 · 00002：活跃源=RID+频谱 · 主位置=RIDSN-G-007 · 00003：活跃源=RID+频谱+雷达 · 主位置=RIDSN-E-005 · 00004：活跃源=RID+雷达 · 主位置=RIDSN-B-002 · 00005：活跃源=频谱 · 主位置=频谱SN-F-006 · 00006：活跃源=频谱+雷达 · 主位置=频谱C(仿真) · 00007：活跃源=雷达 · 主位置=雷达\"}}",
+      "at": "2026-10-19T06:44:09.781Z"
+    },
+    {
+      "step": "product_anomaly_pinned_1366",
+      "ok": true,
+      "detail": "{\"pinned\":\"Fd114127eb691-00001\",\"expect\":\"Fd114127eb691-00001\"}",
+      "at": "2026-10-19T06:44:09.781Z"
+    },
+    {
+      "step": "product_anomaly_time_1366",
+      "ok": true,
+      "detail": "{\"idx\":125,\"clock\":\"2026-04-09T12:00:20.200000+00:00\",\"pinned\":\"Fd114127eb691-00001\",\"seekLabel\":\"126/250\",\"panel\":\"当前时刻：预期可见 7 · 算法目标 7整次评估（仿真，非现场准确率）：FAIL · ok=falseSN-A-001 · 00001：活跃源=RID · 主位置=RIDSN-D-004 · 00002：活跃源=RID+频谱 · 主位置=RIDSN-G-007 · 00003：活跃源=RID+频谱+雷达 · 主位置=RIDSN-E-005 · 00004：活跃源=RID+雷达 · 主位置=RIDSN-B-002 · 00005：活跃源=频谱 · 主位置=频谱SN-F-006 · 00006：活跃源=频谱+雷达 · 主位置=频谱C(仿真) · 00007：活跃源=雷达 · 主位置=雷达\"}",
+      "at": "2026-10-19T06:44:09.783Z"
+    },
+    {
+      "step": "obs_mouse_hit_fields_1366",
+      "ok": true,
+      "detail": "{\"hit\":{\"ok\":true,\"observationId\":\"syn-20261019-00001\",\"source\":\"rid\",\"measurementTime\":\"2026-04-09T12:00:00+00:00\",\"clientX\":613.2609148227891,\"clientY\":637.8033070179459},\"insp\":{\"inspector\":\"目标 SN-A-001 · Fd114127eb691-00001\\npositionMode：predicted\\n主位置来源：rid\\n来源：RID:SN-A-001(confirmed)\\nseg：S1 · stateTime=2026-04-09T12:00:18.200000+00:00\",\"detailHasId\":true,\"hasSource\":true,\"hasTime\":true}}",
+      "at": "2026-10-19T06:44:09.950Z"
+    },
+    {
+      "step": "reset_seven_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:44:10.383Z"
+    },
+    {
+      "step": "no_js_errors_1366",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T06:44:10.383Z"
+    },
+    {
+      "step": "ready_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:44:11.977Z"
+    },
+    {
+      "step": "default_seven_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:44:11.988Z"
+    },
+    {
+      "step": "no_h_overflow_1920",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1920,\"clientWidth\":1920}",
+      "at": "2026-10-19T06:44:11.989Z"
+    },
+    {
+      "step": "route_edit_active_1920",
+      "ok": true,
+      "detail": "pts=2",
+      "at": "2026-10-19T06:44:12.531Z"
+    },
+    {
+      "step": "drag_no_extra_route_points_1920",
+      "ok": true,
+      "detail": "before=2 after=2",
+      "at": "2026-10-19T06:44:12.612Z"
+    },
+    {
+      "step": "click_adds_route_point_1920",
+      "ok": true,
+      "detail": "before=2 afterClick=3",
+      "at": "2026-10-19T06:44:12.715Z"
+    },
+    {
+      "step": "g_speed_changed_1920",
+      "ok": true,
+      "detail": "speed=13.5",
+      "at": "2026-10-19T06:44:12.736Z"
+    },
+    {
+      "step": "g_waypoints_changed_1920",
+      "ok": true,
+      "detail": "waypoints",
+      "at": "2026-10-19T06:44:12.736Z"
+    },
+    {
+      "step": "other_A_unchanged_1920",
+      "ok": true,
+      "detail": "A",
+      "at": "2026-10-19T06:44:12.736Z"
+    },
+    {
+      "step": "other_B_unchanged_1920",
+      "ok": true,
+      "detail": "B",
+      "at": "2026-10-19T06:44:12.736Z"
+    },
+    {
+      "step": "other_C_unchanged_1920",
+      "ok": true,
+      "detail": "C",
+      "at": "2026-10-19T06:44:12.736Z"
+    },
+    {
+      "step": "other_D_unchanged_1920",
+      "ok": true,
+      "detail": "D",
+      "at": "2026-10-19T06:44:12.736Z"
+    },
+    {
+      "step": "other_E_unchanged_1920",
+      "ok": true,
+      "detail": "E",
+      "at": "2026-10-19T06:44:12.736Z"
+    },
+    {
+      "step": "other_F_unchanged_1920",
+      "ok": true,
+      "detail": "F",
+      "at": "2026-10-19T06:44:12.736Z"
+    },
+    {
+      "step": "reload_g_speed_1920",
+      "ok": true,
+      "detail": "{\"speed\":13.5,\"nWp\":3}",
+      "at": "2026-10-19T06:44:13.855Z"
+    },
+    {
+      "step": "run_request_g_speed_1920",
+      "ok": true,
+      "detail": "{\"speed\":13.5}",
+      "at": "2026-10-19T06:44:33.341Z"
+    },
+    {
+      "step": "run_reflects_g_speed_1920",
+      "ok": true,
+      "detail": "{\"scenarioSpeed\":13.5,\"nSnap\":250,\"nObs\":375,\"draftSpeed\":13.5}",
+      "at": "2026-10-19T06:44:33.343Z"
+    },
+    {
+      "step": "mid_fused_polyline_1920",
+      "ok": true,
+      "detail": "n=1",
+      "at": "2026-10-19T06:44:33.484Z"
+    },
+    {
+      "step": "mid_fused_coords_match_snapshot_1920",
+      "ok": true,
+      "detail": "{\"ok\":true,\"nHist\":8564,\"nFused\":1,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}",
+      "at": "2026-10-19T06:44:33.488Z"
+    },
+    {
+      "step": "mid_pred_polyline_1920",
+      "ok": true,
+      "detail": "n=1 sample=[[2.1484114630661373,1800.9288605932907],[2.1484114630661373,1800.9288605932907]]",
+      "at": "2026-10-19T06:44:33.488Z"
+    },
+    {
+      "step": "pred_off_1920",
+      "ok": true,
+      "detail": "{\"pred\":0,\"fused\":2}",
+      "at": "2026-10-19T06:44:33.498Z"
+    },
+    {
+      "step": "term_no_live_tracks_1920",
+      "ok": true,
+      "detail": "{\"live\":0,\"fusedLines\":[{\"kind\":\"poly\",\"n\":38,\"color\":\"#f72585\",\"dashed\":false,\"label\":null,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}],\"currentPts\":0}",
+      "at": "2026-10-19T06:44:33.509Z"
+    },
+    {
+      "step": "term_keeps_committed_history_1920",
+      "ok": true,
+      "detail": "{\"live\":0,\"fusedLines\":[{\"kind\":\"poly\",\"n\":38,\"color\":\"#f72585\",\"dashed\":false,\"label\":null,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}],\"currentPts\":0}",
+      "at": "2026-10-19T06:44:33.509Z"
+    },
+    {
+      "step": "product_anomaly_items_1920",
+      "ok": true,
+      "detail": "[{\"text\":\"误关联 F34815d4d0879-00001：TRUTH-A/TRUTH-B via round3_fixture @ 2026-04-09T12:00:20.200000+00:00\",\"seek\":\"2026-04-09T12:00:20.200000+00:00\",\"fid\":\"F34815d4d0879-00001\"},{\"text\":\"missing_entity TRUTH-X F34815d4d0879-00001 @ 2026-04-09T12:00:20.200000+00:00\",\"seek\":\"2026-04-09T12:00:20.200000+00:00\",\"fid\":\"F34815d4d0879-00001\"}]",
+      "at": "2026-10-19T06:44:33.514Z"
+    },
+    {
+      "step": "product_fail_panel_1920",
+      "ok": true,
+      "detail": "当前时刻：预期可见 7 · 算法目标 0整次评估（仿真，非现场准确率）：FAIL · ok=false无目标",
+      "at": "2026-10-19T06:44:33.514Z"
+    },
+    {
+      "step": "product_anomaly_seek_1920",
+      "ok": true,
+      "detail": "{\"beforeIdx\":249,\"afterSeek\":{\"idx\":125,\"clock\":\"2026-04-09T12:00:20.200000+00:00\",\"pinned\":\"F34815d4d0879-00001\",\"seekLabel\":\"126/250\",\"panel\":\"当前时刻：预期可见 7 · 算法目标 7整次评估（仿真，非现场准确率）：FAIL · ok=falseSN-A-001 · 00001：活跃源=RID · 主位置=RIDSN-D-004 · 00002：活跃源=RID+频谱 · 主位置=RIDSN-G-007 · 00003：活跃源=RID+频谱+雷达 · 主位置=RIDSN-E-005 · 00004：活跃源=RID+雷达 · 主位置=RIDSN-B-002 · 00005：活跃源=频谱 · 主位置=频谱SN-F-006 · 00006：活跃源=频谱+雷达 · 主位置=频谱C(仿真) · 00007：活跃源=雷达 · 主位置=雷达\"}}",
+      "at": "2026-10-19T06:44:33.779Z"
+    },
+    {
+      "step": "product_anomaly_pinned_1920",
+      "ok": true,
+      "detail": "{\"pinned\":\"F34815d4d0879-00001\",\"expect\":\"F34815d4d0879-00001\"}",
+      "at": "2026-10-19T06:44:33.779Z"
+    },
+    {
+      "step": "product_anomaly_time_1920",
+      "ok": true,
+      "detail": "{\"idx\":125,\"clock\":\"2026-04-09T12:00:20.200000+00:00\",\"pinned\":\"F34815d4d0879-00001\",\"seekLabel\":\"126/250\",\"panel\":\"当前时刻：预期可见 7 · 算法目标 7整次评估（仿真，非现场准确率）：FAIL · ok=falseSN-A-001 · 00001：活跃源=RID · 主位置=RIDSN-D-004 · 00002：活跃源=RID+频谱 · 主位置=RIDSN-G-007 · 00003：活跃源=RID+频谱+雷达 · 主位置=RIDSN-E-005 · 00004：活跃源=RID+雷达 · 主位置=RIDSN-B-002 · 00005：活跃源=频谱 · 主位置=频谱SN-F-006 · 00006：活跃源=频谱+雷达 · 主位置=频谱C(仿真) · 00007：活跃源=雷达 · 主位置=雷达\"}",
+      "at": "2026-10-19T06:44:33.782Z"
+    },
+    {
+      "step": "obs_mouse_hit_fields_1920",
+      "ok": true,
+      "detail": "{\"hit\":{\"ok\":true,\"observationId\":\"syn-20261019-00001\",\"source\":\"rid\",\"measurementTime\":\"2026-04-09T12:00:00+00:00\",\"clientX\":844.7053629221359,\"clientY\":907.784738157066},\"insp\":{\"inspector\":\"目标 SN-A-001 · F34815d4d0879-00001\\npositionMode：predicted\\n主位置来源：rid\\n来源：RID:SN-A-001(confirmed)\\nseg：S1 · stateTime=2026-04-09T12:00:18.200000+00:00\",\"detailHasId\":true,\"hasSource\":true,\"hasTime\":true}}",
+      "at": "2026-10-19T06:44:33.966Z"
+    },
+    {
+      "step": "reset_seven_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:44:34.401Z"
+    },
+    {
+      "step": "no_js_errors_1920",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T06:44:34.401Z"
+    }
+  ],
+  "results": [
+    {
+      "width": 1366,
+      "height": 768,
+      "pageErrors": []
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "pageErrors": []
+    }
+  ],
+  "summary": {
+    "hardFail": 0,
+    "not_tested": 0,
+    "notes": 0,
+    "not_tested_items": []
+  }
+}

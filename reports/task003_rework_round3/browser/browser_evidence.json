@@ -1,0 +1,353 @@
+{
+  "steps": [
+    {
+      "step": "ready_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:08:05.807Z"
+    },
+    {
+      "step": "default_seven_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:08:05.818Z"
+    },
+    {
+      "step": "no_h_overflow_1366",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1366,\"clientWidth\":1366}",
+      "at": "2026-10-19T06:08:05.824Z"
+    },
+    {
+      "step": "route_edit_active_1366",
+      "ok": true,
+      "detail": "pts=2",
+      "at": "2026-10-19T06:08:06.345Z"
+    },
+    {
+      "step": "drag_no_extra_route_points_1366",
+      "ok": true,
+      "detail": "before=2 after=2",
+      "at": "2026-10-19T06:08:06.434Z"
+    },
+    {
+      "step": "click_adds_route_point_1366",
+      "ok": true,
+      "detail": "before=2 afterClick=3",
+      "at": "2026-10-19T06:08:06.531Z"
+    },
+    {
+      "step": "g_speed_changed_1366",
+      "ok": true,
+      "detail": "speed=13.5",
+      "at": "2026-10-19T06:08:06.558Z"
+    },
+    {
+      "step": "g_waypoints_changed_1366",
+      "ok": true,
+      "detail": "waypoints",
+      "at": "2026-10-19T06:08:06.558Z"
+    },
+    {
+      "step": "other_A_unchanged_1366",
+      "ok": true,
+      "detail": "A",
+      "at": "2026-10-19T06:08:06.558Z"
+    },
+    {
+      "step": "other_B_unchanged_1366",
+      "ok": true,
+      "detail": "B",
+      "at": "2026-10-19T06:08:06.558Z"
+    },
+    {
+      "step": "other_C_unchanged_1366",
+      "ok": true,
+      "detail": "C",
+      "at": "2026-10-19T06:08:06.558Z"
+    },
+    {
+      "step": "other_D_unchanged_1366",
+      "ok": true,
+      "detail": "D",
+      "at": "2026-10-19T06:08:06.558Z"
+    },
+    {
+      "step": "other_E_unchanged_1366",
+      "ok": true,
+      "detail": "E",
+      "at": "2026-10-19T06:08:06.558Z"
+    },
+    {
+      "step": "other_F_unchanged_1366",
+      "ok": true,
+      "detail": "F",
+      "at": "2026-10-19T06:08:06.558Z"
+    },
+    {
+      "step": "reload_g_speed_1366",
+      "ok": true,
+      "detail": "{\"speed\":13.5,\"nWp\":3}",
+      "at": "2026-10-19T06:08:07.862Z"
+    },
+    {
+      "step": "run_reflects_g_speed_1366",
+      "ok": true,
+      "detail": "{\"speed\":13.5,\"nSnap\":250}",
+      "at": "2026-10-19T06:08:27.701Z"
+    },
+    {
+      "step": "mid_fused_polyline_1366",
+      "ok": true,
+      "detail": "n=1",
+      "at": "2026-10-19T06:08:27.840Z"
+    },
+    {
+      "step": "mid_pred_polyline_1366",
+      "ok": true,
+      "detail": "n=1 sample=[[2.1484114630661373,1800.9288605932907],[2.1484114630661373,1800.9288605932907]]",
+      "at": "2026-10-19T06:08:27.840Z"
+    },
+    {
+      "step": "pred_off_1366",
+      "ok": true,
+      "detail": "{\"pred\":0,\"fused\":2}",
+      "at": "2026-10-19T06:08:27.846Z"
+    },
+    {
+      "step": "term_no_live_tracks_1366",
+      "ok": true,
+      "detail": "{\"live\":0,\"fusedLines\":[{\"kind\":\"poly\",\"n\":38,\"color\":\"#f72585\",\"dashed\":false,\"label\":null,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}],\"currentPts\":0}",
+      "at": "2026-10-19T06:08:27.859Z"
+    },
+    {
+      "step": "term_keeps_committed_history_1366",
+      "ok": true,
+      "detail": "{\"live\":0,\"fusedLines\":[{\"kind\":\"poly\",\"n\":38,\"color\":\"#f72585\",\"dashed\":false,\"label\":null,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}],\"currentPts\":0}",
+      "at": "2026-10-19T06:08:27.859Z"
+    },
+    {
+      "step": "product_anomaly_items_1366",
+      "ok": true,
+      "detail": "[{\"text\":\"误关联 F6a8614f8bbc6-00001：TRUTH-A/TRUTH-B via round3_fixture @ 2026-04-09T12:00:20.200000+00:00\",\"seek\":\"2026-04-09T12:00:20.200000+00:00\",\"fid\":\"F6a8614f8bbc6-00001\"},{\"text\":\"missing_entity TRUTH-X F6a8614f8bbc6-00001 @ 2026-04-09T12:00:20.200000+00:00\",\"seek\":\"2026-04-09T12:00:20.200000+00:00\",\"fid\":\"F6a8614f8bbc6-00001\"}]",
+      "at": "2026-10-19T06:08:27.865Z"
+    },
+    {
+      "step": "product_fail_panel_1366",
+      "ok": true,
+      "detail": "当前时刻：预期可见 7 · 算法目标 0整次评估（仿真，非现场准确率）：FAIL · ok=false无目标",
+      "at": "2026-10-19T06:08:27.865Z"
+    },
+    {
+      "step": "product_anomaly_seek_1366",
+      "ok": true,
+      "detail": "{\"beforeIdx\":249,\"afterSeek\":{\"idx\":125,\"clock\":\"2026-04-09T12:00:20.200000+00:00\",\"pinned\":\"F6a8614f8bbc6-00001\",\"seekLabel\":\"126/250\"},\"target\":\"2026-04-09T12:00:20.200000+00:00\"}",
+      "at": "2026-10-19T06:08:28.115Z"
+    },
+    {
+      "step": "product_anomaly_time_1366",
+      "ok": true,
+      "detail": "{\"idx\":125,\"clock\":\"2026-04-09T12:00:20.200000+00:00\",\"pinned\":\"F6a8614f8bbc6-00001\",\"seekLabel\":\"126/250\"}",
+      "at": "2026-10-19T06:08:28.117Z"
+    },
+    {
+      "step": "obs_inspector_fields_1366",
+      "ok": true,
+      "detail": "{\"ok\":true,\"observationId\":\"syn-20261019-00001\",\"source\":\"rid\",\"detectorId\":\"DET-RID\",\"sourceTrackId\":\"SN-A-001\",\"measurementTime\":\"2026-04-09T12:00:00+00:00\",\"inspector\":\"观测检查器 RID\\nsource：rid\\nsourceTrackId：SN-A-001\\naircraftId：SN-A-001\\nobservationId：syn-20261019-00001\\nmeasurementTime：2026-04-09T12:00:00+00:00\\nlongitude：117.20008375307795\\nlatitude：39.12998504952888\\naltitude：未提供未提供/待设备确认\\nspeed：未提供未提供/待设备确认\\nheading：未提供未提供/待设备确认\\nverticalSpeed：未提供未提供/待设备确认\\ndetectorId：DET-RID\\nreceivedAt：2026-04-09T12:00:00+00:00\",\"detailHasId\":true,\"inspectorHasSource\":true,\"inspectorHasTime\":true}",
+      "at": "2026-10-19T06:08:28.131Z"
+    },
+    {
+      "step": "reset_seven_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:08:28.582Z"
+    },
+    {
+      "step": "no_js_errors_1366",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T06:08:28.582Z"
+    },
+    {
+      "step": "ready_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:08:29.954Z"
+    },
+    {
+      "step": "default_seven_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:08:29.963Z"
+    },
+    {
+      "step": "no_h_overflow_1920",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1920,\"clientWidth\":1920}",
+      "at": "2026-10-19T06:08:29.964Z"
+    },
+    {
+      "step": "route_edit_active_1920",
+      "ok": true,
+      "detail": "pts=2",
+      "at": "2026-10-19T06:08:30.445Z"
+    },
+    {
+      "step": "drag_no_extra_route_points_1920",
+      "ok": true,
+      "detail": "before=2 after=2",
+      "at": "2026-10-19T06:08:30.531Z"
+    },
+    {
+      "step": "click_adds_route_point_1920",
+      "ok": true,
+      "detail": "before=2 afterClick=3",
+      "at": "2026-10-19T06:08:30.633Z"
+    },
+    {
+      "step": "g_speed_changed_1920",
+      "ok": true,
+      "detail": "speed=13.5",
+      "at": "2026-10-19T06:08:30.679Z"
+    },
+    {
+      "step": "g_waypoints_changed_1920",
+      "ok": true,
+      "detail": "waypoints",
+      "at": "2026-10-19T06:08:30.679Z"
+    },
+    {
+      "step": "other_A_unchanged_1920",
+      "ok": true,
+      "detail": "A",
+      "at": "2026-10-19T06:08:30.679Z"
+    },
+    {
+      "step": "other_B_unchanged_1920",
+      "ok": true,
+      "detail": "B",
+      "at": "2026-10-19T06:08:30.679Z"
+    },
+    {
+      "step": "other_C_unchanged_1920",
+      "ok": true,
+      "detail": "C",
+      "at": "2026-10-19T06:08:30.679Z"
+    },
+    {
+      "step": "other_D_unchanged_1920",
+      "ok": true,
+      "detail": "D",
+      "at": "2026-10-19T06:08:30.679Z"
+    },
+    {
+      "step": "other_E_unchanged_1920",
+      "ok": true,
+      "detail": "E",
+      "at": "2026-10-19T06:08:30.679Z"
+    },
+    {
+      "step": "other_F_unchanged_1920",
+      "ok": true,
+      "detail": "F",
+      "at": "2026-10-19T06:08:30.679Z"
+    },
+    {
+      "step": "reload_g_speed_1920",
+      "ok": true,
+      "detail": "{\"speed\":13.5,\"nWp\":3}",
+      "at": "2026-10-19T06:08:31.762Z"
+    },
+    {
+      "step": "run_reflects_g_speed_1920",
+      "ok": true,
+      "detail": "{\"speed\":13.5,\"nSnap\":250}",
+      "at": "2026-10-19T06:08:50.913Z"
+    },
+    {
+      "step": "mid_fused_polyline_1920",
+      "ok": true,
+      "detail": "n=1",
+      "at": "2026-10-19T06:08:51.049Z"
+    },
+    {
+      "step": "mid_pred_polyline_1920",
+      "ok": true,
+      "detail": "n=1 sample=[[2.1484114630661373,1800.9288605932907],[2.1484114630661373,1800.9288605932907]]",
+      "at": "2026-10-19T06:08:51.049Z"
+    },
+    {
+      "step": "pred_off_1920",
+      "ok": true,
+      "detail": "{\"pred\":0,\"fused\":2}",
+      "at": "2026-10-19T06:08:51.057Z"
+    },
+    {
+      "step": "term_no_live_tracks_1920",
+      "ok": true,
+      "detail": "{\"live\":0,\"fusedLines\":[{\"kind\":\"poly\",\"n\":38,\"color\":\"#f72585\",\"dashed\":false,\"label\":null,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}],\"currentPts\":0}",
+      "at": "2026-10-19T06:08:51.073Z"
+    },
+    {
+      "step": "term_keeps_committed_history_1920",
+      "ok": true,
+      "detail": "{\"live\":0,\"fusedLines\":[{\"kind\":\"poly\",\"n\":38,\"color\":\"#f72585\",\"dashed\":false,\"label\":null,\"sample\":[[2.1507790749480122,1796.0450219375414],[8.672089773946869,1795.746637340865]]}],\"currentPts\":0}",
+      "at": "2026-10-19T06:08:51.073Z"
+    },
+    {
+      "step": "product_anomaly_items_1920",
+      "ok": true,
+      "detail": "[{\"text\":\"误关联 Ff909e13106f1-00001：TRUTH-A/TRUTH-B via round3_fixture @ 2026-04-09T12:00:20.200000+00:00\",\"seek\":\"2026-04-09T12:00:20.200000+00:00\",\"fid\":\"Ff909e13106f1-00001\"},{\"text\":\"missing_entity TRUTH-X Ff909e13106f1-00001 @ 2026-04-09T12:00:20.200000+00:00\",\"seek\":\"2026-04-09T12:00:20.200000+00:00\",\"fid\":\"Ff909e13106f1-00001\"}]",
+      "at": "2026-10-19T06:08:51.081Z"
+    },
+    {
+      "step": "product_fail_panel_1920",
+      "ok": true,
+      "detail": "当前时刻：预期可见 7 · 算法目标 0整次评估（仿真，非现场准确率）：FAIL · ok=false无目标",
+      "at": "2026-10-19T06:08:51.081Z"
+    },
+    {
+      "step": "product_anomaly_seek_1920",
+      "ok": true,
+      "detail": "{\"beforeIdx\":249,\"afterSeek\":{\"idx\":125,\"clock\":\"2026-04-09T12:00:20.200000+00:00\",\"pinned\":\"Ff909e13106f1-00001\",\"seekLabel\":\"126/250\"},\"target\":\"2026-04-09T12:00:20.200000+00:00\"}",
+      "at": "2026-10-19T06:08:51.343Z"
+    },
+    {
+      "step": "product_anomaly_time_1920",
+      "ok": true,
+      "detail": "{\"idx\":125,\"clock\":\"2026-04-09T12:00:20.200000+00:00\",\"pinned\":\"Ff909e13106f1-00001\",\"seekLabel\":\"126/250\"}",
+      "at": "2026-10-19T06:08:51.344Z"
+    },
+    {
+      "step": "obs_inspector_fields_1920",
+      "ok": true,
+      "detail": "{\"ok\":true,\"observationId\":\"syn-20261019-00001\",\"source\":\"rid\",\"detectorId\":\"DET-RID\",\"sourceTrackId\":\"SN-A-001\",\"measurementTime\":\"2026-04-09T12:00:00+00:00\",\"inspector\":\"观测检查器 RID\\nsource：rid\\nsourceTrackId：SN-A-001\\naircraftId：SN-A-001\\nobservationId：syn-20261019-00001\\nmeasurementTime：2026-04-09T12:00:00+00:00\\nlongitude：117.20008375307795\\nlatitude：39.12998504952888\\naltitude：未提供未提供/待设备确认\\nspeed：未提供未提供/待设备确认\\nheading：未提供未提供/待设备确认\\nverticalSpeed：未提供未提供/待设备确认\\ndetectorId：DET-RID\\nreceivedAt：2026-04-09T12:00:00+00:00\",\"detailHasId\":true,\"inspectorHasSource\":true,\"inspectorHasTime\":true}",
+      "at": "2026-10-19T06:08:51.357Z"
+    },
+    {
+      "step": "reset_seven_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-19T06:08:51.806Z"
+    },
+    {
+      "step": "no_js_errors_1920",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T06:08:51.806Z"
+    }
+  ],
+  "results": [
+    {
+      "width": 1366,
+      "height": 768,
+      "pageErrors": []
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "pageErrors": []
+    }
+  ],
+  "hardFail": 0
+}

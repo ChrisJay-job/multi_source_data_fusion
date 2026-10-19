@@ -1,0 +1,11 @@
+{
+ "date":"2026-10-19",
+ "reviewed_sha256":"4ab47fd8d04e1d458eef51ff9f06b8afc2b8e3df640b79df8d9618b53de42dd2",
+ "runtime":"Python3.12.14; dependencies from requirements.txt; submitter Docker3.11",
+ "existing_tests":"87 passed, 1 warning, 34.70s",
+ "previous_ui_probe":"independently rerun: 7 committed polylines, FAIL+merge display, expired source=[]; PROBE_PASS",
+ "new_python_test":"1 failed, 0.63s; recovery-stage oracle fault injection",
+ "new_canvas_probes":"2 failures: predicted dashed history absent; committed history absent after termination",
+ "browser_scope":"no independent browser execution; reviewed submitted reports/scripts, no new Round1 browser run found",
+ "verdict":"REWORK_REQUIRED"
+}

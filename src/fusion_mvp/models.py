@@ -68,6 +68,8 @@ class TargetSnapshot(BaseModel):
     sourceTracks: list[SourceTrackRef] = Field(default_factory=list)
     qualityFlags: list[str] = Field(default_factory=list)
     aliases: list[str] = Field(default_factory=list)
+    # Immutable KF primary-update history (not display/predicted coast copies)
+    committedHistory: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class FusionEvent(BaseModel):

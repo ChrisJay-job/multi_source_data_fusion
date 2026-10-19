@@ -1,0 +1,82 @@
+[
+  {
+    "outages": [
+      [
+        12.0,
+        18.0
+      ],
+      [
+        32.0,
+        38.0
+      ]
+    ],
+    "normal_status": "PASS",
+    "phases": [
+      {
+        "name": "pre_outage",
+        "mode": "full",
+        "window": [
+          "2026-04-09T12:00:08+00:00",
+          "2026-04-09T12:00:11+00:00"
+        ],
+        "available": true
+      },
+      {
+        "name": "recovery",
+        "mode": "full",
+        "window": [
+          "2026-04-09T12:00:42+00:00",
+          "2026-04-09T12:00:53+00:00"
+        ],
+        "available": true
+      }
+    ],
+    "middle_tracks": [
+      {
+        "pt": "2026-04-09T12:00:24+00:00",
+        "tracks": 1,
+        "statuses": [
+          null
+        ]
+      }
+    ]
+  },
+  {
+    "outages": [
+      [
+        12.0,
+        38.0
+      ]
+    ],
+    "normal_status": "PASS",
+    "phases": [
+      {
+        "name": "pre_outage",
+        "mode": "full",
+        "window": [
+          "2026-04-09T12:00:08+00:00",
+          "2026-04-09T12:00:11+00:00"
+        ],
+        "available": true
+      },
+      {
+        "name": "recovery",
+        "mode": "full",
+        "window": [
+          "2026-04-09T12:00:42+00:00",
+          "2026-04-09T12:00:53+00:00"
+        ],
+        "available": true
+      }
+    ],
+    "middle_tracks": [
+      {
+        "pt": "2026-04-09T12:00:24+00:00",
+        "tracks": 1,
+        "statuses": [
+          null
+        ]
+      }
+    ]
+  }
+]

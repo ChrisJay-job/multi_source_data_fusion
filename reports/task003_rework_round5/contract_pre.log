@@ -1,0 +1,10 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+/work/tests/test_evaluator_contract_round5.py:44: AssertionError: {'fault': 'early_termination', 'status': 'PASS', 'touched': [{'pt': '2026-04-09T12:00:42+00:00', 'watermark': '2026-04-09T12:00:40+00:00'}, {'pt': '2026-04-09T12:00:43+00:00', 'watermark': '2026-04-09T12:00:41+00:00'}]}
+/work/tests/test_evaluator_contract_round5.py:44: AssertionError: {'fault': 'missing_snapshot_fields', 'status': 'PASS', 'touched': [15.0, 16.0, 17.0, 18.0, 19.0, 20.0]}
+/work/tests/test_evaluator_contract_round5.py:44: AssertionError: {'fault': 'empty_active_sources', 'status': 'PASS', 'touched': [15.0, 16.0, 17.0, 18.0, 19.0, 20.0]}
+=========================== short test summary info ============================
+FAILED tests/test_evaluator_contract_round5.py::test_contract_fault_cannot_be_whole_run_pass[early_termination]
+FAILED tests/test_evaluator_contract_round5.py::test_contract_fault_cannot_be_whole_run_pass[missing_snapshot_fields]
+FAILED tests/test_evaluator_contract_round5.py::test_contract_fault_cannot_be_whole_run_pass[empty_active_sources]
+3 failed in 1.17s

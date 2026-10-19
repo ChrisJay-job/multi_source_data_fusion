@@ -1,0 +1,72 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_ test_unchecked_middle_must_not_be_whole_run_pass[first_recovery_between_two_outages] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f71ceccb2f0>
+outages = [(12.0, 18.0), (32.0, 38.0)], missing = (24.0, 29.0)
+
+    @pytest.mark.parametrize('outages,missing', [
+        ([(12., 18.), (32., 38.)], (24., 29.)),
+        ([(12., 38.)], (20., 28.)),
+    ], ids=['first_recovery_between_two_outages', 'unplanned_early_disappearance_during_outage'])
+    def test_unchecked_middle_must_not_be_whole_run_pass(monkeypatch, outages, missing):
+        sc = get_preset('seven_aircraft_combinations')
+        sc.aircraft = sc.aircraft[:1]
+        sc.duration_s = 55
+        sc.aircraft[0].sources['rid'].outage = outages
+        bundle = generate_observations(sc)
+        t0 = datetime.fromisoformat(bundle['t0'].replace('Z', '+00:00'))
+        original = runner.evaluate_run
+        def inject(**kw):
+            snaps = deepcopy(kw['snapshots_by_time'])
+            for snap in snaps:
+                dt = (datetime.fromisoformat(snap['processingTime'].replace('Z', '+00:00')) - t0).total_seconds()
+                if missing[0] <= dt <= missing[1]:
+                    snap['tracks'] = []
+            kw['snapshots_by_time'] = snaps
+            return original(**kw)
+        monkeypatch.setattr(runner, 'evaluate_run', inject)
+        result = runner.WorkbenchRunner().run_scenario_bundle(bundle, mode='realtime')
+        check = result['evaluation']['entity_check']
+>       assert check['status'] != 'PASS', {'phases': result['eval_phases'], 'entity_check_status': check['status']}
+E       AssertionError: {'entity_check_status': 'PASS', 'phases': [{'available': True, 'mode': 'full', 'name': 'pre_outage', 'window': ('2026-...ble': True, 'mode': 'full', 'name': 'recovery', 'window': ('2026-04-09T12:00:42+00:00', '2026-04-09T12:00:53+00:00')}]}
+E       assert 'PASS' != 'PASS'
+
+../task003_rework_r3/test_phase_coverage_round3.py:32: AssertionError
+_ test_unchecked_middle_must_not_be_whole_run_pass[unplanned_early_disappearance_during_outage] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f71cae97980>
+outages = [(12.0, 38.0)], missing = (20.0, 28.0)
+
+    @pytest.mark.parametrize('outages,missing', [
+        ([(12., 18.), (32., 38.)], (24., 29.)),
+        ([(12., 38.)], (20., 28.)),
+    ], ids=['first_recovery_between_two_outages', 'unplanned_early_disappearance_during_outage'])
+    def test_unchecked_middle_must_not_be_whole_run_pass(monkeypatch, outages, missing):
+        sc = get_preset('seven_aircraft_combinations')
+        sc.aircraft = sc.aircraft[:1]
+        sc.duration_s = 55
+        sc.aircraft[0].sources['rid'].outage = outages
+        bundle = generate_observations(sc)
+        t0 = datetime.fromisoformat(bundle['t0'].replace('Z', '+00:00'))
+        original = runner.evaluate_run
+        def inject(**kw):
+            snaps = deepcopy(kw['snapshots_by_time'])
+            for snap in snaps:
+                dt = (datetime.fromisoformat(snap['processingTime'].replace('Z', '+00:00')) - t0).total_seconds()
+                if missing[0] <= dt <= missing[1]:
+                    snap['tracks'] = []
+            kw['snapshots_by_time'] = snaps
+            return original(**kw)
+        monkeypatch.setattr(runner, 'evaluate_run', inject)
+        result = runner.WorkbenchRunner().run_scenario_bundle(bundle, mode='realtime')
+        check = result['evaluation']['entity_check']
+>       assert check['status'] != 'PASS', {'phases': result['eval_phases'], 'entity_check_status': check['status']}
+E       AssertionError: {'entity_check_status': 'PASS', 'phases': [{'available': True, 'mode': 'full', 'name': 'pre_outage', 'window': ('2026-...ble': True, 'mode': 'full', 'name': 'recovery', 'window': ('2026-04-09T12:00:42+00:00', '2026-04-09T12:00:53+00:00')}]}
+E       assert 'PASS' != 'PASS'
+
+../task003_rework_r3/test_phase_coverage_round3.py:32: AssertionError
+=========================== short test summary info ============================
+FAILED ../task003_rework_r3/test_phase_coverage_round3.py::test_unchecked_middle_must_not_be_whole_run_pass[first_recovery_between_two_outages]
+FAILED ../task003_rework_r3/test_phase_coverage_round3.py::test_unchecked_middle_must_not_be_whole_run_pass[unplanned_early_disappearance_during_outage]
+2 failed in 0.97s

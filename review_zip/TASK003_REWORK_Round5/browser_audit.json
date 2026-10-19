@@ -1,0 +1,60 @@
+{
+  "verification": "submitted script and evidence audit, no independent browser run",
+  "summary": {
+    "hardFail": 0,
+    "not_tested": 0,
+    "notes": 0,
+    "not_tested_items": []
+  },
+  "selected_submitted_steps": [
+    {
+      "step": "run_request_g_speed_1366",
+      "ok": true,
+      "detail": "{\"speed\":13.5}",
+      "at": "2026-10-19T06:44:09.348Z"
+    },
+    {
+      "step": "product_fail_panel_1366",
+      "ok": true,
+      "detail": "当前时刻：预期可见 7 · 算法目标 0整次评估（仿真，非现场准确率）：FAIL · ok=false无目标",
+      "at": "2026-10-19T06:44:09.526Z"
+    },
+    {
+      "step": "product_anomaly_pinned_1366",
+      "ok": true,
+      "detail": "{\"pinned\":\"Fd114127eb691-00001\",\"expect\":\"Fd114127eb691-00001\"}",
+      "at": "2026-10-19T06:44:09.781Z"
+    },
+    {
+      "step": "obs_mouse_hit_fields_1366",
+      "ok": true,
+      "detail": "{\"hit\":{\"ok\":true,\"observationId\":\"syn-20261019-00001\",\"source\":\"rid\",\"measurementTime\":\"2026-04-09T12:00:00+00:00\",\"clientX\":613.2609148227891,\"clientY\":637.8033070179459},\"insp\":{\"inspector\":\"目标 SN-A-001 · Fd114127eb691-00001\\npositionMode：predicted\\n主位置来源：rid\\n来源：RID:SN-A-001(confirmed)\\nseg：S1 · stateTime=2026-04-09T12:00:18.200000+00:00\",\"detailHasId\":true,\"hasSource\":true,\"hasTime\":true}}",
+      "at": "2026-10-19T06:44:09.950Z"
+    },
+    {
+      "step": "run_request_g_speed_1920",
+      "ok": true,
+      "detail": "{\"speed\":13.5}",
+      "at": "2026-10-19T06:44:33.341Z"
+    },
+    {
+      "step": "product_fail_panel_1920",
+      "ok": true,
+      "detail": "当前时刻：预期可见 7 · 算法目标 0整次评估（仿真，非现场准确率）：FAIL · ok=false无目标",
+      "at": "2026-10-19T06:44:33.514Z"
+    },
+    {
+      "step": "product_anomaly_pinned_1920",
+      "ok": true,
+      "detail": "{\"pinned\":\"F34815d4d0879-00001\",\"expect\":\"F34815d4d0879-00001\"}",
+      "at": "2026-10-19T06:44:33.779Z"
+    },
+    {
+      "step": "obs_mouse_hit_fields_1920",
+      "ok": true,
+      "detail": "{\"hit\":{\"ok\":true,\"observationId\":\"syn-20261019-00001\",\"source\":\"rid\",\"measurementTime\":\"2026-04-09T12:00:00+00:00\",\"clientX\":844.7053629221359,\"clientY\":907.784738157066},\"insp\":{\"inspector\":\"目标 SN-A-001 · F34815d4d0879-00001\\npositionMode：predicted\\n主位置来源：rid\\n来源：RID:SN-A-001(confirmed)\\nseg：S1 · stateTime=2026-04-09T12:00:18.200000+00:00\",\"detailHasId\":true,\"hasSource\":true,\"hasTime\":true}}",
+      "at": "2026-10-19T06:44:33.966Z"
+    }
+  ],
+  "coordinate_limit": "fused any sample vs any historical point; pred existence only; no complete per-target coordinate proof"
+}

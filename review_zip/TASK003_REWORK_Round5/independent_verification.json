@@ -1,0 +1,11 @@
+{
+  "bundle_sha256": "a86d86a5b0dd1bb5019ed0f2d06402d072d4c0b52a09ab12657d396ea0fb5618",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "full_regression": "97 passed, 1 warning in 199.32s (0:03:19)",
+  "previous_three_lifecycle_counterexamples": "3 passed in 5.39s",
+  "new_counterexamples": "3 failed in 6.06s",
+  "episode_probe": "PASS, two lines of two points",
+  "history_probe": "PASS, predicted and terminated committed lines retained",
+  "browser": "submitted script and JSON audited, not independently executed",
+  "conclusion": "REWORK_REQUIRED"
+}

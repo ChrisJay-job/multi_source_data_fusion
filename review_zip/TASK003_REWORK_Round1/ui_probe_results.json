@@ -1,0 +1,19 @@
+{
+  "verification_type": "actual JS with stubs, not browser E2E",
+  "fused_only": {
+    "history_lines": [],
+    "history_and_current_points": 1,
+    "snapshots": 250
+  },
+  "result_panel": {
+    "html": "<div>当前时刻：预期可见 <b>—</b> · 算法目标 <b>0</b></div><div class=\"muted\">评估（仿真）：—</div><div class=\"muted\">无目标</div>",
+    "shows_FAIL": false,
+    "anomaly_html": "<li class=\"hint\">当前时刻无明显异常条目</li>"
+  },
+  "expired_sources": {
+    "algorithm_active": [],
+    "page_active": [
+      "radar"
+    ]
+  }
+}

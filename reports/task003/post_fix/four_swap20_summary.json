@@ -1,0 +1,24 @@
+{
+  "tag": "four_swap20",
+  "counts": {
+    "delivered": 197,
+    "unique_received": 197,
+    "pending_buffer": 0,
+    "processed_updates": 135,
+    "source_binds": 8,
+    "bind_only": 62,
+    "rejected": 0,
+    "duplicate_received": 0,
+    "processed_hits": 135,
+    "empty_ticks": 0,
+    "flush_batches": 1
+  },
+  "misbind_A_radar_C": [],
+  "entity_check": "PASS",
+  "radar_ids": [
+    "radar-C",
+    "radar-C-v2",
+    "radar-D"
+  ],
+  "n_final": 4
+}

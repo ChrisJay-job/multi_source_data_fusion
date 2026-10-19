@@ -93,7 +93,12 @@ export class MapView {
     this.scale = 1.2;
     this.ox = canvas.width / 2;
     this.oy = canvas.height / 2;
-    this.layers = { rid: true, spectrum: true, radar: true, fused: true, pred: true, truth: true, plan: true };
+    // current = marker at clock; fused = measured history; obs layers drawn dimmer by default
+    this.layers = {
+      rid: true, spectrum: true, radar: true,
+      fused: true, current: true, pred: true, truth: true, plan: true,
+    };
+    this.obsAlpha = 0.35;
     this.targetFilter = null; // Set of labels / ids from UI
     this.displayIndex = new Map();
     this.state = null;
@@ -273,72 +278,148 @@ export class MapView {
         const color = COLORS[rows[0].source];
         for (const seg of segs) {
           const pts = seg.map((o) => this._llToXY(o.latitude, o.longitude));
-          this._points(pts, color);
-          if (pts.length >= 2) this._poly(pts, color, false, null, 2);
+          this._points(pts, color, this.obsAlpha);
+          if (pts.length >= 2) this._poly(pts, color, false, null, 1.5, this.obsAlpha);
+          else if (pts.length === 1) this._point(pts[0][0], pts[0][1], color, "circle", null, this.obsAlpha);
         }
       }
     }
 
-    // Fused history: measured solid / predicted dashed; hide pred removes predicted segments entirely
-    if ((this.layers.fused || this.layers.pred) && s.snapshots) {
-      const hist = new Map(); // fusionId -> [{xy, mode, seg}]
-      for (let i = 0; i <= this.tIndex; i++) {
-        const snap = s.snapshots[i];
-        for (const tr of snap.tracks || []) {
-          if (!this._allowedByFilter("fusion", tr)) continue;
-          const xy = this._llToXY(tr.latitude, tr.longitude);
-          const mode = tr.positionMode || "measured_assisted";
-          const seg = tr.trackSegmentId || "0";
-          if (!hist.has(tr.fusionId)) hist.set(tr.fusionId, []);
-          const arr = hist.get(tr.fusionId);
-          const last = arr[arr.length - 1];
-          if (!last || last.xy[0] !== xy[0] || last.xy[1] !== xy[1] || last.mode !== mode) {
-            arr.push({ xy, mode, seg });
-          }
-        }
-      }
-      for (const [, pts] of hist) {
-        // split into contiguous same-mode segments; never solid-bridge across predicted when pred hidden
+    // Fused HISTORY from committed KF updates (archived across snaps; survives termination).
+    // Pred layer draws actual predicted-history dashed polylines (not last-4 scatter / hint).
+    if ((this.layers.fused || this.layers.pred || this.layers.current) && s.snapshots) {
+      const nowSnap = s.snapshots[this.tIndex];
+      const nowT = parseT(nowSnap?.processingTime || nowSnap?.watermark);
+      const GAP_MS = 8000; // break polyline on long absence / re-birth
+      const endIdx = Math.min(this.tIndex, (s.snapshots.length || 1) - 1);
+
+      const flushRuns = (pts, color, dashed, width) => {
+        pts.sort((a, b) => a.t - b.t);
         let run = [];
-        let runMode = null;
         const flush = () => {
-          if (run.length < 2) { run = []; return; }
-          const pred = isPredicted(runMode);
-          if (pred && !this.layers.pred) { run = []; return; }
-          if (!pred && !this.layers.fused) { run = []; return; }
-          this._poly(run.map((p) => p.xy), pred ? COLORS.pred : COLORS.fused, pred, null, 2);
+          if (run.length >= 2) this._poly(run.map((p) => p.xy), color, dashed, null, width);
+          else if (run.length === 1) this._point(run[0].xy[0], run[0].xy[1], color, dashed ? "diamond" : "square", null, dashed ? 0.7 : 1);
           run = [];
         };
         for (const p of pts) {
-          if (runMode == null) runMode = p.mode;
-          if (p.mode !== runMode || (run.length && p.seg !== run[run.length - 1].seg)) {
-            flush();
-            runMode = p.mode;
-          }
-          // skip predicted samples entirely when pred off (no bridging)
-          if (isPredicted(p.mode) && !this.layers.pred) {
-            flush();
-            runMode = null;
-            continue;
-          }
-          if (isMeasured(p.mode) && !this.layers.fused) {
-            flush();
-            runMode = null;
-            continue;
-          }
+          if (run.length && p.t - run[run.length - 1].t > GAP_MS) flush();
           run.push(p);
         }
         flush();
+      };
+
+      if (this.layers.fused) {
+        // Archive: scan snaps[0..tIndex] so terminated tracks keep committed lines.
+        // Prefer longest append-only history per fusionId||seg; never draw future commits.
+        const best = new Map(); // key -> { hist, tr }
+        for (let i = 0; i <= endIdx; i++) {
+          const snap = s.snapshots[i];
+          for (const tr of snap?.tracks || []) {
+            if (!this._allowedByFilter("fusion", tr)) continue;
+            const hist = tr.committedHistory || tr.committed_updates || [];
+            if (!hist.length) continue;
+            const seg = String(tr.trackSegmentId ?? "0");
+            const key = `${tr.fusionId}||${seg}`;
+            const prev = best.get(key);
+            if (!prev || hist.length >= prev.hist.length) best.set(key, { hist, tr });
+          }
+        }
+        const byKey = new Map();
+        for (const [, { hist, tr }] of best) {
+          for (const c of hist) {
+            const ct = parseT(c.stateTime || c.measurementTime);
+            if (!Number.isFinite(ct)) continue;
+            if (nowT && Number.isFinite(nowT) && ct > nowT + 1) continue;
+            const seg = String(c.trackSegmentId ?? tr.trackSegmentId ?? "0");
+            const key = `${c.fusionId || tr.fusionId}||${seg}`;
+            if (!byKey.has(key)) byKey.set(key, []);
+            const arr = byKey.get(key);
+            const xy = (c.east_m != null && c.north_m != null)
+              ? [Number(c.east_m), Number(c.north_m)]
+              : this._llToXY(c.latitude, c.longitude);
+            const last = arr[arr.length - 1];
+            if (last && last.t === ct && last.xy[0] === xy[0] && last.xy[1] === xy[1]) continue;
+            arr.push({ xy, t: ct });
+          }
+        }
+        for (const [, pts] of byKey) flushRuns(pts, COLORS.fused, false, 2.5);
       }
+
+      // Predicted history by episode: enter/exit predicted boundaries (never bridge across measured).
+      if (this.layers.pred) {
+        const episodes = []; // {key, pts:[{xy,t}]}
+        const open = new Map(); // key -> current episode pts
+        const closeKey = (key) => {
+          const pts = open.get(key);
+          if (pts && pts.length) episodes.push({ key, pts: pts.slice() });
+          open.delete(key);
+        };
+        for (let i = 0; i <= endIdx; i++) {
+          const snap = s.snapshots[i];
+          const snapT = parseT(snap?.processingTime || snap?.watermark);
+          const seen = new Set();
+          for (const tr of snap?.tracks || []) {
+            if (!this._allowedByFilter("fusion", tr)) continue;
+            const seg = String(tr.trackSegmentId ?? "0");
+            const key = `${tr.fusionId}||${seg}`;
+            seen.add(key);
+            if (!isPredicted(tr.positionMode)) {
+              closeKey(key); // measured/stale restores break the prediction episode
+              continue;
+            }
+            const hist = tr.predictedHistory || tr.predicted_history || [];
+            if (hist.length) {
+              // Prefer explicit episode points if present; still respect measured interrupts above.
+              if (!open.has(key)) open.set(key, []);
+              const arr = open.get(key);
+              for (const p of hist) {
+                const pt = parseT(p.displayStateTime || p.stateTime || p.time);
+                if (!Number.isFinite(pt)) continue;
+                if (nowT && Number.isFinite(nowT) && pt > nowT + 1) continue;
+                const xy = (p.east_m != null && p.north_m != null)
+                  ? [Number(p.east_m), Number(p.north_m)]
+                  : this._llToXY(p.latitude, p.longitude);
+                const last = arr[arr.length - 1];
+                if (last && last.t === pt && last.xy[0] === xy[0] && last.xy[1] === xy[1]) continue;
+                arr.push({ xy, t: pt });
+              }
+            } else {
+              const pt = parseT(tr.displayStateTime || tr.stateTime) || snapT;
+              if (!Number.isFinite(pt)) continue;
+              if (nowT && Number.isFinite(nowT) && pt > nowT + 1) continue;
+              if (!open.has(key)) open.set(key, []);
+              const arr = open.get(key);
+              const xy = this._llToXY(tr.latitude, tr.longitude);
+              const last = arr[arr.length - 1];
+              if (last && Math.abs(last.t - pt) < 1 && last.xy[0] === xy[0] && last.xy[1] === xy[1]) continue;
+              // Also break on long gaps inside a continuous predicted run
+              if (last && pt - last.t > GAP_MS) {
+                closeKey(key);
+                open.set(key, [{ xy, t: pt }]);
+              } else {
+                arr.push({ xy, t: pt });
+              }
+            }
+          }
+          // Tracks absent this snap for an open episode → close (rebirth / termination boundary)
+          for (const key of [...open.keys()]) {
+            if (!seen.has(key)) closeKey(key);
+          }
+        }
+        for (const key of [...open.keys()]) closeKey(key);
+        for (const ep of episodes) flushRuns(ep.pts, COLORS.pred, true, 1.5);
+      }
+
       const snap = s.snapshots[this.tIndex];
       for (const tr of snap?.tracks || []) {
         if (!this._allowedByFilter("fusion", tr)) continue;
         const xy = this._llToXY(tr.latitude, tr.longitude);
         const pred = isPredicted(tr.positionMode);
-        if (pred && !this.layers.pred) continue;
-        if (!pred && !this.layers.fused) continue;
-        this._point(xy[0], xy[1], pred ? COLORS.pred : COLORS.fused, pred ? "diamond" : "square", (tr.aircraftId || tr.fusionId || "").slice(0, 8));
-        // Direction hint ONLY — not algorithm prediction trajectory
+        const showCurrent = this.layers.current !== false;
+        if (!showCurrent) continue;
+        const label = this._trackLabel(tr);
+        this._point(xy[0], xy[1], pred ? COLORS.pred : COLORS.fused, pred ? "diamond" : "square", label, 1);
+        // Direction hint is NOT predicted-history evidence (separate color/label).
         if (this.layers.pred && pred && tr.speed != null && tr.heading != null) {
           const rad = (tr.heading * Math.PI) / 180;
           const dist = Math.min(40, (tr.speed || 0) * 2);
@@ -483,9 +564,11 @@ export class MapView {
     return [x, y];
   }
 
-  _poly(pts, color, dashed, label, width = 2) {
+  _poly(pts, color, dashed, label, width = 2, alpha = 1) {
     if (!pts || pts.length < 2) return;
     const { ctx } = this;
+    ctx.save();
+    if (alpha < 1) ctx.globalAlpha = alpha;
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     ctx.setLineDash(dashed ? [6, 4] : []);
@@ -502,15 +585,51 @@ export class MapView {
       ctx.font = "11px sans-serif";
       ctx.fillText(label, x + 6, y - 6);
     }
+    ctx.restore();
   }
 
-  _points(pts, color) {
-    for (const p of pts) this._point(p[0], p[1], color, "circle");
+  _points(pts, color, alpha = 1) {
+    for (const p of pts) this._point(p[0], p[1], color, "circle", null, alpha);
   }
 
-  _point(wx, wy, color, shape, label) {
+  /** Readable name + short unique id (avoid truncating all fusionIds to the same F… prefix). */
+  _trackLabel(tr) {
+    const name = this._readableName(tr);
+    const fid = String(tr.fusionId || "");
+    let short = "";
+    if (fid) {
+      // Prefer trailing unique segment (e.g. after last '-' or last 6 chars)
+      const parts = fid.split(/[-_]/);
+      short = parts.length > 1 ? parts[parts.length - 1].slice(-6) : fid.slice(-6);
+    }
+    if (name && short) return `${name}·${short}`;
+    return name || short || "?";
+  }
+
+  _readableName(tr) {
+    if (tr.aircraftId) {
+      for (const [lab, e] of this.displayIndex) {
+        if (e.sns.has(tr.aircraftId)) return lab;
+      }
+      return String(tr.aircraftId);
+    }
+    for (const [lab, e] of this.displayIndex) {
+      if (e.fusionIds.has(tr.fusionId)) {
+        // anonymous radar: show sim label distinctly from device SN
+        return `${lab}(仿真)`;
+      }
+      for (const st of tr.sourceTracks || []) {
+        if (e.trackKeys.has(trackKey(st))) return e.sns.size ? lab : `${lab}(仿真)`;
+      }
+    }
+    return null;
+  }
+
+  _point(wx, wy, color, shape, label, alpha = 1) {
     const [x, y] = this.worldToScreen(wx, wy);
     const { ctx } = this;
+    ctx.save();
+    if (alpha < 1) ctx.globalAlpha = alpha;
     ctx.fillStyle = color;
     ctx.beginPath();
     if (shape === "square") ctx.rect(x - 4, y - 4, 8, 8);
@@ -519,10 +638,12 @@ export class MapView {
     } else ctx.arc(x, y, 3, 0, Math.PI * 2);
     ctx.fill();
     if (label) {
+      ctx.globalAlpha = 1;
       ctx.fillStyle = "#cfd8e6";
       ctx.font = "10px sans-serif";
       ctx.fillText(label, x + 6, y + 3);
     }
+    ctx.restore();
   }
 
   _pick(sx, sy) {

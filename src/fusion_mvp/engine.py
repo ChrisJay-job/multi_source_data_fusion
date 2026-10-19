@@ -80,6 +80,8 @@ class Track:
     lastSpeed: Optional[float] = None
     altitudeDatum: Optional[str] = "unknown"
     terminatedAt: Optional[datetime] = None
+    # Append-only primary KF commits (rolled back with session snapshot)
+    committed_updates: list[dict] = field(default_factory=list)
 
     def bind_key(self, source: str, detector: str, tid: str) -> str:
         return f"{source}|{detector}|{tid}"
@@ -113,6 +115,9 @@ class FusionSession:
         self.created = datetime.now(timezone.utc)
         self.lock = threading.RLock()
         self._reject_identity_pairs: set[tuple[str, str]] = set()
+        # Short-TTL re-gate fail markers: detector|exactSourceTrackId → (fusionId, lost_at)
+        # Opaque IDs only — never used to infer identity from spelling / -vN suffix.
+        self._radar_regate_fail: dict[str, tuple[str, datetime]] = {}
 
     def _fid(self) -> str:
         v = f"F{self.epoch}-{self.next_id:05d}"
@@ -136,12 +141,14 @@ class FusionSession:
             "seq": self.seq,
             "seen_obs": dict(self.seen_obs),
             "reject_identity_pairs": set(self._reject_identity_pairs),
+            "radar_regate_fail": dict(self._radar_regate_fail),
             "cache": copy.deepcopy(self.cache),
         }
 
     def _restore_state(self, snap: dict) -> None:
         self.tracks = snap["tracks"]
         self.buffer = snap["buffer"]
+        self._radar_regate_fail = dict(snap.get("radar_regate_fail") or snap.get("radar_handoff") or {})
         self.event_watermark = snap["event_watermark"]
         self.reported_watermark = snap["reported_watermark"]
         self.last_processing = snap["last_processing"]
@@ -485,37 +492,74 @@ class FusionSession:
         sy = float(tr.kf.P[1, 1]) + float(r) + q * dt
         return math.sqrt(((zx - px) ** 2) / max(sx, 1e-6) + ((zy - py) ** 2) / max(sy, 1e-6))
 
-    def _radar_innov_limit(self, tr: Track) -> float:
-        # Identified / RID-anchored tracks allow slightly larger secondary radar innov;
-        # anonymous radar-radar stays strict so LSA unmatch at ~86m cannot fall back loosely.
-        if tr.aircraftId or any(b.source == "rid" for b in tr.bindings.values()):
+    def _purge_radar_regate_fail(self, mt: datetime) -> None:
+        coast = float(self.cfg.get("lifecycle", {}).get("coast_s", 4.0))
+        ttl = coast * 3
+        dead = [k for k, (_fid, lost_at) in self._radar_regate_fail.items() if (mt - lost_at).total_seconds() > ttl]
+        for k in dead:
+            del self._radar_regate_fail[k]
+
+    def _radar_exact_key_bound(self, tr: Track, detector: str, tid: str) -> bool:
+        key = f"radar|{detector}|{tid}"
+        return key in tr.bindings
+
+    def _radar_innov_limit(self, tr: Track, *, exact_key_continuity: bool = False) -> float:
+        # Same gate family for re-gate / LSA. Exact sourceTrackId continuity may loosen slightly
+        # for RID-anchored tracks; opaque ID spelling never grants continuity.
+        identified = bool(tr.aircraftId or any(b.source == "rid" for b in tr.bindings.values()))
+        if identified and exact_key_continuity:
             return 11.0
+        if identified:
+            return 8.0
         return 6.0
 
+    def _retire_other_radar_keys(self, tr: Track, detector: str, keep_tid: str) -> None:
+        """One active radar sourceTrackId per detector on a track after a new assignment."""
+        for k, b in list(tr.bindings.items()):
+            if b.source == "radar" and b.detectorId == detector and b.sourceTrackId != keep_tid:
+                del tr.bindings[k]
+
     def _global_assign_radar(self, group: list[tuple[Observation, dict]], mt: datetime, detector: str) -> list[FusionEvent]:
+        """Per-detector LSA: gate (dist+innov) then one-to-one; no ID-spelling handoff shortcuts."""
         events: list[FusionEvent] = []
         gates = self.cfg["gates"]
         r_meas = float(self.cfg["kalman"]["r_radar"])
+        self._purge_radar_regate_fail(mt)
         tracks = [tr for tr in self.tracks.values() if tr.status != "terminated"]
         remaining: list[tuple[Observation, dict]] = []
+        occupied_fids: set[str] = set()
+
         for obs, raw in group:
             key = f"radar|{obs.detectorId}|{obs.sourceTrackId}"
             bound = None
             for tr in tracks:
-                if key in tr.bindings:
-                    x, y = self.geo.to_xy(obs.latitude, obs.longitude)  # type: ignore[arg-type]
-                    px, py = self._predicted_xy(tr, mt)
-                    dist = math.hypot(px - x, py - y)
-                    dt = abs((mt - tr.stateTime).total_seconds())
-                    innov = self._mahalanobis(tr, x, y, r_meas, t=mt)
-                    innov_limit = self._radar_innov_limit(tr)
-                    if dist <= float(gates["radar_dist_m"]) + dt * 35 and innov <= innov_limit:
-                        bound = tr
-                    else:
-                        events.append(self._event("bind_regate_fail", mt, tr.fusionId, key=key, dist=dist))
-                        del tr.bindings[key]
-                    break
+                if key not in tr.bindings:
+                    continue
+                x, y = self.geo.to_xy(obs.latitude, obs.longitude)  # type: ignore[arg-type]
+                px, py = self._predicted_xy(tr, mt)
+                dist = math.hypot(px - x, py - y)
+                dt = abs((mt - tr.stateTime).total_seconds())
+                innov = self._mahalanobis(tr, x, y, r_meas, t=mt)
+                innov_limit = self._radar_innov_limit(tr, exact_key_continuity=True)
+                if dist <= float(gates["radar_dist_m"]) + dt * 35 and innov <= innov_limit:
+                    bound = tr
+                else:
+                    self._radar_regate_fail[f"{detector}|{obs.sourceTrackId}"] = (tr.fusionId, mt)
+                    events.append(
+                        self._event(
+                            "bind_regate_fail",
+                            mt,
+                            tr.fusionId,
+                            key=key,
+                            dist=dist,
+                            innov=innov,
+                            innov_limit=innov_limit,
+                        )
+                    )
+                    del tr.bindings[key]
+                break
             if bound is not None:
+                occupied_fids.add(bound.fusionId)
                 events.extend(self._apply_update(bound, obs, mt, primary_forced=None))
             else:
                 remaining.append((obs, raw))
@@ -526,11 +570,14 @@ class FusionSession:
         batch_ids = {o.sourceTrackId for o, _ in remaining}
         cand_tracks = []
         for tr in tracks:
+            if tr.fusionId in occupied_fids:
+                continue
             same_det = [b for b in tr.bindings.values() if b.source == "radar" and b.detectorId == detector]
             if any(b.sourceTrackId in batch_ids for b in same_det):
                 continue
             parallel = [
-                b for b in same_det
+                b
+                for b in same_det
                 if b.sourceTrackId not in batch_ids and b.lastSeen >= mt - timedelta(milliseconds=1)
             ]
             if parallel:
@@ -549,7 +596,8 @@ class FusionSession:
                 dt = abs((mt - tr.stateTime).total_seconds())
                 limit = float(gates["radar_dist_m"]) + dt * 35
                 innov = self._mahalanobis(tr, x, y, r_meas, t=mt)
-                innov_limit = self._radar_innov_limit(tr)
+                exact = self._radar_exact_key_bound(tr, detector, obs.sourceTrackId)
+                innov_limit = self._radar_innov_limit(tr, exact_key_continuity=exact)
                 if dist > limit or innov > innov_limit:
                     cost[i, j] = 1e6
                 else:
@@ -563,11 +611,19 @@ class FusionSession:
             for i, j in zip(rows, cols):
                 obs, raw = remaining[i]
                 if j >= n_tr or cost[i, j] >= 1e5:
-                    # LSA explicit unmatch → independent birth (no looser gated_pick fallback)
+                    events.append(
+                        self._event(
+                            "radar_unmatched_birth",
+                            mt,
+                            None,
+                            sourceTrackId=obs.sourceTrackId,
+                            reason="lsa_unmatch_or_gate",
+                        )
+                    )
                     events.extend(self._birth(obs))
                     continue
                 if j in assigned_tracks:
-                    events.append(self._event("association_ambiguous", mt, None))
+                    events.append(self._event("association_ambiguous", mt, None, sourceTrackId=obs.sourceTrackId))
                     events.extend(self._birth(obs))
                     continue
                 row_costs = [(cost[i, jj], jj) for jj in range(n_tr) if cost[i, jj] < 1e5]
@@ -575,11 +631,40 @@ class FusionSession:
                 if len(row_costs) >= 2:
                     best, second = row_costs[0][0], row_costs[1][0]
                     if second <= best * float(gates["ambiguity_ratio"]) and (second - best) < 15:
-                        events.append(self._event("association_ambiguous", mt, None, best=best, second=second))
+                        events.append(
+                            self._event(
+                                "association_ambiguous",
+                                mt,
+                                None,
+                                best=best,
+                                second=second,
+                                sourceTrackId=obs.sourceTrackId,
+                            )
+                        )
                         events.extend(self._birth(obs))
                         continue
                 assigned_tracks.add(j)
-                events.extend(self._apply_update(cand_tracks[j], obs, mt, primary_forced=None))
+                tr = cand_tracks[j]
+                occupied_fids.add(tr.fusionId)
+                x, y = self.geo.to_xy(obs.latitude, obs.longitude)  # type: ignore[arg-type]
+                px, py = self._predicted_xy(tr, mt)
+                dist = math.hypot(px - x, py - y)
+                innov = self._mahalanobis(tr, x, y, r_meas, t=mt)
+                # New radar ID on this detector replaces other radar keys (opaque rename / swap)
+                self._retire_other_radar_keys(tr, detector, obs.sourceTrackId)
+                events.append(
+                    self._event(
+                        "radar_assigned",
+                        mt,
+                        tr.fusionId,
+                        sourceTrackId=obs.sourceTrackId,
+                        dist=dist,
+                        innov=innov,
+                        aircraftId=tr.aircraftId,
+                    )
+                )
+                events.extend(self._apply_update(tr, obs, mt, primary_forced=None))
+                self._radar_regate_fail.pop(f"{detector}|{obs.sourceTrackId}", None)
         return events
 
     def _ingest_one(self, obs: Observation, raw: dict) -> list[FusionEvent]:
@@ -787,6 +872,29 @@ class FusionSession:
             tr.lastObservedAt = t
             tr.hits += 1
             tr.qualityFlags = [f for f in tr.qualityFlags if f != "predicted"]
+            # Immutable commit point from KF state after primary update / birth spawn
+            cx, cy = float(tr.kf.x[0]), float(tr.kf.x[1])
+            clat, clon = self.geo.to_ll(cx, cy)
+            commit = {
+                "fusionId": tr.fusionId,
+                "trackSegmentId": tr.segmentId,
+                "stateTime": iso(t),
+                "latitude": clat,
+                "longitude": clon,
+                "east_m": cx,
+                "north_m": cy,
+                "positionSource": primary,
+                "observationId": getattr(obs, "observationId", None),
+                "measurementTime": getattr(obs, "measurementTime", None) or iso(t),
+            }
+            last = tr.committed_updates[-1] if tr.committed_updates else None
+            if not (
+                last
+                and last.get("stateTime") == commit["stateTime"]
+                and abs(float(last.get("east_m", 0)) - cx) < 1e-9
+                and abs(float(last.get("north_m", 0)) - cy) < 1e-9
+            ):
+                tr.committed_updates.append(commit)
         else:
             # secondary: binding only — never predict/update main KF here
             events.append(self._event("secondary_bind_only", t, tr.fusionId, source=obs.source, primary=primary))
@@ -961,6 +1069,7 @@ class FusionSession:
                     ],
                     qualityFlags=list(tr.qualityFlags),
                     aliases=list(tr.aliases),
+                    committedHistory=list(tr.committed_updates),
                 )
             )
         return out

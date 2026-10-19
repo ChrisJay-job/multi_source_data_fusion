@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>多源轨迹融合验证台</title>
   <link rel="stylesheet" href="/workbench-static/styles.css" />
 </head>
@@ -12,51 +13,71 @@
       <div class="sub">复用真实融合服务 · 真值不传算法 · 合成参数≠设备实测</div>
     </div>
     <div class="top-actions">
-      <button id="btnHealth">检查服务</button>
+      <button id="btnHealth" type="button">检查服务</button>
       <span id="svcStatus" class="pill">未检查</span>
     </div>
   </header>
 
   <nav class="tabs">
-    <button class="tab active" data-mode="sim">仿真场景</button>
-    <button class="tab" data-mode="real">真实文件回放</button>
+    <button class="tab active" data-mode="sim" type="button">仿真场景</button>
+    <button class="tab" data-mode="real" type="button">真实文件回放</button>
   </nav>
 
   <div class="layout">
     <aside class="left panel">
-      <section id="simPanel">
-        <h2>预置场景</h2>
-        <select id="scenarioSelect"></select>
-        <label>随机种子 <input id="seed" type="number" value="20261017" /></label>
-        <label>模式
-          <select id="runMode"><option value="realtime">realtime</option><option value="replay">replay</option></select>
-        </label>
-        <label>时长(s) <input id="duration" type="number" value="40" step="1" /></label>
-        <div class="row">
-          <button id="btnLoadSc" type="button">加载编辑</button>
-          <button id="btnAddAc" type="button">添加飞机</button>
+      <section id="simPanel" class="sim-panel">
+        <div class="sim-scroll">
+          <h2>预置场景</h2>
+          <select id="scenarioSelect"></select>
+          <div class="row tight">
+            <button id="btnLoadSc" type="button">加载编辑</button>
+            <button id="btnResetSeven" type="button" class="warn">恢复默认七机</button>
+          </div>
+          <div class="row tight meta-row">
+            <label>种子 <input id="seed" type="number" value="20261019" /></label>
+            <label>时长s <input id="duration" type="number" value="40" step="1" /></label>
+            <label>模式
+              <select id="runMode"><option value="realtime">realtime</option><option value="replay">replay</option></select>
+            </label>
+          </div>
+
+          <h2>飞机列表 <span class="hint-inline" id="acCountHint"></span></h2>
+          <ul id="acList" class="ac-list"></ul>
+          <div class="row tight">
+            <button id="btnAddAc" type="button">添加飞机</button>
+            <button id="btnDelSelAc" type="button">删除选中</button>
+          </div>
+
+          <div id="acDrawer" class="ac-drawer hidden">
+            <div class="drawer-head">
+              <strong id="drawerTitle">编辑飞机</strong>
+              <button id="btnCloseDrawer" type="button" class="linkish">收起</button>
+            </div>
+            <div class="drawer-tabs" role="tablist">
+              <button type="button" class="dtab active" data-tab="basic">基本信息</button>
+              <button type="button" class="dtab" data-tab="route">航线</button>
+              <button type="button" class="dtab" data-tab="sensor">传感器</button>
+              <button type="button" class="dtab" data-tab="fault">高级故障</button>
+            </div>
+            <div id="tabBasic" class="dtab-pane"></div>
+            <div id="tabRoute" class="dtab-pane hidden"></div>
+            <div id="tabSensor" class="dtab-pane hidden"></div>
+            <div id="tabFault" class="dtab-pane hidden"></div>
+          </div>
+
+          <p class="hint">来源开关在「传感器」页，只影响算法输入；右侧图层开关只影响绘图。</p>
         </div>
-        <label>图上编辑飞机
-          <select id="routeAcSelect"></select>
-        </label>
-        <div class="row">
-          <button id="btnRouteAdd" type="button">画布加点</button>
-          <button id="btnRouteDel" type="button">删末点</button>
-          <button id="btnRouteDone" type="button">结束画线</button>
-        </div>
-        <div id="editor" class="editor"></div>
-        <div class="row">
-          <button id="btnRunSim" class="primary">生成并融合</button>
+
+        <div class="sticky-actions">
+          <button id="btnRunSim" class="primary" type="button">生成并融合</button>
           <button id="btnSaveSc" type="button">保存场景</button>
           <button id="btnExportSc" type="button">导出JSON</button>
           <button id="btnImportSc" type="button">导入JSON</button>
           <input type="file" id="scFile" accept="application/json,.json" class="hidden" />
           <button id="btnResetView" type="button">适配视图</button>
         </div>
-        <p class="hint">显示开关只影响绘图；数据源开关在编辑器内。图上加点后写入航点；改完须「生成并融合」。</p>
-        <h2>飞机／航迹</h2>
-        <ul id="acList" class="list"></ul>
       </section>
+
       <section id="realPanel" class="hidden">
         <h2>导入</h2>
         <input type="file" id="fileInput" multiple />
@@ -85,8 +106,8 @@
         <label>纬度≥ <input id="latMin" type="number" step="0.0001" placeholder="可选" /></label>
         <label>纬度≤ <input id="latMax" type="number" step="0.0001" placeholder="可选" /></label>
         <div class="row">
-          <button id="btnPreview" class="primary">预览映射</button>
-          <button id="btnRunImport">回放融合</button>
+          <button id="btnPreview" class="primary" type="button">预览映射</button>
+          <button id="btnRunImport" type="button">回放融合</button>
           <button id="btnRunMulti" type="button">多文件合成回放</button>
         </div>
         <div class="row">
@@ -110,16 +131,28 @@
     </aside>
 
     <main class="center">
-      <canvas id="cv" width="1100" height="720"></canvas>
-      <div class="overlay">
-        <span id="clock">t=—</span>
-        <span id="scale">比例尺 —</span>
-        <span id="counts">投递0／缓冲0／处理0／拒绝0</span>
+      <div class="canvas-wrap">
+        <canvas id="cv" width="1100" height="720"></canvas>
+        <div class="overlay">
+          <span id="clock">t=—</span>
+          <span id="scale">比例尺 —</span>
+          <span id="counts">投递0／缓冲0／处理0／拒绝0</span>
+        </div>
+        <div class="legend-bar" id="legendBar" aria-label="图层图例">
+          <span class="lg plan">计划</span>
+          <span class="lg truth">真值</span>
+          <span class="lg rid">RID</span>
+          <span class="lg spectrum">频谱</span>
+          <span class="lg radar">雷达</span>
+          <span class="lg fused">融合历史</span>
+          <span class="lg current">当前</span>
+          <span class="lg pred">预测</span>
+        </div>
       </div>
       <div class="transport">
-        <button id="btnPlay">播放</button>
-        <button id="btnPause">暂停</button>
-        <button id="btnStep">单步</button>
+        <button id="btnPlay" type="button">播放</button>
+        <button id="btnPause" type="button">暂停</button>
+        <button id="btnStep" type="button">单步</button>
         <label>倍速
           <select id="speed"><option>1</option><option>2</option><option>4</option><option>0.5</option></select>
         </label>
@@ -130,36 +163,60 @@
 
     <aside class="right panel">
       <h2>显示图层</h2>
-      <label><input type="checkbox" class="layer" data-layer="rid" checked /> RID 观测</label>
-      <label><input type="checkbox" class="layer" data-layer="spectrum" checked /> 频谱观测</label>
-      <label><input type="checkbox" class="layer" data-layer="radar" checked /> 雷达观测</label>
-      <label><input type="checkbox" class="layer" data-layer="fused" checked /> 融合估计</label>
-      <label><input type="checkbox" class="layer" data-layer="pred" checked /> 预测段（虚线）</label>
-      <label><input type="checkbox" class="layer" data-layer="truth" checked /> 仿真真值／参考</label>
-      <label><input type="checkbox" class="layer" data-layer="plan" checked /> 计划全航线（灰）</label>
+      <div class="layer-defaults">
+        <label><input type="checkbox" class="layer" data-layer="fused" checked /> 融合实测历史</label>
+        <label><input type="checkbox" class="layer" data-layer="current" checked /> 当前位置</label>
+        <label><input type="checkbox" class="layer" data-layer="pred" checked /> 预测段（虚线）</label>
+        <label><input type="checkbox" class="layer" data-layer="plan" checked /> 计划航线</label>
+        <label><input type="checkbox" class="layer" data-layer="truth" checked /> 仿真真值</label>
+      </div>
+      <details id="advLayers" class="adv-layers">
+        <summary>全部图层（高级）</summary>
+        <label><input type="checkbox" class="layer" data-layer="rid" checked /> RID 观测（淡）</label>
+        <label><input type="checkbox" class="layer" data-layer="spectrum" checked /> 频谱观测（淡）</label>
+        <label><input type="checkbox" class="layer" data-layer="radar" checked /> 雷达观测（淡）</label>
+        <p class="hint">原始观测默认较淡；融合轨迹突出。图层开关不影响算法输入。</p>
+      </details>
+
       <h2>目标筛选</h2>
       <div id="targetFilters" class="filters"></div>
-      <p class="hint">空选＝全部；勾选后只画对应目标／航迹。</p>
-      <h2>目标详情</h2>
-      <pre id="detail" class="report">点击轨迹点查看</pre>
-      <h2>来源关联</h2>
-      <div id="assoc"></div>
-      <h2>事件／异常（当前时刻）</h2>
-      <pre id="events" class="report"></pre>
-      <h2>评估（仅仿真）</h2>
-      <pre id="eval" class="report"></pre>
+      <p class="hint">空选＝全部；勾选或左侧选中飞机后只画对应目标。</p>
+
+      <h2>结果摘要</h2>
+      <div id="resultSummary" class="summary-box">运行后显示</div>
+
+      <h2>逐飞机</h2>
+      <div id="acResultTable" class="table-wrap">
+        <table class="mini-table">
+          <thead>
+            <tr><th>机</th><th>期望源</th><th>实际源</th><th>fusionId</th><th>状态</th></tr>
+          </thead>
+          <tbody id="acResultBody"></tbody>
+        </table>
+      </div>
+
+      <h2>异常（点击跳转）</h2>
+      <ul id="anomalyList" class="anomaly-list"><li class="hint">运行后显示</li></ul>
+
+      <h2>观测／目标检查器</h2>
+      <div id="inspector" class="inspector">点击轨迹点查看</div>
+
+      <details class="debug-block">
+        <summary>调试：完整 JSON／事件</summary>
+        <h3>目标详情 JSON</h3>
+        <pre id="detail" class="report">—</pre>
+        <h3>来源关联原始</h3>
+        <div id="assoc"></div>
+        <h3>事件流（当前时刻）</h3>
+        <pre id="events" class="report"></pre>
+        <h3>评估（仅仿真）</h3>
+        <pre id="eval" class="report"></pre>
+      </details>
     </aside>
   </div>
 
   <footer class="foot">
-    图例：
-    <span class="lg rid">RID</span>
-    <span class="lg spectrum">频谱</span>
-    <span class="lg radar">雷达</span>
-    <span class="lg fused">融合</span>
-    <span class="lg truth">真值</span>
-    <span class="lg pred">预测虚线</span>
-    · API 同源 · 端口见 README
+    图例始终可见于画布下方 · API 同源 · 端口见 README
   </footer>
 
   <script type="module" src="/workbench-static/app.js"></script>

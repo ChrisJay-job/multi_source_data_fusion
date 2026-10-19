@@ -1,0 +1,31 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_missing_target_after_outage_recovery_cannot_pass_whole_run ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb08aae37a0>
+
+    def test_missing_target_after_outage_recovery_cannot_pass_whole_run(monkeypatch):
+        sc=get_preset('seven_aircraft_combinations')
+        sc.aircraft=sc.aircraft[:1]
+        sc.aircraft[0].sources['rid'].outage=[(12.0,22.0)]
+        bundle=generate_observations(sc)
+        cutoff=datetime.fromisoformat(bundle['t0'].replace('Z','+00:00'))+timedelta(seconds=26)
+        original=runner.evaluate_run
+        def evaluator_with_recovery_failure(**kw):
+            snaps=deepcopy(kw['snapshots_by_time'])
+            for snap in snaps:
+                if datetime.fromisoformat(snap['processingTime'].replace('Z','+00:00'))>=cutoff:
+                    snap['tracks']=[]
+            kw['snapshots_by_time']=snaps
+            return original(**kw)
+        monkeypatch.setattr(runner,'evaluate_run',evaluator_with_recovery_failure)
+        r=runner.WorkbenchRunner().run_scenario_bundle(bundle,mode='realtime')
+        ec=r['evaluation']['entity_check']
+>       assert ec['status']!='PASS',{'stable_window':r['stable_window'],'entity_check':ec}
+E       AssertionError: {'entity_check': {'details': [{'at': '2026-04-09T12:00:08+00:00', 'fusionId': 'Fa45c59221028-00001', 'ok': True, 'sour...ors': True, 'ok': True, 'status': 'PASS'}, 'stable_window': ['2026-04-09T12:00:08+00:00', '2026-04-09T12:00:11+00:00']}
+E       assert 'PASS' != 'PASS'
+
+task003_rework_r2/test_task003_recovery_evaluation.py:23: AssertionError
+=========================== short test summary info ============================
+FAILED task003_rework_r2/test_task003_recovery_evaluation.py::test_missing_target_after_outage_recovery_cannot_pass_whole_run
+1 failed in 0.63s

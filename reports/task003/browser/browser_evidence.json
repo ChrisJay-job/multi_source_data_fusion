@@ -1,0 +1,114 @@
+{
+  "steps": [
+    {
+      "step": "ready_1366",
+      "ok": true,
+      "at": "2026-10-19T03:37:16.949Z"
+    },
+    {
+      "step": "default_seven_1366",
+      "ok": true,
+      "detail": "n=7",
+      "at": "2026-10-19T03:37:16.968Z"
+    },
+    {
+      "step": "no_h_overflow_1366",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1366,\"clientWidth\":1366,\"bodyScroll\":1366}",
+      "at": "2026-10-19T03:37:16.971Z"
+    },
+    {
+      "step": "edit_g_1366",
+      "ok": true,
+      "detail": "speedBefore=11",
+      "note": true,
+      "at": "2026-10-19T03:37:17.548Z"
+    },
+    {
+      "step": "draw_cmds_fused_1366",
+      "ok": true,
+      "detail": "cmds=2942",
+      "at": "2026-10-19T03:37:26.496Z"
+    },
+    {
+      "step": "anomaly_click_1366",
+      "ok": true,
+      "detail": "none",
+      "note": true,
+      "at": "2026-10-19T03:37:26.500Z"
+    },
+    {
+      "step": "reset_seven_1366",
+      "ok": true,
+      "detail": "n=7",
+      "at": "2026-10-19T03:37:27.051Z"
+    },
+    {
+      "step": "no_js_errors_1366",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T03:37:27.051Z"
+    },
+    {
+      "step": "ready_1920",
+      "ok": true,
+      "at": "2026-10-19T03:37:29.174Z"
+    },
+    {
+      "step": "default_seven_1920",
+      "ok": true,
+      "detail": "n=7",
+      "at": "2026-10-19T03:37:29.185Z"
+    },
+    {
+      "step": "no_h_overflow_1920",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1920,\"clientWidth\":1920,\"bodyScroll\":1920}",
+      "at": "2026-10-19T03:37:29.187Z"
+    },
+    {
+      "step": "edit_g_1920",
+      "ok": true,
+      "detail": "speedBefore=11",
+      "note": true,
+      "at": "2026-10-19T03:37:29.698Z"
+    },
+    {
+      "step": "draw_cmds_fused_1920",
+      "ok": true,
+      "detail": "cmds=2942",
+      "at": "2026-10-19T03:37:38.625Z"
+    },
+    {
+      "step": "anomaly_click_1920",
+      "ok": true,
+      "detail": "none",
+      "note": true,
+      "at": "2026-10-19T03:37:38.629Z"
+    },
+    {
+      "step": "reset_seven_1920",
+      "ok": true,
+      "detail": "n=7",
+      "at": "2026-10-19T03:37:39.178Z"
+    },
+    {
+      "step": "no_js_errors_1920",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T03:37:39.178Z"
+    }
+  ],
+  "results": [
+    {
+      "width": 1366,
+      "height": 768,
+      "pageErrors": []
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "pageErrors": []
+    }
+  ]
+}

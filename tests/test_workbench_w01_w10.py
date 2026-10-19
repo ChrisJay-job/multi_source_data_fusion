@@ -56,10 +56,12 @@ def test_w04_radar_track_swap_emits_observations():
     sc = preset_three_aircraft()
     sc.aircraft = [a for a in sc.aircraft if a.label == "C"]
     sc.duration_s = 30
+    # Explicit swap only — null no longer invents a hidden 20s change (TASK-003)
+    sc.aircraft[0].sources["radar"].radar_id_swap_at_s = 20.0
     obs = generate_observations(sc)["observations"]
     radar = [o for o in obs if o["source"] == "radar"]
     tids = {o["sourceTrackId"] for o in radar}
-    assert len(tids) >= 2  # swap after t=20
+    assert len(tids) >= 2  # swap after explicit t=20
 
 
 def test_w05_csv_import_and_http_run():

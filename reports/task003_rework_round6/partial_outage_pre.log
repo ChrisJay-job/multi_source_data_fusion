@@ -1,0 +1,6 @@
+.F                                                                       [100%]
+=================================== FAILURES ===================================
+/work/tests/test_partial_outage_sources_round6.py:40: AssertionError: {'fault': 'expired_rid_kept_active', 'status': 'PASS', 'touched': [{'after': ['spectrum', 'rid'], 'before': ['spectrum...': ['spectrum'], 'frontier_s': 20.8}, {'after': ['spectrum', 'rid'], 'before': ['spectrum'], 'frontier_s': 21.0}, ...]}
+=========================== short test summary info ============================
+FAILED tests/test_partial_outage_sources_round6.py::test_partial_outage_active_set_must_match_ttl[expired_rid_kept_active]
+1 failed, 1 passed in 1.33s

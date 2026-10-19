@@ -1,0 +1,8 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+/work/tests/test_phase_coverage_round3.py:32: AssertionError: {'entity_check_status': 'PASS', 'phases': [{'available': True, 'mode': 'full', 'name': 'pre_outage', 'window': ('2026-...ble': True, 'mode': 'full', 'name': 'recovery', 'window': ('2026-04-09T12:00:42+00:00', '2026-04-09T12:00:53+00:00')}]}
+/work/tests/test_phase_coverage_round3.py:32: AssertionError: {'entity_check_status': 'PASS', 'phases': [{'available': True, 'mode': 'full', 'name': 'pre_outage', 'window': ('2026-...ble': True, 'mode': 'full', 'name': 'recovery', 'window': ('2026-04-09T12:00:42+00:00', '2026-04-09T12:00:53+00:00')}]}
+=========================== short test summary info ============================
+FAILED tests/test_phase_coverage_round3.py::test_unchecked_middle_must_not_be_whole_run_pass[first_recovery_between_two_outages]
+FAILED tests/test_phase_coverage_round3.py::test_unchecked_middle_must_not_be_whole_run_pass[unplanned_early_disappearance_during_outage]
+2 failed in 1.04s

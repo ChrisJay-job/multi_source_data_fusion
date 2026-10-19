@@ -1,0 +1,273 @@
+{
+  "normal_status": "PASS",
+  "ttl_rid_s": 2.5,
+  "rid_outage": [
+    12,
+    30
+  ],
+  "snapshots": [
+    {
+      "frontier_s": 12.4,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "rid",
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:12.200000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frontier_s": 12.6,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "rid",
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:12.200000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frontier_s": 18.4,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:18.200000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frontier_s": 18.6,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:18.200000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frontier_s": 19.6,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:19.400000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frontier_s": 19.8,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:19.400000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frontier_s": 20.8,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:20.600000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frontier_s": 21.0,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:20.600000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "frontier_s": 22.0,
+      "tracks": [
+        {
+          "trackStatus": "coasting",
+          "sources": [
+            "spectrum"
+          ],
+          "sourceTracks": [
+            {
+              "source": "rid",
+              "detectorId": "DET-RID",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:11.200000+00:00",
+              "bindingStatus": "confirmed"
+            },
+            {
+              "source": "spectrum",
+              "detectorId": "DET-SPECTRUM",
+              "sourceTrackId": "SN-D-004",
+              "aircraftId": "SN-D-004",
+              "lastSeen": "2026-04-09T12:00:21.800000+00:00",
+              "bindingStatus": "confirmed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

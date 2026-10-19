@@ -1,0 +1,122 @@
+[
+  {
+    "outage": [
+      [
+        12.0,
+        50.0
+      ]
+    ],
+    "duration_s": 80,
+    "status": "FAIL",
+    "phases": [
+      {
+        "name": "pre_outage",
+        "window": [
+          "2026-04-09T12:00:08+00:00",
+          "2026-04-09T12:00:11+00:00"
+        ],
+        "frames": 4,
+        "result": "PASS",
+        "mode": "full"
+      },
+      {
+        "name": "outage_0",
+        "window": [
+          "2026-04-09T12:00:12+00:00",
+          "2026-04-09T12:00:50+00:00"
+        ],
+        "frames": 39,
+        "result": "FAIL",
+        "mode": "lifecycle"
+      },
+      {
+        "name": "recovery",
+        "window": [
+          "2026-04-09T12:00:54+00:00",
+          "2026-04-09T12:01:18+00:00"
+        ],
+        "frames": 25,
+        "result": "PASS",
+        "mode": "full"
+      }
+    ],
+    "first_errors": [
+      {
+        "truth_id": "TRUTH-A",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:44+00:00",
+        "phase": "outage_0",
+        "mode": "lifecycle"
+      },
+      {
+        "truth_id": "TRUTH-A",
+        "error": "missing_entity",
+        "at": "2026-04-09T12:00:45+00:00",
+        "phase": "outage_0",
+        "mode": "lifecycle"
+      }
+    ],
+    "lifecycle_events": [
+      {
+        "type": "lost",
+        "time": "2026-04-09T12:00:24+00:00",
+        "fusionId": "F2b1ae53dd954-00001",
+        "payload": {
+          "eventId": "E2b1ae53dd954-000008"
+        }
+      },
+      {
+        "type": "terminated",
+        "time": "2026-04-09T12:00:42+00:00",
+        "fusionId": "F2b1ae53dd954-00001",
+        "payload": {
+          "eventId": "E2b1ae53dd954-000009"
+        }
+      }
+    ]
+  },
+  {
+    "outage": [
+      [
+        0.0,
+        10.0
+      ]
+    ],
+    "duration_s": 40,
+    "status": "FAIL",
+    "phases": [
+      {
+        "name": "outage_0",
+        "window": [
+          "2026-04-09T12:00:00+00:00",
+          "2026-04-09T12:00:10+00:00"
+        ],
+        "frames": 0,
+        "result": "FAIL",
+        "mode": "lifecycle"
+      },
+      {
+        "name": "recovery",
+        "window": [
+          "2026-04-09T12:00:14+00:00",
+          "2026-04-09T12:00:38+00:00"
+        ],
+        "frames": 25,
+        "result": "PASS",
+        "mode": "full"
+      }
+    ],
+    "first_errors": [
+      {
+        "error": "stable_window_no_frames",
+        "window": [
+          "2026-04-09T12:00:00+00:00",
+          "2026-04-09T12:00:10+00:00"
+        ],
+        "phase": "outage_0",
+        "mode": "lifecycle"
+      }
+    ],
+    "lifecycle_events": []
+  }
+]

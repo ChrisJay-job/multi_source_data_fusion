@@ -1,0 +1,282 @@
+{
+  "steps": [
+    {
+      "step": "ready_1366",
+      "ok": true,
+      "at": "2026-10-19T05:01:20.662Z"
+    },
+    {
+      "step": "default_seven_1366",
+      "ok": true,
+      "detail": "n=7",
+      "at": "2026-10-19T05:01:20.676Z"
+    },
+    {
+      "step": "no_h_overflow_1366",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1366,\"clientWidth\":1366}",
+      "at": "2026-10-19T05:01:20.678Z"
+    },
+    {
+      "step": "drag_no_route_points_1366",
+      "ok": true,
+      "detail": "pts=0",
+      "at": "2026-10-19T05:01:20.937Z"
+    },
+    {
+      "step": "other_ac_stable_0_1366",
+      "ok": true,
+      "detail": "A\n      SN-A-001 · 可运行\n      RID频谱雷达 -> A\n      SN-A-001 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:20.939Z"
+    },
+    {
+      "step": "other_ac_stable_1_1366",
+      "ok": true,
+      "detail": "B\n      SN-B-002 · 可运行\n      RID频谱雷达 -> B\n      SN-B-002 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:20.939Z"
+    },
+    {
+      "step": "other_ac_stable_2_1366",
+      "ok": true,
+      "detail": "C\n      匿名 · 可运行\n      RID频谱雷达 -> C\n      匿名 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:20.939Z"
+    },
+    {
+      "step": "other_ac_stable_3_1366",
+      "ok": true,
+      "detail": "D\n      SN-D-004 · 可运行\n      RID频谱雷达 -> D\n      SN-D-004 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:20.939Z"
+    },
+    {
+      "step": "other_ac_stable_4_1366",
+      "ok": true,
+      "detail": "E\n      SN-E-005 · 可运行\n      RID频谱雷达 -> E\n      SN-E-005 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:20.939Z"
+    },
+    {
+      "step": "other_ac_stable_5_1366",
+      "ok": true,
+      "detail": "F\n      SN-F-006 · 可运行\n      RID频谱雷达 -> F\n      SN-F-006 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:20.939Z"
+    },
+    {
+      "step": "edit_g_speed_1366",
+      "ok": true,
+      "detail": "speed=13",
+      "note": true,
+      "at": "2026-10-19T05:01:20.939Z"
+    },
+    {
+      "step": "mid_fused_history_1366",
+      "ok": true,
+      "detail": "{\"fusedSolid\":8,\"predDash\":8,\"hintDash\":8,\"total\":358}",
+      "at": "2026-10-19T05:01:39.334Z"
+    },
+    {
+      "step": "mid_pred_history_1366",
+      "ok": true,
+      "detail": "{\"fusedSolid\":8,\"predDash\":8,\"hintDash\":8,\"total\":358}",
+      "at": "2026-10-19T05:01:39.334Z"
+    },
+    {
+      "step": "pred_off_clears_pred_1366",
+      "ok": true,
+      "detail": "{\"fusedSolid\":1,\"predDash\":0}",
+      "at": "2026-10-19T05:01:39.505Z"
+    },
+    {
+      "step": "pred_off_keeps_fused_1366",
+      "ok": true,
+      "detail": "{\"fusedSolid\":1,\"predDash\":0}",
+      "at": "2026-10-19T05:01:39.505Z"
+    },
+    {
+      "step": "end_committed_history_1366",
+      "ok": true,
+      "detail": "{\"liveTracks\":7,\"fusedLines\":1}",
+      "at": "2026-10-19T05:01:39.675Z"
+    },
+    {
+      "step": "eval_status_1366",
+      "ok": true,
+      "detail": "{\"status\":\"PASS\",\"false_merges\":0,\"details\":0}",
+      "note": true,
+      "at": "2026-10-19T05:01:39.677Z"
+    },
+    {
+      "step": "anomaly_seek_1366",
+      "ok": true,
+      "detail": "{\"beforeIdx\":0,\"afterSeek\":{\"idx\":125,\"fid\":\"F119e2ae9c752-00001\",\"seeked\":125},\"anomalyOk\":{\"ok\":true,\"fid\":\"F119e2ae9c752-00001\",\"at\":\"2026-04-09T12:00:20.200000+00:00\",\"anomalyChildren\":2}}",
+      "at": "2026-10-19T05:01:40.110Z"
+    },
+    {
+      "step": "obs_inspector_1366",
+      "ok": true,
+      "detail": "{\"hasSource\":false,\"hasTime\":false,\"sample\":\"点击轨迹点查看\"}",
+      "note": true,
+      "at": "2026-10-19T05:01:40.111Z"
+    },
+    {
+      "step": "fail_readable_1366",
+      "ok": true,
+      "detail": "误关联 F119e2ae9c752-00001 @ 2026-04-09T12:00:20.200000+00:00",
+      "at": "2026-10-19T05:01:40.112Z"
+    },
+    {
+      "step": "reset_seven_1366",
+      "ok": true,
+      "at": "2026-10-19T05:01:40.545Z"
+    },
+    {
+      "step": "no_js_errors_1366",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T05:01:40.545Z"
+    },
+    {
+      "step": "ready_1920",
+      "ok": true,
+      "at": "2026-10-19T05:01:42.050Z"
+    },
+    {
+      "step": "default_seven_1920",
+      "ok": true,
+      "detail": "n=7",
+      "at": "2026-10-19T05:01:42.065Z"
+    },
+    {
+      "step": "no_h_overflow_1920",
+      "ok": true,
+      "detail": "{\"scrollWidth\":1920,\"clientWidth\":1920}",
+      "at": "2026-10-19T05:01:42.070Z"
+    },
+    {
+      "step": "drag_no_route_points_1920",
+      "ok": true,
+      "detail": "pts=0",
+      "at": "2026-10-19T05:01:42.277Z"
+    },
+    {
+      "step": "other_ac_stable_0_1920",
+      "ok": true,
+      "detail": "A\n      SN-A-001 · 可运行\n      RID频谱雷达 -> A\n      SN-A-001 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:42.278Z"
+    },
+    {
+      "step": "other_ac_stable_1_1920",
+      "ok": true,
+      "detail": "B\n      SN-B-002 · 可运行\n      RID频谱雷达 -> B\n      SN-B-002 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:42.278Z"
+    },
+    {
+      "step": "other_ac_stable_2_1920",
+      "ok": true,
+      "detail": "C\n      匿名 · 可运行\n      RID频谱雷达 -> C\n      匿名 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:42.278Z"
+    },
+    {
+      "step": "other_ac_stable_3_1920",
+      "ok": true,
+      "detail": "D\n      SN-D-004 · 可运行\n      RID频谱雷达 -> D\n      SN-D-004 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:42.278Z"
+    },
+    {
+      "step": "other_ac_stable_4_1920",
+      "ok": true,
+      "detail": "E\n      SN-E-005 · 可运行\n      RID频谱雷达 -> E\n      SN-E-005 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:42.278Z"
+    },
+    {
+      "step": "other_ac_stable_5_1920",
+      "ok": true,
+      "detail": "F\n      SN-F-006 · 可运行\n      RID频谱雷达 -> F\n      SN-F-006 · 可运行\n      RID频谱雷达",
+      "at": "2026-10-19T05:01:42.278Z"
+    },
+    {
+      "step": "edit_g_speed_1920",
+      "ok": true,
+      "detail": "speed=13",
+      "note": true,
+      "at": "2026-10-19T05:01:42.278Z"
+    },
+    {
+      "step": "mid_fused_history_1920",
+      "ok": true,
+      "detail": "{\"fusedSolid\":8,\"predDash\":8,\"hintDash\":8,\"total\":358}",
+      "at": "2026-10-19T05:02:00.800Z"
+    },
+    {
+      "step": "mid_pred_history_1920",
+      "ok": true,
+      "detail": "{\"fusedSolid\":8,\"predDash\":8,\"hintDash\":8,\"total\":358}",
+      "at": "2026-10-19T05:02:00.800Z"
+    },
+    {
+      "step": "pred_off_clears_pred_1920",
+      "ok": true,
+      "detail": "{\"fusedSolid\":1,\"predDash\":0}",
+      "at": "2026-10-19T05:02:00.969Z"
+    },
+    {
+      "step": "pred_off_keeps_fused_1920",
+      "ok": true,
+      "detail": "{\"fusedSolid\":1,\"predDash\":0}",
+      "at": "2026-10-19T05:02:00.970Z"
+    },
+    {
+      "step": "end_committed_history_1920",
+      "ok": true,
+      "detail": "{\"liveTracks\":7,\"fusedLines\":1}",
+      "at": "2026-10-19T05:02:01.140Z"
+    },
+    {
+      "step": "eval_status_1920",
+      "ok": true,
+      "detail": "{\"status\":\"PASS\",\"false_merges\":0,\"details\":0}",
+      "note": true,
+      "at": "2026-10-19T05:02:01.141Z"
+    },
+    {
+      "step": "anomaly_seek_1920",
+      "ok": true,
+      "detail": "{\"beforeIdx\":0,\"afterSeek\":{\"idx\":125,\"fid\":\"F1a5b3f2bc4a2-00001\",\"seeked\":125},\"anomalyOk\":{\"ok\":true,\"fid\":\"F1a5b3f2bc4a2-00001\",\"at\":\"2026-04-09T12:00:20.200000+00:00\",\"anomalyChildren\":2}}",
+      "at": "2026-10-19T05:02:01.589Z"
+    },
+    {
+      "step": "obs_inspector_1920",
+      "ok": true,
+      "detail": "{\"hasSource\":false,\"hasTime\":false,\"sample\":\"点击轨迹点查看\"}",
+      "note": true,
+      "at": "2026-10-19T05:02:01.591Z"
+    },
+    {
+      "step": "fail_readable_1920",
+      "ok": true,
+      "detail": "误关联 F1a5b3f2bc4a2-00001 @ 2026-04-09T12:00:20.200000+00:00",
+      "at": "2026-10-19T05:02:01.592Z"
+    },
+    {
+      "step": "reset_seven_1920",
+      "ok": true,
+      "at": "2026-10-19T05:02:02.041Z"
+    },
+    {
+      "step": "no_js_errors_1920",
+      "ok": true,
+      "detail": "",
+      "at": "2026-10-19T05:02:02.041Z"
+    }
+  ],
+  "results": [
+    {
+      "width": 1366,
+      "height": 768,
+      "pageErrors": []
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "pageErrors": []
+    }
+  ]
+}

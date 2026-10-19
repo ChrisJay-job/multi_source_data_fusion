@@ -1,0 +1,16 @@
+{
+  "verification_type": "actual canvas JS with stubs, not browser",
+  "expected": "two separate prediction episodes (1-2s and 5-6s), measured at 3-4s",
+  "actual": [
+    {
+      "n": 2,
+      "color": "#ff6b6b",
+      "dashed": true
+    },
+    {
+      "n": 2,
+      "color": "#ff6b6b",
+      "dashed": true
+    }
+  ]
+}

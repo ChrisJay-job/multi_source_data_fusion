@@ -1,0 +1,4 @@
+branch=task-003-workbench-usability-and-association
+HEAD=5749a24022e85fe41efcecf29374683cc8eb3d39
+# pre-freeze snapshot (metadata only)
+# candidates verified ALL_MATCH

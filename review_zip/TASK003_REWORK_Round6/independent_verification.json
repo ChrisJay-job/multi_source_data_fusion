@@ -1,0 +1,11 @@
+{
+  "bundle_sha256": "d59f37628dfd2224807b0b83fc3b85871113acf0696f8917b927b0c5f7e5aaaa",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "full_regression": "122 passed, 1 warning in 53.08s",
+  "previous_counterexamples": "3 passed in 1.10s",
+  "new_partial_outage_counterexamples": "2 failed in 1.48s",
+  "fault_injection": "evaluator snapshot copies only; engine input unchanged",
+  "normal_partial_outage_status": "PASS",
+  "browser": "not retested; no new UI changes in scope",
+  "conclusion": "REWORK_REQUIRED; one remaining active-source-set rule with two fault directions"
+}
