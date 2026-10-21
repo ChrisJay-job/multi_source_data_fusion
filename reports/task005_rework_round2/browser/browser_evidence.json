@@ -1,0 +1,234 @@
+{
+  "pass": true,
+  "hardFail": 0,
+  "steps": [
+    {
+      "step": "ready_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-21T01:34:15.987Z"
+    },
+    {
+      "step": "expand_13_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-21T01:34:16.534Z"
+    },
+    {
+      "step": "run_wait_seven_plus",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-21T01:35:39.457Z"
+    },
+    {
+      "step": "metrics_r2_1366",
+      "ok": true,
+      "detail": "整次评估：FAIL（硬错误保留原始 FAIL；能力边界不覆盖）目标数=15 · 误合并=0 · 拆轨/重复=696 · ID交换=0 · 重建=0 · 错绑=0跨机交换=互为对换的 fusionId；同机重建计入 recreate_count，不并入 id_exchange_count末快照实体覆盖率=100.0% · 末快照实体覆盖率=已映射真值实体数/期望稳定实体数；分子=13；分母=13；不",
+      "at": "2026-10-21T01:35:39.460Z"
+    },
+    {
+      "step": "near_jk_pair_1366",
+      "ok": true,
+      "detail": "真值最近距 2.00 m · 对=J/K · 聚焦对全程最小@0.0s；全图最小=0.00m(H/I)@14.0s（本条不被比例尺覆盖）",
+      "at": "2026-10-21T01:35:39.952Z"
+    },
+    {
+      "step": "near_jk_dist_1366",
+      "ok": true,
+      "detail": "真值最近距 2.00 m · 对=J/K · 聚焦对全程最小@0.0s；全图最小=0.00m(H/I)@14.0s（本条不被比例尺覆盖）",
+      "at": "2026-10-21T01:35:39.952Z"
+    },
+    {
+      "step": "near_not_hi_1366",
+      "ok": true,
+      "detail": "真值最近距 2.00 m · 对=J/K · 聚焦对全程最小@0.0s；全图最小=0.00m(H/I)@14.0s（本条不被比例尺覆盖）",
+      "at": "2026-10-21T01:35:39.952Z"
+    },
+    {
+      "step": "jk_scale_1366",
+      "ok": true,
+      "detail": "{\"scale\":57.14285714285714,\"filterOk\":true,\"at\":0,\"jkAt\":0,\"jkD\":2}",
+      "at": "2026-10-21T01:35:39.954Z"
+    },
+    {
+      "step": "jk_filter_1366",
+      "ok": true,
+      "detail": "{\"scale\":57.14285714285714,\"filterOk\":true,\"at\":0,\"jkAt\":0,\"jkD\":2}",
+      "at": "2026-10-21T01:35:39.954Z"
+    },
+    {
+      "step": "near_persists_jk_1366",
+      "ok": true,
+      "detail": "真值最近距 2.00 m · 对=J/K · 聚焦对全程最小@0.0s；全图最小=0.00m(H/I)@14.0s（本条不被比例尺覆盖）",
+      "at": "2026-10-21T01:35:40.277Z"
+    },
+    {
+      "step": "pinned_before_switch_1366",
+      "ok": true,
+      "detail": "{\"insp\":\"<div><b>目标</b> 机=A · SN=SN-A-001 · fusionId=<span class=\\\"k\\\">F42f40a41f0f3-00001</span></div><div><span class=",
+      "at": "2026-10-21T01:35:40.288Z"
+    },
+    {
+      "step": "run_wait_near_parallel_2m_anon",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-21T01:35:41.225Z"
+    },
+    {
+      "step": "r2_04_no_old_A_1366",
+      "ok": true,
+      "detail": "当前时刻无目标\n当前时刻无目标\n当前时刻无目标\n",
+      "at": "2026-10-21T01:35:41.435Z"
+    },
+    {
+      "step": "r2_04_no_old_fid_1366",
+      "ok": true,
+      "detail": "F42f40a41f0f3-00001",
+      "at": "2026-10-21T01:35:41.435Z"
+    },
+    {
+      "step": "r2_04_empty_or_current_1366",
+      "ok": true,
+      "detail": "当前时刻无目标\n当前时刻无目标\n当前时刻无目标\n",
+      "at": "2026-10-21T01:35:41.435Z"
+    },
+    {
+      "step": "r2_03_counts_label_1366",
+      "ok": true,
+      "detail": "观测接收=4／快照帧索引=0（≠处理批）／已处理观测数=未提供可靠计数／主位置更新(至本帧)=0／来源新绑定(source_bound)=0／仅绑定(secondary_bind_only)=0／缓冲=4／拒绝=0（分列，勿互比当漏数）",
+      "at": "2026-10-21T01:35:41.435Z"
+    },
+    {
+      "step": "r2_03_bind_split_1366",
+      "ok": true,
+      "detail": "观测接收=4／快照帧索引=0（≠处理批）／已处理观测数=未提供可靠计数／主位置更新(至本帧)=0／来源新绑定(source_bound)=0／仅绑定(secondary_bind_only)=0／缓冲=4／拒绝=0（分列，勿互比当漏数）",
+      "at": "2026-10-21T01:35:41.435Z"
+    },
+    {
+      "step": "r2_03_api_processed_obs_null_1366",
+      "ok": true,
+      "detail": "{\"delivered\":4,\"rejected\":0,\"source_binds\":0,\"bind_only\":0,\"processed_updates\":0,\"pending_buffer\":4,\"processed_observations\":null}",
+      "at": "2026-10-21T01:35:41.435Z"
+    },
+    {
+      "step": "r2_04_after_seek_1366",
+      "ok": true,
+      "detail": "当前时刻无目标",
+      "at": "2026-10-21T01:35:41.596Z"
+    },
+    {
+      "step": "ready_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-21T01:35:43.105Z"
+    },
+    {
+      "step": "expand_13_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-21T01:35:43.659Z"
+    },
+    {
+      "step": "run_wait_seven_plus",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-21T01:37:06.695Z"
+    },
+    {
+      "step": "metrics_r2_1920",
+      "ok": true,
+      "detail": "整次评估：FAIL（硬错误保留原始 FAIL；能力边界不覆盖）目标数=15 · 误合并=0 · 拆轨/重复=696 · ID交换=0 · 重建=0 · 错绑=0跨机交换=互为对换的 fusionId；同机重建计入 recreate_count，不并入 id_exchange_count末快照实体覆盖率=100.0% · 末快照实体覆盖率=已映射真值实体数/期望稳定实体数；分子=13；分母=13；不",
+      "at": "2026-10-21T01:37:06.697Z"
+    },
+    {
+      "step": "near_jk_pair_1920",
+      "ok": true,
+      "detail": "真值最近距 2.00 m · 对=J/K · 聚焦对全程最小@0.0s；全图最小=0.00m(H/I)@14.0s（本条不被比例尺覆盖）",
+      "at": "2026-10-21T01:37:07.174Z"
+    },
+    {
+      "step": "near_jk_dist_1920",
+      "ok": true,
+      "detail": "真值最近距 2.00 m · 对=J/K · 聚焦对全程最小@0.0s；全图最小=0.00m(H/I)@14.0s（本条不被比例尺覆盖）",
+      "at": "2026-10-21T01:37:07.174Z"
+    },
+    {
+      "step": "near_not_hi_1920",
+      "ok": true,
+      "detail": "真值最近距 2.00 m · 对=J/K · 聚焦对全程最小@0.0s；全图最小=0.00m(H/I)@14.0s（本条不被比例尺覆盖）",
+      "at": "2026-10-21T01:37:07.174Z"
+    },
+    {
+      "step": "jk_scale_1920",
+      "ok": true,
+      "detail": "{\"scale\":57.14285714285714,\"filterOk\":true,\"at\":0,\"jkAt\":0,\"jkD\":2}",
+      "at": "2026-10-21T01:37:07.175Z"
+    },
+    {
+      "step": "jk_filter_1920",
+      "ok": true,
+      "detail": "{\"scale\":57.14285714285714,\"filterOk\":true,\"at\":0,\"jkAt\":0,\"jkD\":2}",
+      "at": "2026-10-21T01:37:07.175Z"
+    },
+    {
+      "step": "near_persists_jk_1920",
+      "ok": true,
+      "detail": "真值最近距 2.00 m · 对=J/K · 聚焦对全程最小@0.0s；全图最小=0.00m(H/I)@14.0s（本条不被比例尺覆盖）",
+      "at": "2026-10-21T01:37:07.500Z"
+    },
+    {
+      "step": "pinned_before_switch_1920",
+      "ok": true,
+      "detail": "{\"insp\":\"<div><b>目标</b> 机=A · SN=SN-A-001 · fusionId=<span class=\\\"k\\\">F7d556c0053d2-00001</span></div><div><span class=",
+      "at": "2026-10-21T01:37:07.511Z"
+    },
+    {
+      "step": "run_wait_near_parallel_2m_anon",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-21T01:37:08.402Z"
+    },
+    {
+      "step": "r2_04_no_old_A_1920",
+      "ok": true,
+      "detail": "当前时刻无目标\n当前时刻无目标\n当前时刻无目标\n",
+      "at": "2026-10-21T01:37:08.598Z"
+    },
+    {
+      "step": "r2_04_no_old_fid_1920",
+      "ok": true,
+      "detail": "F7d556c0053d2-00001",
+      "at": "2026-10-21T01:37:08.598Z"
+    },
+    {
+      "step": "r2_04_empty_or_current_1920",
+      "ok": true,
+      "detail": "当前时刻无目标\n当前时刻无目标\n当前时刻无目标\n",
+      "at": "2026-10-21T01:37:08.598Z"
+    },
+    {
+      "step": "r2_03_counts_label_1920",
+      "ok": true,
+      "detail": "观测接收=4／快照帧索引=0（≠处理批）／已处理观测数=未提供可靠计数／主位置更新(至本帧)=0／来源新绑定(source_bound)=0／仅绑定(secondary_bind_only)=0／缓冲=4／拒绝=0（分列，勿互比当漏数）",
+      "at": "2026-10-21T01:37:08.598Z"
+    },
+    {
+      "step": "r2_03_bind_split_1920",
+      "ok": true,
+      "detail": "观测接收=4／快照帧索引=0（≠处理批）／已处理观测数=未提供可靠计数／主位置更新(至本帧)=0／来源新绑定(source_bound)=0／仅绑定(secondary_bind_only)=0／缓冲=4／拒绝=0（分列，勿互比当漏数）",
+      "at": "2026-10-21T01:37:08.598Z"
+    },
+    {
+      "step": "r2_03_api_processed_obs_null_1920",
+      "ok": true,
+      "detail": "{\"delivered\":4,\"rejected\":0,\"source_binds\":0,\"bind_only\":0,\"processed_updates\":0,\"pending_buffer\":4,\"processed_observations\":null}",
+      "at": "2026-10-21T01:37:08.598Z"
+    },
+    {
+      "step": "r2_04_after_seek_1920",
+      "ok": true,
+      "detail": "当前时刻无目标",
+      "at": "2026-10-21T01:37:08.760Z"
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "name": "challenge_cross_rid_outage_anon",
+  "seed": 20261024,
+  "duration_s": 30.0,
+  "algorithmHint": "mvp-0.1.0",
+  "notes": "交叉邻域 RID 短暂停报(10–16s)，保留频谱/他机源；identity_mode=both_anon",
+  "opaque_track_ids": true,
+  "challenge_group": "cross_outage",
+  "focus_hint": null,
+  "challenge_intent": {
+    "groups": [
+      {
+        "kind": "simultaneous_cross",
+        "pair_labels": [
+          "Ho",
+          "Io"
+        ],
+        "meet_xy": [
+          5500.0,
+          0.0
+        ],
+        "max_min_distance_m": 1.0,
+        "max_arrival_delta_s": 0.5
+      },
+      {
+        "kind": "rid_outage_near_cross",
+        "aircraft": "Ho",
+        "outage_window_s": [
+          10.0,
+          16.0
+        ]
+      }
+    ]
+  },
+  "identity_mode": "both_anon",
+  "aircraft": [
+    {
+      "label": "Ho",
+      "truth_id": "TRUTH-Ho",
+      "rid_sn": null,
+      "speed_mps": 12.0,
+      "takeoff_offset_s": 2.0,
+      "waypoints": [
+        {
+          "x_m": 5380.0,
+          "y_m": 0.0,
+          "dwell_s": 0.0
+        },
+        {
+          "x_m": 5620.0,
+          "y_m": 0.0,
+          "dwell_s": 0.0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1.0,
+          "pos_noise_m": 3.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [
+            [
+              10.0,
+              16.0
+            ]
+          ],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        },
+        "spectrum": {
+          "period_s": 1.2,
+          "pos_noise_m": 8.0,
+          "bias_east_m": 2.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        },
+        "radar": {
+          "period_s": 2.0,
+          "pos_noise_m": 15.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false,
+          "emit_aircraft_id": false
+        }
+      }
+    },
+    {
+      "label": "Io",
+      "truth_id": "TRUTH-Io",
+      "rid_sn": null,
+      "speed_mps": 12.0,
+      "takeoff_offset_s": 2.0,
+      "waypoints": [
+        {
+          "x_m": 5500.0,
+          "y_m": -120.0,
+          "dwell_s": 0.0
+        },
+        {
+          "x_m": 5500.0,
+          "y_m": 120.0,
+          "dwell_s": 0.0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1.0,
+          "pos_noise_m": 3.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        },
+        "spectrum": {
+          "period_s": 1.2,
+          "pos_noise_m": 8.0,
+          "bias_east_m": 2.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        },
+        "radar": {
+          "period_s": 2.0,
+          "pos_noise_m": 15.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false,
+          "emit_aircraft_id": false
+        }
+      }
+    }
+  ]
+}

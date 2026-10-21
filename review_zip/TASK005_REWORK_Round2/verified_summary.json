@@ -1,0 +1,12 @@
+{
+  "zip_sha256": "b325b245d9858704de760dab3c74cf36600f727c23cba8e4cce798d84ac42cba",
+  "manifest_entries": 137,
+  "manifest_mismatches": 0,
+  "frozen_algo_and_config": "all match TASK-003 Round6",
+  "preset_geometry_verified": 33,
+  "matrix_rows": 140,
+  "matrix_geometry_invalid": 0,
+  "independent_pytest": "163 passed, 1 warning, 56.07s",
+  "runtime": "Python3.12 with pinned direct requirements; independent Docker3.11/browser E2E NOT_TESTED",
+  "inspection": "Original extracted package tested as-is; no baseline source/sample supplementation this round"
+}

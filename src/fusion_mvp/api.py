@@ -207,6 +207,58 @@ def run_scenario(req: ScenarioRunRequest):
     result["scenario"] = bundle["scenario"]
     result["observations"] = bundle["observations"]
     result["obs_truth_map"] = bundle["obs_truth_map"]
+    # Display/eval metadata only — does not enter fusion.
+    try:
+        from fusion_mvp.workbench.scenario_challenges import (
+            actual_identity_sets,
+            validate_challenge_geometry,
+        )
+
+        result["challenge_geometry"] = validate_challenge_geometry(sc)
+        result["identity_audit"] = actual_identity_sets(sc)
+    except Exception as exc:  # noqa: BLE001
+        result["challenge_geometry"] = {"ok": False, "error": str(exc)}
+    # Rebuild metrics with same helper as runner (truth_timeline eval-side only).
+    try:
+        from fusion_mvp.workbench.metrics_display import build_metrics_display
+        from fusion_mvp.workbench.scenario import expected_sources_from_scenario
+
+        ev = result.get("evaluation") or {}
+        if ev:
+            sn_map = {}
+            for a in (result.get("scenario") or {}).get("aircraft") or []:
+                if a.get("rid_sn") and a.get("truth_id"):
+                    sn_map[a["rid_sn"]] = a["truth_id"]
+            expected = expected_sources_from_scenario(result.get("scenario") or {}) or None
+            prev_md = dict(ev.get("metrics_display") or {})
+            new_md = build_metrics_display(
+                eval_out=ev,
+                last_tracks=result.get("final_tracks") or [],
+                snapshots=result.get("snapshots") or [],
+                expected_stable_entities=expected,
+                truth_timeline=bundle.get("truth_timeline"),
+                sn_to_truth=sn_map,
+            )
+            # Keep runner coverage if API-side expected gating cleared the denominator.
+            if new_md.get("last_snapshot_entity_coverage") is None and prev_md.get(
+                "last_snapshot_entity_coverage"
+            ) is not None:
+                for k in (
+                    "last_snapshot_entity_coverage",
+                    "last_snapshot_entity_coverage_note",
+                    "association_coverage",
+                    "association_coverage_note",
+                ):
+                    if k in prev_md:
+                        new_md[k] = prev_md[k]
+            ev["metrics_display"] = new_md
+            result["evaluation"] = ev
+    except Exception as exc:  # noqa: BLE001
+        ev = result.get("evaluation") or {}
+        md = ev.get("metrics_display") or {}
+        md["position_rmse_note"] = f"不可计算：{exc}"
+        ev["metrics_display"] = md
+        result["evaluation"] = ev
     return result
 
 

@@ -1,0 +1,314 @@
+........................................................................ [ 47%]
+....................................FFFFF.FFF........................... [ 95%]
+F...F..                                                                  [100%]
+=================================== FAILURES ===================================
+_____________________ test_no_hidden_radar_swap_when_null ______________________
+
+    def test_no_hidden_radar_swap_when_null():
+>       raw = json.loads(FOUR.read_text(encoding="utf-8"))
+
+tests/test_task003.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_20261019.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_20261019.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+________________________ test_explicit_swap20_emits_v2 _________________________
+
+    def test_explicit_swap20_emits_v2():
+>       raw = json.loads(FOUR_SWAP.read_text(encoding="utf-8"))
+
+tests/test_task003.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_explicit_swap20.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_explicit_swap20.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+_______________________ test_user_four_no_c_to_a_misbind _______________________
+
+    def test_user_four_no_c_to_a_misbind():
+>       out, _ = _run(FOUR)
+
+tests/test_task003.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_task003.py:20: in _run
+    raw = raw_override or json.loads(path.read_text(encoding="utf-8"))
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_20261019.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_20261019.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+___________________ test_explicit_swap20_no_c_to_a_and_d_ok ____________________
+
+    def test_explicit_swap20_no_c_to_a_and_d_ok():
+>       out, _ = _run(FOUR_SWAP)
+
+tests/test_task003.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_task003.py:20: in _run
+    raw = raw_override or json.loads(path.read_text(encoding="utf-8"))
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_explicit_swap20.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_explicit_swap20.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+____________________ test_opaque_id_rename_four_equivalent _____________________
+
+    def test_opaque_id_rename_four_equivalent():
+        """radar-C→7319, swap→2048, D radar remapped — same association outcome as spelling form."""
+>       raw = json.loads(FOUR_SWAP.read_text(encoding="utf-8"))
+
+tests/test_task003.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_explicit_swap20.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_explicit_swap20.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+__________________ test_expected_from_custom_sources_not_name __________________
+
+    def test_expected_from_custom_sources_not_name():
+>       raw = json.loads(FOUR.read_text(encoding="utf-8"))
+
+tests/test_task003.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_20261019.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_20261019.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+_______________________ test_other_seed_nearby_no_c_to_a _______________________
+
+    def test_other_seed_nearby_no_c_to_a():
+>       raw = json.loads(FOUR_SWAP.read_text(encoding="utf-8"))
+
+tests/test_task003.py:155: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_explicit_swap20.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_explicit_swap20.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+____________ test_short_duration_no_stable_window_not_invented_pass ____________
+
+    def test_short_duration_no_stable_window_not_invented_pass():
+>       raw = json.loads(FOUR.read_text(encoding="utf-8"))
+
+tests/test_task003.py:162: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_20261019.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/user_four_aircraft_20261019.json'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+_______________________ test_w05_csv_import_and_http_run _______________________
+
+    def test_w05_csv_import_and_http_run():
+        path = ROOT / "samples/workbench/mix_ok.csv"
+        tmpl = MappingTemplate(
+            field_map={
+                "observationId": "observationId",
+                "source": "source",
+                "sourceTrackId": "sourceTrackId",
+                "aircraftId": "aircraftId",
+                "measurementTime": "measurementTime",
+                "longitude": "longitude",
+                "latitude": "latitude",
+                "detectorId": "detectorId",
+            }
+        )
+>       summary = import_tabular(path, tmpl)
+
+tests/test_workbench_w01_w10.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/fusion_mvp/workbench/importer.py:566: in import_tabular
+    with path.open("r", encoding="utf-8-sig", newline="") as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/mix_ok.csv')
+mode = 'r', buffering = -1, encoding = 'utf-8-sig', errors = None, newline = ''
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/mix_ok.csv'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+__________________ test_w09_real_import_has_no_fake_accuracy ___________________
+
+    def test_w09_real_import_has_no_fake_accuracy():
+        path = ROOT / "samples/workbench/mix_ok.csv"
+>       summary = import_tabular(
+            path,
+            MappingTemplate(
+                field_map={
+                    "observationId": "observationId",
+                    "source": "source",
+                    "sourceTrackId": "sourceTrackId",
+                    "aircraftId": "aircraftId",
+                    "measurementTime": "measurementTime",
+                    "longitude": "longitude",
+                    "latitude": "latitude",
+                }
+            ),
+        )
+
+tests/test_workbench_w01_w10.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/fusion_mvp/workbench/importer.py:566: in import_tabular
+    with path.open("r", encoding="utf-8-sig", newline="") as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/mix_ok.csv')
+mode = 'r', buffering = -1, encoding = 'utf-8-sig', errors = None, newline = ''
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/8deb2d43d4c5/audit_task005_overlay/samples/workbench/mix_ok.csv'
+
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py:1013: FileNotFoundError
+=============================== warnings summary ===============================
+../../../../tmp/task005_audit_deps/starlette/testclient.py:37
+  /tmp/task005_audit_deps/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_task003.py::test_no_hidden_radar_swap_when_null - FileNotFo...
+FAILED tests/test_task003.py::test_explicit_swap20_emits_v2 - FileNotFoundErr...
+FAILED tests/test_task003.py::test_user_four_no_c_to_a_misbind - FileNotFound...
+FAILED tests/test_task003.py::test_explicit_swap20_no_c_to_a_and_d_ok - FileN...
+FAILED tests/test_task003.py::test_opaque_id_rename_four_equivalent - FileNot...
+FAILED tests/test_task003.py::test_expected_from_custom_sources_not_name - Fi...
+FAILED tests/test_task003.py::test_other_seed_nearby_no_c_to_a - FileNotFound...
+FAILED tests/test_task003.py::test_short_duration_no_stable_window_not_invented_pass
+FAILED tests/test_workbench_w01_w10.py::test_w05_csv_import_and_http_run - Fi...
+FAILED tests/test_workbench_w01_w10.py::test_w09_real_import_has_no_fake_accuracy
+10 failed, 141 passed, 1 warning in 46.62s

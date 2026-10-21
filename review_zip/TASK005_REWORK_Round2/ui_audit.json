@@ -1,0 +1,8 @@
+{
+  "test_type": "actual product functions in VM, not E2E",
+  "empty_snapshot_leaves_old_inspector": true,
+  "empty_snapshot_leaves_old_explanation": true,
+  "detail": "当前时刻无目标",
+  "counts": "观测接收≈1／快照帧索引=0（不是已处理批数）／已处理观测数=1／主位置更新(全程)=0／仅绑定事件≈0／缓冲=1／拒绝=0（分列，勿直接互比当漏数）",
+  "near_distance_with_JK_selected": "真值最近距 0.00 m · 对=H/I · 全程最小@14.0s（本条不被比例尺覆盖）"
+}

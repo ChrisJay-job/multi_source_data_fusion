@@ -1,0 +1,18 @@
+{
+  "anonymous": {
+    "id_exchange_count": null,
+    "cross_exchange_count": null,
+    "recreate_count": null,
+    "frames_mapped": 0,
+    "computable": false,
+    "note": "不可计算：无可映射身份（frames_mapped=0）；有快照≠已完成测量；统计范围=仅 aircraftId→sn_to_truth 可映射子集；匿名/未映射目标不在本指标内，不得解读为全场景已验证0交换"
+  },
+  "one_frame": {
+    "id_exchange_count": null,
+    "cross_exchange_count": null,
+    "recreate_count": null,
+    "frames_mapped": 1,
+    "computable": false,
+    "note": "不可计算：可映射帧不足2、无有效时间转换（frames_mapped=1）；有快照≠已完成测量；统计范围=仅 aircraftId→sn_to_truth 可映射子集；匿名/未映射目标不在本指标内，不得解读为全场景已验证0交换"
+  }
+}

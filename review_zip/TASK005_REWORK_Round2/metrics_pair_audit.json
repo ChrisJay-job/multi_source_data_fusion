@@ -1,0 +1,46 @@
+{
+  "rmse_alignment": {
+    "expected_committed_error_m": 0,
+    "actual_committed_mode_error_m": 20.0,
+    "expected_display_error_m": 0,
+    "actual_display_mode_error_m": 0.0,
+    "explanation": "committed mode selects stateTime, but still uses display-predicted latitude/longitude instead of committedHistory"
+  },
+  "near_pair": {
+    "focused_pair": [
+      "J",
+      "K"
+    ],
+    "global_pair": [
+      "H",
+      "I"
+    ],
+    "global_distance_m": 6.042538309847401e-13,
+    "global_time_s": 13.999999999999966,
+    "pair_check": {
+      "kind": "near_parallel_spacing",
+      "ok": true,
+      "pair": [
+        "J",
+        "K"
+      ],
+      "min_d": 2.0,
+      "target": 2.0,
+      "at": 0.0
+    }
+  },
+  "buffer_counterexample": {
+    "processingTime": "2026-04-09T12:00:00+00:00",
+    "watermark": "2026-04-09T11:59:58+00:00",
+    "n_tracks": 0,
+    "counts_at": {
+      "delivered": 1,
+      "rejected": 0,
+      "source_binds": 0,
+      "processed_updates": 0,
+      "pending_buffer": 1
+    },
+    "expected_processed_observations_at_first_snapshot": 0,
+    "ui_current_alias": "已处理观测数 = delivered_at_t; 仅绑定事件 = source_binds"
+  }
+}

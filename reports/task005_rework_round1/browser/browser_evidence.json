@@ -1,0 +1,354 @@
+{
+  "pass": true,
+  "hardFail": 0,
+  "steps": [
+    {
+      "step": "ready_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:40:10.806Z"
+    },
+    {
+      "step": "default_seven_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:40:10.817Z"
+    },
+    {
+      "step": "expand_13_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:40:11.366Z"
+    },
+    {
+      "step": "run_wait_seven_plus",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:32.171Z"
+    },
+    {
+      "step": "run_resp_seven_plus",
+      "ok": true,
+      "detail": "seven_plus_challenges_with_id",
+      "at": "2026-10-20T10:41:32.881Z"
+    },
+    {
+      "step": "run_13_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:32.881Z"
+    },
+    {
+      "step": "near_dist_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:33.354Z"
+    },
+    {
+      "step": "zoom_scale_1366",
+      "ok": true,
+      "detail": "scale=57.14285714285714",
+      "at": "2026-10-20T10:41:33.355Z"
+    },
+    {
+      "step": "view_simple_hides_obs_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:33.386Z"
+    },
+    {
+      "step": "view_obs_shows_rid_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:33.421Z"
+    },
+    {
+      "step": "radar_layer_off_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:33.468Z"
+    },
+    {
+      "step": "explain_panel_1366",
+      "ok": true,
+      "detail": "{\"ok\":true,\"html\":\"当前时刻解释 fusionId=F7b94d6467f82-00001 · 主位置=RID\\n活跃源 vs 历史绑定：见检查器；门控／歧义候选距离：当前未输出\\n截至播放时刻的事件：predicted, predicted, predicted, predicted, predicted, predicted, predicted, predicted\\n与本目标相关的拒绝：—\\n整次评估结论：FAIL\\n全局拒绝（未提供归属，不归因当前目标）：—\",\"n\":15,\"idx\":360}",
+      "at": "2026-10-20T10:41:33.679Z"
+    },
+    {
+      "step": "explain_after_seek_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:33.866Z"
+    },
+    {
+      "step": "challenge_switch_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:34.317Z"
+    },
+    {
+      "step": "run_wait_near_parallel_2m_anon",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:34.749Z"
+    },
+    {
+      "step": "run_resp_near_parallel_2m_anon",
+      "ok": true,
+      "detail": "challenge_near_parallel_2m_anon",
+      "at": "2026-10-20T10:41:34.762Z"
+    },
+    {
+      "step": "run_2ac_matched_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:34.763Z"
+    },
+    {
+      "step": "no_old_seven_rows_1366",
+      "ok": true,
+      "detail": "N2a,N2b",
+      "at": "2026-10-20T10:41:34.767Z"
+    },
+    {
+      "step": "banner_matches_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:34.770Z"
+    },
+    {
+      "step": "no_greenwash_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:34.770Z"
+    },
+    {
+      "step": "fail_tied_to_run_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:34.771Z"
+    },
+    {
+      "step": "export_download_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:34.820Z"
+    },
+    {
+      "step": "export_has_identity_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:35.133Z"
+    },
+    {
+      "step": "export_emit_flags_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:35.133Z"
+    },
+    {
+      "step": "reimport_name_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:35.559Z"
+    },
+    {
+      "step": "run_wait_near_parallel",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:35.988Z"
+    },
+    {
+      "step": "run_resp_near_parallel",
+      "ok": true,
+      "detail": "challenge_near_parallel_2m_anon",
+      "at": "2026-10-20T10:41:36.009Z"
+    },
+    {
+      "step": "reimport_run_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:36.009Z"
+    },
+    {
+      "step": "metrics_ui_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:36.010Z"
+    },
+    {
+      "step": "ready_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:37.334Z"
+    },
+    {
+      "step": "default_seven_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:37.351Z"
+    },
+    {
+      "step": "expand_13_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:41:37.891Z"
+    },
+    {
+      "step": "run_wait_seven_plus",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:42:58.994Z"
+    },
+    {
+      "step": "run_resp_seven_plus",
+      "ok": true,
+      "detail": "seven_plus_challenges_with_id",
+      "at": "2026-10-20T10:42:59.726Z"
+    },
+    {
+      "step": "run_13_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:42:59.726Z"
+    },
+    {
+      "step": "near_dist_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:00.207Z"
+    },
+    {
+      "step": "zoom_scale_1920",
+      "ok": true,
+      "detail": "scale=57.14285714285714",
+      "at": "2026-10-20T10:43:00.208Z"
+    },
+    {
+      "step": "view_simple_hides_obs_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:00.229Z"
+    },
+    {
+      "step": "view_obs_shows_rid_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:00.272Z"
+    },
+    {
+      "step": "radar_layer_off_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:00.312Z"
+    },
+    {
+      "step": "explain_panel_1920",
+      "ok": true,
+      "detail": "{\"ok\":true,\"html\":\"当前时刻解释 fusionId=F50d8c778d59a-00001 · 主位置=RID\\n活跃源 vs 历史绑定：见检查器；门控／歧义候选距离：当前未输出\\n截至播放时刻的事件：predicted, predicted, predicted, predicted, predicted, predicted, predicted, predicted\\n与本目标相关的拒绝：—\\n整次评估结论：FAIL\\n全局拒绝（未提供归属，不归因当前目标）：—\",\"n\":15,\"idx\":360}",
+      "at": "2026-10-20T10:43:00.480Z"
+    },
+    {
+      "step": "explain_after_seek_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:00.660Z"
+    },
+    {
+      "step": "challenge_switch_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.109Z"
+    },
+    {
+      "step": "run_wait_near_parallel_2m_anon",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.540Z"
+    },
+    {
+      "step": "run_resp_near_parallel_2m_anon",
+      "ok": true,
+      "detail": "challenge_near_parallel_2m_anon",
+      "at": "2026-10-20T10:43:01.560Z"
+    },
+    {
+      "step": "run_2ac_matched_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.560Z"
+    },
+    {
+      "step": "no_old_seven_rows_1920",
+      "ok": true,
+      "detail": "N2a,N2b",
+      "at": "2026-10-20T10:43:01.562Z"
+    },
+    {
+      "step": "banner_matches_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.564Z"
+    },
+    {
+      "step": "no_greenwash_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.564Z"
+    },
+    {
+      "step": "fail_tied_to_run_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.565Z"
+    },
+    {
+      "step": "export_download_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.579Z"
+    },
+    {
+      "step": "export_has_identity_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.776Z"
+    },
+    {
+      "step": "export_emit_flags_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:01.776Z"
+    },
+    {
+      "step": "reimport_name_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:02.188Z"
+    },
+    {
+      "step": "run_wait_near_parallel",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:02.619Z"
+    },
+    {
+      "step": "run_resp_near_parallel",
+      "ok": true,
+      "detail": "challenge_near_parallel_2m_anon",
+      "at": "2026-10-20T10:43:02.630Z"
+    },
+    {
+      "step": "reimport_run_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:02.630Z"
+    },
+    {
+      "step": "metrics_ui_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T10:43:02.634Z"
+    }
+  ]
+}

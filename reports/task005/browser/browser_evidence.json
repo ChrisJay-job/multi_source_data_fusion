@@ -1,0 +1,162 @@
+{
+  "pass": true,
+  "hardFail": 0,
+  "steps": [
+    {
+      "step": "ready_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:11:00.769Z"
+    },
+    {
+      "step": "default_seven_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:11:00.794Z"
+    },
+    {
+      "step": "expand_13_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:11:01.352Z"
+    },
+    {
+      "step": "run_13_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:01.138Z"
+    },
+    {
+      "step": "scale_visible_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:01.613Z"
+    },
+    {
+      "step": "view_simple_hides_obs_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:01.634Z"
+    },
+    {
+      "step": "view_obs_shows_rid_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:01.673Z"
+    },
+    {
+      "step": "radar_layer_off_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:01.719Z"
+    },
+    {
+      "step": "explain_panel_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:02.001Z"
+    },
+    {
+      "step": "seek_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:02.207Z"
+    },
+    {
+      "step": "challenge_switch_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:02.658Z"
+    },
+    {
+      "step": "no_greenwash_1366",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:02.688Z"
+    },
+    {
+      "step": "export_clicked_1366",
+      "ok": true,
+      "detail": "challenge_near_parallel_2m_anon.json",
+      "at": "2026-10-20T09:12:02.751Z"
+    },
+    {
+      "step": "ready_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:04.594Z"
+    },
+    {
+      "step": "default_seven_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:04.607Z"
+    },
+    {
+      "step": "expand_13_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:12:05.168Z"
+    },
+    {
+      "step": "run_13_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:03.109Z"
+    },
+    {
+      "step": "scale_visible_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:03.587Z"
+    },
+    {
+      "step": "view_simple_hides_obs_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:03.614Z"
+    },
+    {
+      "step": "view_obs_shows_rid_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:03.667Z"
+    },
+    {
+      "step": "radar_layer_off_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:03.723Z"
+    },
+    {
+      "step": "explain_panel_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:03.976Z"
+    },
+    {
+      "step": "seek_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:04.161Z"
+    },
+    {
+      "step": "challenge_switch_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:04.604Z"
+    },
+    {
+      "step": "no_greenwash_1920",
+      "ok": true,
+      "detail": null,
+      "at": "2026-10-20T09:13:04.639Z"
+    },
+    {
+      "step": "export_clicked_1920",
+      "ok": true,
+      "detail": "challenge_near_parallel_2m_anon.json",
+      "at": "2026-10-20T09:13:04.684Z"
+    }
+  ]
+}

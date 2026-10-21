@@ -1,0 +1,4 @@
+branch=(git unavailable: [Errno 2] No such file or directory: 'git')
+HEAD=(git unavailable: [Errno 2] No such file or directory: 'git')
+(git unavailable: [Errno 2] No such file or directory: 'git')
+

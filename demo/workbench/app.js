@@ -11,6 +11,8 @@ let draftScenario = null;
 let selectedAcIndex = 0;
 let pinnedDetail = null;
 let dirtyDraft = false;
+let runReqSeq = 0;
+let staleRunKeep = null; // previous run kept visibly as "旧运行"
 
 map.onPick = (obj, kind) => {
   if (kind === "track" || obj.fusionId) pinnedDetail = obj;
@@ -91,6 +93,8 @@ function renderInspector(obj, kind) {
         if (emptyField(v)) return `<div><span class="k">${k}</span>：${fmtObsField(null)}</div>`;
         return `<div><span class="k">${k}</span>：${v}</div>`;
       }).join("");
+    // Always refresh/clear explain when clicking a new observation (R1-04).
+    renderExplainAssoc(obj, kind);
     return;
   }
   const srcs = (obj.sourceTracks || []).map((s) => {
@@ -99,12 +103,93 @@ function renderInspector(obj, kind) {
   }).join("；") || "无";
   const primary = obj.primaryPositionSource || obj.positionSource ||
     (obj.sourceTracks || []).find((s) => s.usedForPosition || s.primaryPosition)?.source || "—";
+  const active = activeSourcesOnTrack(obj, runState?.snapshots?.[map.tIndex]?.processingTime);
+  const hist = historicalSourceRows(obj, runState?.snapshots?.[map.tIndex]?.processingTime);
+  const lastObs = obj.lastObservedAt || "—";
+  const snap = runState?.snapshots?.[map.tIndex];
+  const now = parseT(snap?.processingTime);
+  const lastMs = parseT(lastObs);
+  const lag = now && lastMs ? ((now - lastMs) / 1000).toFixed(1) + "s" : "—";
+  const labelHint = (runState?.scenario?.aircraft || []).find((a) =>
+    (a.rid_sn && a.rid_sn === obj.aircraftId) ||
+    (runState?.evaluation?.fusion_to_truth || {})[obj.fusionId] === a.truth_id
+  )?.label || "—";
   box.innerHTML = [
-    `<div><b>目标</b> ${obj.aircraftId || "(匿名)"} · <span class="k">${obj.fusionId || ""}</span></div>`,
-    `<div><span class="k">positionMode</span>：${obj.positionMode || "—"}</div>`,
-    `<div><span class="k">主位置来源</span>：${primary}</div>`,
-    `<div><span class="k">来源</span>：${srcs}</div>`,
+    `<div><b>目标</b> 机=${labelHint} · SN=${obj.aircraftId || "(无)"} · fusionId=<span class="k">${obj.fusionId || ""}</span></div>`,
+    `<div><span class="k">trackStatus</span>：${obj.trackStatus || "—"} · <span class="k">positionMode</span>：${obj.positionMode || "—"}</div>`,
+    `<div><span class="k">主位置来源</span>：${SRC_LABEL[primary] || primary}</div>`,
+    `<div><span class="k">活跃源</span>：${active.map((s) => SRC_LABEL[s] || s).join("+") || "—"}</div>`,
+    `<div><span class="k">历史绑定</span>：${hist.map((s) => `${SRC_LABEL[s.source] || s.source}:${s.sourceTrackId}(${s.bindingStatus || "?"})`).join("；") || "—"}</div>`,
+    `<div><span class="k">来源清单</span>：${srcs}</div>`,
+    `<div><span class="k">最近观测</span>：${lastObs} · 时差=${lag}</div>`,
     `<div><span class="k">seg</span>：${obj.trackSegmentId ?? "—"} · stateTime=${obj.stateTime || "—"}</div>`,
+  ].join("");
+  renderExplainAssoc(obj, kind);
+}
+
+function playTimeMs() {
+  return parseT(runState?.snapshots?.[map.tIndex]?.processingTime);
+}
+
+function eventTimeMs(e) {
+  return parseT(e?.time || e?.eventTime || e?.ts || e?.at);
+}
+
+function renderExplainAssoc(obj, kind) {
+  const box = document.getElementById("explainAssoc");
+  if (!box) return;
+  const now = playTimeMs();
+  if (!obj) {
+    box.innerHTML = "点击目标或观测后显示解释";
+    return;
+  }
+  if (kind === "obs") {
+    box.innerHTML = [
+      `<div><b>当前时刻解释（观测）</b> ${SRC_LABEL[obj.source] || obj.source} · id=${obj.observationId || "—"}</div>`,
+      `<div>局部源 ID：${obj.sourceTrackId || "—"} · 身份：${obj.aircraftId || "(无)"}</div>`,
+      `<div>候选距离／代价：<b>当前未输出</b>（冻结引擎未暴露；前端不推测）</div>`,
+      `<div class="muted">整次评估结论：见结果摘要；本面板不保留上一目标解释。</div>`,
+    ].join("");
+    return;
+  }
+  const fid = obj.fusionId;
+  const evs = (runState?.events || []).filter((e) => {
+    if (e.fusionId !== fid) return false;
+    const t = eventTimeMs(e);
+    return !now || !t || t <= now + 1;
+  }).slice(-8);
+  const relatedRej = [];
+  const globalUnscoped = [];
+  for (const r of (runState?.rejected || [])) {
+    const t = eventTimeMs(r) || parseT(r.measurementTime || r.receivedAt);
+    if (now && t && t > now + 1) continue; // no future
+    const sameFid = r.fusionId && r.fusionId === fid;
+    const sameObs = r.observationId && r.observationId === obj.observationId;
+    const sameSt = r.sourceTrackId && (obj.sourceTracks || []).some((s) => s.sourceTrackId === r.sourceTrackId);
+    if (sameFid || sameObs || sameSt) relatedRej.push(r);
+    else if (r.fusionId || r.observationId || r.sourceTrackId) globalUnscoped.push({ ...r, _tag: "未提供归属" });
+    else globalUnscoped.push({ ...r, _tag: "未提供归属" });
+  }
+  const verd = evalVerdict(runState?.evaluation);
+  const amb = (runState?.evaluation?.undetermined || []).filter((u) => u.fusionId === fid);
+  const fm = (runState?.evaluation?.false_merges || []).filter((u) => u.fusionId === fid);
+  const cap = document.getElementById("capabilityNote");
+  const scName = runState?.scenario?.name || "";
+  const idMode = runState?.scenario?.identity_mode || runState?.identity_audit?.identity_mode || "";
+  if (cap) {
+    if (/near_parallel_2m|near2|spacing_m.: 2/.test(scName + JSON.stringify(runState?.scenario?.focus_hint || {}))) {
+      cap.innerHTML = "可辨识性：2m≪仿真噪声尺度时可能<strong>不可唯一裁决</strong>；下方评估仍如实显示算法 FAIL／误合并，不会标绿掩盖。";
+    } else {
+      cap.textContent = `评估裁决与算法输出分列；identity_mode=${idMode || "—"}；场景可辨识性说明不覆盖原始 FAIL。`;
+    }
+  }
+  box.innerHTML = [
+    `<div><b>当前时刻解释</b> fusionId=${fid || "—"} · 主位置=${SRC_LABEL[primaryPositionSource(obj)] || primaryPositionSource(obj)}</div>`,
+    `<div>活跃源 vs 历史绑定：见检查器；门控／歧义候选距离：<b>当前未输出</b></div>`,
+    `<div>截至播放时刻的事件：${evs.map((e) => e.type).join(", ") || "—"}</div>`,
+    `<div>与本目标相关的拒绝：${relatedRej.slice(-5).map((r) => r.reason || r.message || "?").join(", ") || "—"}</div>`,
+    `<div><b>整次评估结论</b>：${verd}${fm.length ? " · 误合并=" + fm.length : ""}${amb.length ? " · 未判定=" + amb.length : ""}</div>`,
+    `<div class="muted">全局拒绝（未提供归属，不归因当前目标）：${globalUnscoped.slice(-5).map((r) => (r.reason || "?") + "/" + (r._tag || "")).join(", ") || "—"}</div>`,
   ].join("");
 }
 
@@ -141,18 +226,247 @@ syncLayersFromUi();
 
 document.getElementById("btnResetView").onclick = () => map.resetView();
 
+function applyViewPreset(name) {
+  const set = (layer, on) => {
+    const el = document.querySelector(`.layer[data-layer="${layer}"]`);
+    if (el) el.checked = !!on;
+  };
+  const adv = document.getElementById("advLayers");
+  if (name === "simple") {
+    set("fused", true); set("current", true); set("pred", false);
+    set("plan", false); set("truth", true); set("rid", false); set("spectrum", false); set("radar", false);
+    if (adv) adv.open = false;
+  } else if (name === "obs") {
+    set("fused", true); set("current", true); set("pred", false);
+    set("plan", false); set("truth", true); set("rid", true); set("spectrum", true); set("radar", true);
+    if (adv) adv.open = true;
+  } else if (name === "assoc") {
+    set("fused", true); set("current", true); set("pred", true);
+    set("plan", false); set("truth", true); set("rid", true); set("spectrum", true); set("radar", true);
+    if (adv) adv.open = true;
+  }
+  syncLayersFromUi();
+}
+document.getElementById("viewSimple")?.addEventListener("click", () => applyViewPreset("simple"));
+document.getElementById("viewObs")?.addEventListener("click", () => applyViewPreset("obs"));
+document.getElementById("viewAssoc")?.addEventListener("click", () => applyViewPreset("assoc"));
+
+function focusLabelsForKey(key) {
+  const sc = runState?.scenario || draftScenario;
+  const groups = sc?.focus_hint?.groups || {};
+  if (key && groups[key]) return groups[key];
+  if (key === "seven") return list("ABCDEFG");
+  if (key === "cross_sim") return ["H", "I"];
+  if (key === "near2") return ["J", "K"];
+  if (key === "overtake") return ["L", "M"];
+  if (key === "all") return (sc?.aircraft || []).map((a) => a.label);
+  // auto: use challenge_group mapping
+  const g = sc?.challenge_group;
+  if (g && groups[g]) return groups[g];
+  if (g === "all") return (sc?.aircraft || []).filter((a) => !"ABCDEFG".includes(a.label)).map((a) => a.label);
+  if (String(g || "").startsWith("near") || g === "cross_sim" || g === "overtake" || g === "cross_async" ||
+      g === "cross_outage" || g === "cross_swap") {
+    return (sc?.aircraft || []).map((a) => a.label);
+  }
+  return (sc?.aircraft || []).map((a) => a.label);
+}
+function list(s) { return [...s]; }
+
+function focusChallengeGroup() {
+  const sel = document.getElementById("focusGroupSelect")?.value || "auto";
+  const labels = new Set(focusLabelsForKey(sel));
+  const hint = (runState?.scenario || draftScenario)?.focus_hint || {};
+  map.setTargetFilter(labels);
+  const maxSpan = hint.spacing_m === 2 ? 60 : null;
+  map.fitToLabels?.([...labels], {
+    padding: 1.15,
+    minSpanM: hint.spacing_m === 2 ? 20 : 80,
+    maxSpanM: maxSpan,
+  });
+  map.draw();
+}
+document.getElementById("btnFocusGroup")?.addEventListener("click", focusChallengeGroup);
+document.getElementById("btnFitAll")?.addEventListener("click", () => {
+  map.setTargetFilter(null);
+  map.resetView();
+});
+document.getElementById("btnZoomNear")?.addEventListener("click", () => {
+  const sc = runState?.scenario || draftScenario;
+  const hint = sc?.focus_hint || {};
+  const pair = hint.pair_labels || ["J", "K"];
+  const near = (sc?.aircraft || []).filter((a) => pair.includes(a.label) || /^N2/.test(a.label));
+  const labels = near.length ? near.map((a) => a.label) : pair;
+  map.setTargetFilter(new Set(labels));
+  const geo = runState?.challenge_geometry || sc?.challenge_geometry;
+  const pairGeo = pairDistanceInfo(geo, labels);
+  // Zoom around current play time for the pair; optional jump to pair-min time syncs seek.
+  let at = null;
+  const jump = document.getElementById("chkJumpNearTime")?.checked;
+  if (jump && pairGeo.at != null) {
+    at = pairGeo.at;
+    seekToSimTime(at);
+  } else {
+    const snap = runState?.snapshots?.[map.tIndex];
+    const t0 = runState?.t0Ms || parseT(runState?.t0);
+    const now = parseT(snap?.processingTime);
+    if (t0 && now) at = (now - t0) / 1000;
+  }
+  map.fitToLabels?.(labels, { padding: 1.05, minSpanM: 12, maxSpanM: 40, atTimeS: at ?? pairGeo.at ?? null });
+  updateNearDist(geo, labels, pairGeo);
+  map.draw();
+});
+
+function pairDistanceInfo(geo, labels) {
+  // No focus labels → report global min only (explicit scope).
+  if (!labels || !labels.length) {
+    return {
+      min_d: geo?.min_truth_distance_m,
+      at: geo?.min_truth_distance_at_s,
+      pair: geo?.min_truth_distance_pair,
+      scope: "global_min",
+      kind: "global",
+    };
+  }
+  const want = [...labels].map(String).sort();
+  for (const c of geo?.checks || []) {
+    if (!c.pair || c.min_d == null) continue;
+    const p = [...c.pair].map(String).sort();
+    if (p.length === want.length && p.every((x, i) => x === want[i])) {
+      return { min_d: c.min_d, at: c.at, pair: c.pair, scope: "focused_pair", kind: c.kind };
+    }
+  }
+  // Focused labels present but no matching check — never pretend global min is this pair.
+  return {
+    min_d: null,
+    at: null,
+    pair: labels,
+    scope: "focused_pair_missing",
+    kind: "missing",
+    global_min_d: geo?.min_truth_distance_m,
+    global_at: geo?.min_truth_distance_at_s,
+    global_pair: geo?.min_truth_distance_pair,
+  };
+}
+
+function seekToSimTime(simS) {
+  if (!runState?.snapshots?.length) return;
+  const t0 = runState.t0Ms || parseT(runState.t0);
+  if (!t0) return;
+  let best = 0;
+  let bestAbs = Infinity;
+  runState.snapshots.forEach((s, i) => {
+    const t = parseT(s.processingTime);
+    if (!t) return;
+    const d = Math.abs((t - t0) / 1000 - simS);
+    if (d < bestAbs) { bestAbs = d; best = i; }
+  });
+  map.setTimeIndex(best);
+  updateTransport();
+}
+
+function updateNearDist(geo, labels, pairGeo) {
+  const el = document.getElementById("nearDist");
+  if (!el) return;
+  // Prefer helper; keep inline fallback so function-level probes without pairDistanceInfo stay correct.
+  let info = pairGeo;
+  if (!info) {
+    if (typeof pairDistanceInfo === "function") {
+      info = pairDistanceInfo(geo, labels);
+    } else if (labels && labels.length) {
+      let hit = null;
+      for (const c of geo?.checks || []) {
+        if (!c.pair || c.min_d == null) continue;
+        const p = [...c.pair].map(String).sort();
+        const want = [...labels].map(String).sort();
+        if (p.length === want.length && p.every((x, i) => x === want[i])) {
+          hit = { min_d: c.min_d, at: c.at, pair: c.pair, scope: "focused_pair", kind: c.kind };
+          break;
+        }
+      }
+      info = hit || {
+        min_d: null,
+        at: null,
+        pair: labels,
+        scope: "focused_pair_missing",
+        kind: "missing",
+        global_min_d: geo?.min_truth_distance_m,
+        global_at: geo?.min_truth_distance_at_s,
+        global_pair: geo?.min_truth_distance_pair,
+      };
+    } else {
+      info = {
+        min_d: geo?.min_truth_distance_m,
+        at: geo?.min_truth_distance_at_s,
+        pair: geo?.min_truth_distance_pair,
+        scope: "global_min",
+        kind: "global",
+      };
+    }
+  }
+  const pair = (info.pair || labels || []).join("/");
+  const g = info.global_min_d ?? geo?.min_truth_distance_m;
+  const gPair = (info.global_pair || geo?.min_truth_distance_pair || []).join("/");
+  const gAt = info.global_at ?? geo?.min_truth_distance_at_s;
+  if (info.scope === "focused_pair_missing") {
+    el.textContent =
+      `真值最近距：聚焦对=${pair || "?"} 无专属几何校验（不可用全图最小冒充）` +
+      (g != null
+        ? `；全图最小=${Number(g).toFixed(2)}m(${gPair || "?"})${gAt != null ? "@" + Number(gAt).toFixed(1) + "s" : ""}（单独标记）`
+        : "") +
+      "（本条不被比例尺覆盖）";
+    return;
+  }
+  if (info.min_d == null) {
+    el.textContent = "真值最近距：—（无几何校验）";
+    return;
+  }
+  const at = info.at;
+  const scope = info.scope === "focused_pair" ? "聚焦对全程最小" : "全图最小（非聚焦对）";
+  el.textContent =
+    `真值最近距 ${Number(info.min_d).toFixed(2)} m · 对=${pair || "?"} · ` +
+    `${scope}${at != null ? "@" + Number(at).toFixed(1) + "s" : ""}` +
+    (info.scope === "focused_pair" && g != null
+      ? `；全图最小=${Number(g).toFixed(2)}m(${gPair})${gAt != null ? "@" + Number(gAt).toFixed(1) + "s" : ""}`
+      : "") +
+    "（本条不被比例尺覆盖）";
+}
+
 function rebuildTargetFilters(result) {
   const box = document.getElementById("targetFilters");
-  const labels = new Set();
-  for (const a of result.scenario?.aircraft || []) labels.add(a.label);
-  for (const tid of Object.keys(result.truth_polyline || {})) labels.add(tid.replace("TRUTH-", ""));
-  for (const tr of result.final_tracks || []) {
-    if (tr.aircraftId) labels.add(tr.aircraftId);
-    labels.add(tr.fusionId);
+  const groups = [];
+  for (const a of result.scenario?.aircraft || []) {
+    const tr = (result.final_tracks || []).find((t) =>
+      (result.evaluation?.fusion_to_truth || {})[t.fusionId] === a.truth_id ||
+      (a.rid_sn && t.aircraftId === a.rid_sn)
+    );
+    const srcIds = (tr?.sourceTracks || []).map((s) => `${s.source}:${s.sourceTrackId}`).join(", ") || "—";
+    groups.push({
+      key: a.label,
+      title: `飞机 ${a.label}`,
+      detail: `SN=${a.rid_sn || "(无)"} · fusionId=${tr?.fusionId || "—"} · 局部源=${srcIds}`,
+    });
   }
-  const arr = [...labels].filter(Boolean).sort();
-  box.innerHTML = arr.map((id) =>
-    `<label><input type="checkbox" class="tfilt" data-id="${id}" /> ${id}</label>`
+  // Real-data style: fusion targets without aircraft mapping
+  const mapped = new Set(groups.map((g) => {
+    const tr = (result.final_tracks || []).find((t) => (result.evaluation?.fusion_to_truth || {})[t.fusionId]);
+    return tr?.fusionId;
+  }).filter(Boolean));
+  for (const tr of result.final_tracks || []) {
+    if (mapped.has(tr.fusionId)) continue;
+    const hasAc = (result.scenario?.aircraft || []).some((a) =>
+      (result.evaluation?.fusion_to_truth || {})[tr.fusionId] === a.truth_id ||
+      (a.rid_sn && tr.aircraftId === a.rid_sn)
+    );
+    if (hasAc) continue;
+    groups.push({
+      key: tr.fusionId,
+      title: `融合目标 ${String(tr.fusionId || "").slice(-8)}`,
+      detail: `SN=${tr.aircraftId || "(无)"} · 局部源=${(tr.sourceTracks || []).map((s) => s.sourceTrackId).join(",") || "—"}`,
+    });
+  }
+  box.innerHTML = groups.map((g) =>
+    `<details class="tfilt-group"><summary><label><input type="checkbox" class="tfilt" data-id="${g.key}" /> ${g.title}</label></summary>` +
+    `<div class="hint">${g.detail}</div></details>`
   ).join("") || "<span class='hint'>运行后出现目标</span>";
   box.querySelectorAll(".tfilt").forEach((cb) => {
     cb.onchange = () => {
@@ -181,9 +495,12 @@ function countsUpTo(tIndex) {
     const c = snap.counts_at;
     return {
       delivered_at_t: c.delivered ?? 0,
-      binds_at_t: c.source_binds ?? 0,
+      source_binds_at_t: c.source_binds ?? 0,
+      bind_only_at_t: c.bind_only ?? final.bind_only ?? 0,
       rejected_at_t: c.rejected ?? 0,
       pending_buffer: c.pending_buffer ?? final.pending_buffer,
+      processed_updates_at_t: c.processed_updates ?? 0,
+      processed_observations_at_t: c.processed_observations, // may be null = 未提供
       run_total_updates: final.processed_updates || final.processed_hits || 0,
       run_total_delivered: final.delivered || 0,
       atSnapshot: tIndex,
@@ -210,9 +527,12 @@ function countsUpTo(tIndex) {
   }).length;
   return {
     delivered_at_t: deliveredApprox,
-    binds_at_t: binds,
+    source_binds_at_t: binds,
+    bind_only_at_t: final.bind_only ?? null,
     rejected_at_t: rejects,
-    pending_buffer: final.pending_buffer,
+    pending_buffer: final.pending_buffer ?? null,
+    processed_updates_at_t: null, // fallback 不可靠 → UI 显示未提供
+    processed_observations_at_t: null,
     run_total_updates: final.processed_updates || final.processed_hits || 0,
     run_total_delivered: final.delivered || 0,
     atSnapshot: tIndex,
@@ -461,10 +781,21 @@ function updateTransport() {
   seek.value = String(map.tIndex);
   document.getElementById("seekLabel").textContent = `${map.tIndex + 1}/${runState.snapshots.length}`;
   const snap = runState.snapshots[map.tIndex];
-  document.getElementById("clock").textContent = `pt=${snap?.processingTime || "—"} wm=${snap?.watermark || "—"}`;
+  let lastMeas = "—";
+  for (const tr of snap?.tracks || []) {
+    if (tr.lastObservedAt && (lastMeas === "—" || String(tr.lastObservedAt) > lastMeas)) lastMeas = tr.lastObservedAt;
+  }
+  document.getElementById("clock").textContent =
+    `播放时刻(processingTime)=${snap?.processingTime || "—"} · 已提交水位(watermark)=${snap?.watermark || "—"} · 最后实测=${lastMeas}`;
   const c = countsUpTo(map.tIndex);
+  const procObs = c.processed_observations_at_t;
+  const procObsTxt = procObs == null ? "未提供可靠计数" : String(procObs);
   document.getElementById("counts").textContent =
-    `当前投递${c.delivered_at_t}／绑定${c.binds_at_t}／拒绝${c.rejected_at_t}｜全程更新${c.run_total_updates}／投递${c.run_total_delivered} @${map.tIndex}`;
+    `观测接收=${c.delivered_at_t ?? "—"}／快照帧索引=${map.tIndex}（≠处理批）／` +
+    `已处理观测数=${procObsTxt}／主位置更新(至本帧)=${c.processed_updates_at_t ?? "—"}／` +
+    `来源新绑定(source_bound)=${c.source_binds_at_t ?? "—"}／仅绑定(secondary_bind_only)=${c.bind_only_at_t ?? "—"}／` +
+    `缓冲=${c.pending_buffer ?? "未提供"}／拒绝=${c.rejected_at_t ?? "—"}` +
+    `（分列，勿互比当漏数）`;
   const now = parseT(snap?.processingTime);
   const ev = (runState.events || []).filter((e) => {
     const t = parseT(e.time || e.eventTime || e.ts);
@@ -472,14 +803,30 @@ function updateTransport() {
   }).slice(-40);
   document.getElementById("events").textContent = ev.map((e) => e.type || JSON.stringify(e)).join(", ") || "—";
   let tr = null;
+  const pinKind = pinnedDetail?.source && !pinnedDetail?.fusionId ? "obs" : "track";
+  if (pinKind === "obs" && pinnedDetail) {
+    // Observation pin: keep only if id belongs to this run's observations
+    const oid = pinnedDetail.observationId;
+    const inRun = !oid || (runState.observations || []).some((o) => o.observationId === oid);
+    if (inRun) {
+      renderInspector(pinnedDetail, "obs");
+      document.getElementById("detail").textContent = JSON.stringify({ kind: "obs@clock", ...pinnedDetail }, null, 2);
+      document.getElementById("assoc").innerHTML =
+        `<div>观测 ${pinnedDetail.source} / ${pinnedDetail.sourceTrackId} / ${pinnedDetail.aircraftId || "-"}</div>`;
+      renderResultPanels();
+      return;
+    }
+    pinnedDetail = null;
+  }
   if (pinnedDetail?.fusionId && snap?.tracks) {
     tr = snap.tracks.find((t) => t.fusionId === pinnedDetail.fusionId) || null;
   }
   if (!tr && map.targetFilter?.size && snap?.tracks) {
     tr = snap.tracks.find((t) => map._allowedByFilter("fusion", t)) || null;
   }
-  if (!tr && snap?.tracks?.length) tr = snap.tracks[0];
+  // Do not auto-pick first track when pin cleared — empty means empty.
   if (tr) {
+    pinnedDetail = tr;
     renderInspector(tr, "track");
     document.getElementById("detail").textContent = JSON.stringify({ kind: "track@clock", ...tr }, null, 2);
     const rows = (tr.sourceTracks || []).map((s) =>
@@ -487,24 +834,98 @@ function updateTransport() {
     );
     document.getElementById("assoc").innerHTML = rows.join("") || "无";
   } else {
-    document.getElementById("detail").textContent = "当前时刻无目标";
-    document.getElementById("assoc").innerHTML = "无";
+    // Inline clear so function-level VM probes (only updateTransport) still wipe stale panels.
+    const msg = "当前时刻无目标";
+    const inspector = document.getElementById("inspector");
+    const explain = document.getElementById("explainAssoc");
+    const detail = document.getElementById("detail");
+    const assoc = document.getElementById("assoc");
+    if (inspector) inspector.innerHTML = msg;
+    if (explain) explain.innerHTML = msg;
+    if (detail) detail.textContent = msg;
+    if (assoc) assoc.innerHTML = "无";
     pinnedDetail = null;
   }
   renderResultPanels();
 }
 
-function showRun(result) {
+function clearInspectorPanels(msg) {
+  const text = msg || "当前时刻无目标";
+  const inspector = document.getElementById("inspector");
+  const explain = document.getElementById("explainAssoc");
+  const detail = document.getElementById("detail");
+  const assoc = document.getElementById("assoc");
+  if (inspector) inspector.innerHTML = text;
+  if (explain) explain.innerHTML = text;
+  if (detail) detail.textContent = text;
+  if (assoc) assoc.innerHTML = "无";
+}
+
+function updateRunBanner(result, { stale = false } = {}) {
+  const el = document.getElementById("runBanner");
+  if (!el) return;
+  const scName = result?.scenario?.name || result?.runScenarioName || "—";
+  const rid = result?.runId || result?.sessionId || "—";
+  const idMode = result?.scenario?.identity_mode || result?.identity_audit?.identity_mode || "—";
+  el.textContent = stale
+    ? `旧运行（未替换）：场景=${scName} · runId=${rid} · identity_mode=${idMode}`
+    : `当前运行结果：场景=${scName} · runId=${rid} · identity_mode=${idMode} · 草稿=${draftScenario?.name || "—"}`;
+  el.dataset.runId = rid;
+  el.dataset.scenario = scName;
+}
+
+function renderMetricsDisplay(result) {
+  const box = document.getElementById("metricsDisplay");
+  if (!box) return;
+  const md = result?.evaluation?.metrics_display;
+  const verd = evalVerdict(result?.evaluation);
+  if (!md) {
+    box.innerHTML = `<div>指标：未提供 metrics_display</div><div>整次评估：${verd}</div>`;
+    return;
+  }
+  const cov = md.last_snapshot_entity_coverage ?? md.association_coverage;
+  const rmse = md.position_rmse_m_committed;
+  const rmseD = md.position_rmse_m_display;
+  const idEx = md.id_exchange_count;
+  const idExTxt = idEx == null ? "不可计算" : String(idEx);
+  const recre = md.recreate_count;
+  const recreTxt = recre == null ? "不可计算" : String(recre);
+  box.innerHTML = [
+    `<div><b>整次评估</b>：${verd}（硬错误保留原始 FAIL；能力边界不覆盖）</div>`,
+    `<div>目标数=${md.n_targets_last_snapshot ?? "—"} · 误合并=${md.false_merge_count ?? "—"} · 拆轨/重复=${md.duplicate_target_count ?? "—"} · ID交换=${idExTxt} · 重建=${recreTxt} · 错绑=${md.hard_attribution_error_count ?? "—"}</div>`,
+    `<div class="muted">${md.id_exchange_note || ""}</div>`,
+    `<div>末快照实体覆盖率=${cov == null ? "不可计算" : (cov * 100).toFixed(1) + "%"} · ${md.last_snapshot_entity_coverage_note || md.association_coverage_note || ""}</div>`,
+    `<div>二维RMSE(已提交末点)=${rmse == null ? "不可计算" : Number(rmse).toFixed(2) + " m"} · ${md.position_rmse_note || ""}</div>`,
+    `<div>二维RMSE(展示预测)=${rmseD == null ? "不可计算" : Number(rmseD).toFixed(2) + " m"} · ${md.position_rmse_display_note || ""}</div>`,
+    `<div class="muted">${md.denominator_note || ""}</div>`,
+  ].join("");
+}
+
+function showRun(result, { reqToken = null } = {}) {
+  if (reqToken != null && reqToken !== runReqSeq) {
+    // Stale response must not overwrite newer run.
+    return;
+  }
   if (playTimer) { clearTimeout(playTimer); playTimer = null; }
+  if (runState && runState.runId && runState.runId !== result.runId) {
+    staleRunKeep = runState;
+  }
+  // New run: never keep previous target/obs inspector across runs (R2-04).
+  pinnedDetail = null;
+  clearInspectorPanels("新运行已加载 · 当前时刻待选择");
+  result.runId = result.runId || result.sessionId || `run-${Date.now()}`;
+  result.runScenarioName = result.scenario?.name || result.runScenarioName;
   runState = result;
   if (result.t0) runState.t0Ms = parseT(result.t0);
   map.setState(result, { fit: true, resetTime: true });
   updateTransport();
+  updateRunBanner(result);
+  renderMetricsDisplay(result);
+  updateNearDist(result.challenge_geometry, null);
   document.getElementById("eval").textContent = result.evaluation
     ? JSON.stringify(result.evaluation, null, 2)
     : (result.accuracy_note || "无评估／无真值");
   if (result.scenario?.aircraft) {
-    // keep draft in sync with run scenario labels for result table
     if (!draftScenario) draftScenario = JSON.parse(JSON.stringify(result.scenario));
   }
   renderAircraftList();
@@ -558,6 +979,16 @@ async function loadScenarioByName(name, { warnOverwrite = false } = {}) {
   selectedAcIndex = 0;
   renderAircraftList();
   openDrawerForSelected();
+  // Draft changed: keep previous run visible only as stale (R1-06).
+  if (runState) {
+    staleRunKeep = runState;
+    updateRunBanner(runState, { stale: true });
+    const b = document.getElementById("runBanner");
+    if (b) b.textContent += ` · 草稿已切换为 ${sc.name || name}（尚未运行）`;
+  } else {
+    const b = document.getElementById("runBanner");
+    if (b) b.textContent = `草稿场景=${sc.name || name} · 尚未运行`;
+  }
   return true;
 }
 
@@ -689,6 +1120,7 @@ function renderDrawerTabs(ac) {
         <label>噪声m <input type="number" data-k="pos_noise_m" data-src="${s}" value="${src(s).pos_noise_m ?? 5}" step="0.1"/></label>
         <label>东偏m <input type="number" data-k="bias_east_m" data-src="${s}" value="${src(s).bias_east_m ?? 0}" step="0.1"/></label>
         <label>北偏m <input type="number" data-k="bias_north_m" data-src="${s}" value="${src(s).bias_north_m ?? 0}" step="0.1"/></label>
+        <label><input type="checkbox" data-k="emit_aircraft_id" data-src="${s}" ${src(s).emit_aircraft_id !== false ? "checked" : ""}/> 上报身份 aircraftId（雷达通常关闭）</label>
       </details>
     `).join("")}
   `;
@@ -775,6 +1207,8 @@ function commitDrawerToDraft() {
     const get = (k) => drawer.querySelector(`[data-k="${k}"][data-src="${src}"]`);
     const en = get("enabled");
     if (en) base.enabled = !!en.checked;
+    const emitId = get("emit_aircraft_id");
+    if (emitId) base.emit_aircraft_id = !!emitId.checked;
     for (const k of ["period_s", "pos_noise_m", "bias_east_m", "bias_north_m", "delay_s", "drop_prob", "reorder_window_s", "clock_bias_s"]) {
       const inp = get(k);
       if (inp) base[k] = Number(inp.value);
@@ -890,6 +1324,11 @@ document.getElementById("btnRunSim").onclick = async () => {
   if (draftScenario) {
     body.scenario = readEditorIntoDraft();
   }
+  const expectName = body.scenario?.name || body.scenarioName;
+  const token = ++runReqSeq;
+  const banner = document.getElementById("runBanner");
+  if (banner) banner.textContent = `加载中… 请求#${token} 场景=${expectName}（旧结果保留至返回）`;
+  setStatus(true, `running #${token}…`);
   try {
     const r = await fetch(api + "/v1/workbench/run/scenario", {
       method: "POST",
@@ -902,8 +1341,13 @@ document.getElementById("btnRunSim").onclick = async () => {
       setStatus(false, `错误 ${r.status}`);
       return;
     }
-    showRun(j);
-    setStatus(true, `run ${j.sessionId} @t0`);
+    const gotName = j.scenario?.name || expectName;
+    if (gotName && expectName && gotName !== expectName && !body.scenario) {
+      setStatus(false, `场景名不一致 expect=${expectName} got=${gotName}`);
+    }
+    j.runScenarioName = gotName;
+    showRun(j, { reqToken: token });
+    setStatus(true, `run ${j.sessionId || j.runId} #${token}`);
   } catch (e) {
     setStatus(false, String(e));
   }
@@ -1328,10 +1772,14 @@ window.__wb = {
   get pageState() { return pageState; },
   get selectedAcIndex() { return selectedAcIndex; },
   get pinnedDetail() { return pinnedDetail; },
+  set pinnedDetail(v) { pinnedDetail = v; },
   mappingFromForm,
   selectionFilters,
   parseT,
   countsUpTo,
+  pairDistanceInfo,
+  updateNearDist,
+  clearInspectorPanels,
   fetchPage,
   loadScenarioByName,
   commitDrawerToDraft,

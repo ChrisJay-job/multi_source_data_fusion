@@ -1,0 +1,20 @@
+{
+  "sha256": "e373b66726fd62ea8120b8f62b5b87d2a2f5457302f2745997c78394b0649d46",
+  "manifest_entries": 96,
+  "manifest_mismatches": [],
+  "omitted_baseline_src_or_samples": [
+    "samples/workbench/r4_rid.csv",
+    "samples/workbench/user_four_aircraft_explicit_swap20.json",
+    "samples/workbench/mix_ok.csv",
+    "samples/workbench/r4_radar.csv",
+    "samples/workbench/user_four_aircraft_20261019.json",
+    "samples/workbench/r5_filter_rows.jsonl",
+    "samples/workbench/r5_mini.sql",
+    "src/fusion_mvp/sql_stream.py",
+    "src/fusion_mvp/geo.py",
+    "src/fusion_mvp/__init__.py"
+  ],
+  "audit_runtime": "Python 3.12, requirement direct versions installed; not Docker Python3.11",
+  "original_bundle_clean_import": "ModuleNotFoundError: fusion_mvp.sql_stream",
+  "overlay": "Only separate audit directory supplied baseline sql_stream.py, geo.py, __init__.py; original bundle unchanged."
+}

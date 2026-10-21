@@ -1,0 +1,155 @@
+{
+  "name": "challenge_near_parallel_2m_anon",
+  "seed": 20261022,
+  "duration_s": 35.0,
+  "algorithmHint": "mvp-0.1.0",
+  "notes": "近距平行 2.0m 同向同速；identity_mode=both_anon。both_id/both_anon 同源组合仅切换 emit_aircraft_id；mixed 为 RID+匿名雷达对照。2m 小于仿真噪声尺度时可能不可唯一裁决。",
+  "opaque_track_ids": true,
+  "challenge_group": "near2",
+  "focus_hint": {
+    "spacing_m": 2.0,
+    "zoom": "local",
+    "pair_labels": [
+      "N2a",
+      "N2b"
+    ]
+  },
+  "challenge_intent": {
+    "kind": "near_parallel",
+    "spacing_m": 2.0,
+    "pair_labels": [
+      "N2a",
+      "N2b"
+    ],
+    "tol_m": 0.5
+  },
+  "identity_mode": "both_anon",
+  "aircraft": [
+    {
+      "label": "N2a",
+      "truth_id": "TRUTH-N2A",
+      "rid_sn": null,
+      "speed_mps": 10.0,
+      "takeoff_offset_s": 0.0,
+      "waypoints": [
+        {
+          "x_m": 0.0,
+          "y_m": 3500.0,
+          "dwell_s": 0.0
+        },
+        {
+          "x_m": 400.0,
+          "y_m": 3500.0,
+          "dwell_s": 0.0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1.0,
+          "pos_noise_m": 3.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        },
+        "spectrum": {
+          "period_s": 1.2,
+          "pos_noise_m": 8.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false,
+          "emit_aircraft_id": true
+        },
+        "radar": {
+          "period_s": 2.0,
+          "pos_noise_m": 15.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        }
+      }
+    },
+    {
+      "label": "N2b",
+      "truth_id": "TRUTH-N2B",
+      "rid_sn": null,
+      "speed_mps": 10.0,
+      "takeoff_offset_s": 0.0,
+      "waypoints": [
+        {
+          "x_m": 0.0,
+          "y_m": 3502.0,
+          "dwell_s": 0.0
+        },
+        {
+          "x_m": 400.0,
+          "y_m": 3502.0,
+          "dwell_s": 0.0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1.0,
+          "pos_noise_m": 3.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        },
+        "spectrum": {
+          "period_s": 1.2,
+          "pos_noise_m": 8.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false,
+          "emit_aircraft_id": true
+        },
+        "radar": {
+          "period_s": 2.0,
+          "pos_noise_m": 15.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        }
+      }
+    }
+  ]
+}

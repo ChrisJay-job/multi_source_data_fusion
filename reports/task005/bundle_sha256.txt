@@ -1,0 +1,2 @@
+e373b66726fd62ea8120b8f62b5b87d2a2f5457302f2745997c78394b0649d46  TASK-005-attempt-001-review-bundle.zip
+# external hash only

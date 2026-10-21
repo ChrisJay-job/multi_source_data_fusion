@@ -1,11 +1,12 @@
 """Synthetic multi-aircraft scenarios. Truth IDs stay in evaluator metadata only."""
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import random
 from copy import deepcopy
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -40,6 +41,8 @@ class SourceNoise:
     outage: list[tuple[float, float]] = field(default_factory=list)
     radar_id_swap_at_s: Optional[float] = None  # configurable radar track-id swap
     enabled: bool = True
+    # Per-source identity emit (RID may have SN while spectrum does not).
+    emit_aircraft_id: bool = True
 
 
 @dataclass
@@ -61,6 +64,13 @@ class Scenario:
     aircraft: list[AircraftSpec]
     algorithmHint: str = "mvp-0.1.0"
     notes: str = "合成参数，非设备实测"
+    opaque_track_ids: bool = False  # when True, local track ids are opaque hashes
+    challenge_group: Optional[str] = None
+    focus_hint: Optional[dict[str, Any]] = None
+    # Structured challenge geometry intent (do not parse scenario name).
+    challenge_intent: Optional[dict[str, Any]] = None
+    # both_id | mixed | both_anon — user-facing identity mode label.
+    identity_mode: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -69,6 +79,11 @@ class Scenario:
             "duration_s": self.duration_s,
             "algorithmHint": self.algorithmHint,
             "notes": self.notes,
+            "opaque_track_ids": self.opaque_track_ids,
+            "challenge_group": self.challenge_group,
+            "focus_hint": self.focus_hint,
+            "challenge_intent": self.challenge_intent,
+            "identity_mode": self.identity_mode,
             "aircraft": [
                 {
                     "label": a.label,
@@ -84,11 +99,16 @@ class Scenario:
         }
 
 
+def _source_noise_from_dict(v: dict) -> SourceNoise:
+    known = {f.name for f in fields(SourceNoise)}
+    return SourceNoise(**{k: val for k, val in (v or {}).items() if k in known})
+
+
 def load_scenario(path: str | Path) -> Scenario:
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
     aircraft = []
     for a in raw["aircraft"]:
-        sources = {k: SourceNoise(**v) for k, v in a.get("sources", {}).items()}
+        sources = {k: _source_noise_from_dict(v) for k, v in a.get("sources", {}).items()}
         wps = [Waypoint(**w) for w in a["waypoints"]]
         aircraft.append(
             AircraftSpec(
@@ -108,7 +128,17 @@ def load_scenario(path: str | Path) -> Scenario:
         aircraft=aircraft,
         algorithmHint=raw.get("algorithmHint", "mvp-0.1.0"),
         notes=raw.get("notes", ""),
+        opaque_track_ids=bool(raw.get("opaque_track_ids", False)),
+        challenge_group=raw.get("challenge_group"),
+        focus_hint=raw.get("focus_hint"),
+        challenge_intent=raw.get("challenge_intent"),
+        identity_mode=raw.get("identity_mode"),
     )
+
+
+def _opaque_tid(scenario: Scenario, source: str, ac: AircraftSpec, version: int = 1) -> str:
+    basis = f"{scenario.seed}|{source}|{ac.truth_id}|v{version}"
+    return "T" + hashlib.sha1(basis.encode("utf-8")).hexdigest()[:10]
 
 
 def _line(x0, y0, x1, y1) -> list[Waypoint]:
@@ -293,7 +323,10 @@ def generate_observations(
                 continue
             period = max(cfg.period_s, 0.2)
             tick = ac.takeoff_offset_s
-            local_tid = f"{source}-{ac.label}"
+            if scenario.opaque_track_ids:
+                local_tid = _opaque_tid(scenario, source, ac, version=1)
+            else:
+                local_tid = f"{source}-{ac.label}"
             # null = no swap; never invent a hidden 20s swap
             radar_swap_at = cfg.radar_id_swap_at_s
             while tick <= scenario.duration_s + 1e-9:
@@ -315,15 +348,23 @@ def generate_observations(
                 oid += 1
                 obs_id = f"syn-{scenario.seed}-{oid:05d}"
                 if source == "radar" and radar_swap_at is not None and tick >= radar_swap_at:
-                    local_tid = f"radar-{ac.label}-v2"
+                    if scenario.opaque_track_ids:
+                        local_tid = _opaque_tid(scenario, source, ac, version=2)
+                    else:
+                        local_tid = f"radar-{ac.label}-v2"
                 aircraft_id = None
-                if source in ("rid", "spectrum") and ac.rid_sn:
-                    aircraft_id = ac.rid_sn  # device-observable identity OK
+                # Per-source emit flag; never forge aircraftId for anonymous configs.
+                if source in ("rid", "spectrum") and ac.rid_sn and getattr(cfg, "emit_aircraft_id", True):
+                    aircraft_id = ac.rid_sn
+                if scenario.opaque_track_ids:
+                    stid = local_tid
+                else:
+                    stid = local_tid if source == "radar" else (ac.rid_sn or local_tid)
                 row = {
                     "observationId": obs_id,
                     "source": source,
                     "detectorId": f"DET-{source.upper()}",
-                    "sourceTrackId": local_tid if source == "radar" else (ac.rid_sn or local_tid),
+                    "sourceTrackId": stid,
                     "aircraftId": aircraft_id,
                     "measurementTime": (t0 + timedelta(seconds=mt)).isoformat(),
                     "receivedAt": (t0 + timedelta(seconds=rt)).isoformat(),
@@ -360,7 +401,7 @@ def scenario_from_dict(raw: dict) -> Scenario:
     """Build Scenario from API/editor JSON (truth_id kept for eval only)."""
     aircraft = []
     for a in raw["aircraft"]:
-        sources = {k: SourceNoise(**v) for k, v in a.get("sources", {}).items()}
+        sources = {k: _source_noise_from_dict(v) for k, v in a.get("sources", {}).items()}
         wps = [Waypoint(**w) for w in a["waypoints"]]
         aircraft.append(
             AircraftSpec(
@@ -380,6 +421,11 @@ def scenario_from_dict(raw: dict) -> Scenario:
         aircraft=aircraft,
         algorithmHint=raw.get("algorithmHint", "mvp-0.1.0"),
         notes=raw.get("notes", ""),
+        opaque_track_ids=bool(raw.get("opaque_track_ids", False)),
+        challenge_group=raw.get("challenge_group"),
+        focus_hint=raw.get("focus_hint"),
+        challenge_intent=raw.get("challenge_intent"),
+        identity_mode=raw.get("identity_mode"),
     )
 
 
@@ -504,6 +550,15 @@ PRESET_BUILDERS = {
     "delay_reorder": preset_delay_reorder,
     "identity_conflict": preset_identity_conflict,
 }
+
+# TASK-005 hard challenges (lazy import avoids circular import at module load of helpers)
+def _register_challenge_presets() -> None:
+    from .scenario_challenges import CHALLENGE_PRESET_BUILDERS
+
+    PRESET_BUILDERS.update(CHALLENGE_PRESET_BUILDERS)
+
+
+_register_challenge_presets()
 
 
 def expected_sources_from_scenario(scenario: Scenario | dict) -> dict[str, set[str]]:

@@ -1,0 +1,19 @@
+
+==================================== ERRORS ====================================
+______________ ERROR collecting tests/test_task005_challenges.py _______________
+ImportError while importing test module '/workspace/scratch/8deb2d43d4c5/review_task005_e373/tests/test_task005_challenges.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_task005_challenges.py:9: in <module>
+    from fusion_mvp.workbench.runner import WorkbenchRunner
+src/fusion_mvp/workbench/__init__.py:5: in <module>
+    from .importer import import_tabular, import_sql_stream, MappingTemplate
+src/fusion_mvp/workbench/importer.py:14: in <module>
+    from fusion_mvp.sql_stream import COLUMNS as FLIGHT_COLUMNS
+E   ModuleNotFoundError: No module named 'fusion_mvp.sql_stream'
+=========================== short test summary info ============================
+ERROR tests/test_task005_challenges.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.13s

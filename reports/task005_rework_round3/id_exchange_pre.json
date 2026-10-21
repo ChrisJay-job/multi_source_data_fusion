@@ -1,0 +1,16 @@
+{
+  "anonymous": {
+    "id_exchange_count": 0,
+    "cross_exchange_count": 0,
+    "recreate_count": 0,
+    "note": "有快照但可映射真值帧不足2；按0次交换计（非 reason 字串）",
+    "frames_mapped": 0
+  },
+  "one_frame": {
+    "id_exchange_count": 0,
+    "cross_exchange_count": 0,
+    "recreate_count": 0,
+    "note": "有快照但可映射真值帧不足2；按0次交换计（非 reason 字串）",
+    "frames_mapped": 1
+  }
+}

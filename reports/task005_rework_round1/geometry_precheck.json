@@ -1,0 +1,791 @@
+[
+  {
+    "scenario": "challenge_simultaneous_cross_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "H",
+          "I"
+        ],
+        "min_d": 5.518497755175417e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 5.518497755175417e-13
+  },
+  {
+    "scenario": "challenge_simultaneous_cross_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "H",
+          "I"
+        ],
+        "min_d": 5.518497755175417e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 5.518497755175417e-13
+  },
+  {
+    "scenario": "challenge_simultaneous_cross_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "H",
+          "I"
+        ],
+        "min_d": 5.518497755175417e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 5.518497755175417e-13
+  },
+  {
+    "scenario": "challenge_async_cross_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "async_cross",
+        "ok": true,
+        "pair": [
+          "H2",
+          "I2"
+        ],
+        "min_d": 50.91168824543142,
+        "at": 14.999999999999963,
+        "arrival_delta_s": 6.000000000000012
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 50.91168824543142
+  },
+  {
+    "scenario": "challenge_async_cross_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "async_cross",
+        "ok": true,
+        "pair": [
+          "H2",
+          "I2"
+        ],
+        "min_d": 50.91168824543142,
+        "at": 14.999999999999963,
+        "arrival_delta_s": 6.000000000000012
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 50.91168824543142
+  },
+  {
+    "scenario": "challenge_async_cross_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "async_cross",
+        "ok": true,
+        "pair": [
+          "H2",
+          "I2"
+        ],
+        "min_d": 50.91168824543142,
+        "at": 14.999999999999963,
+        "arrival_delta_s": 6.000000000000012
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 50.91168824543142
+  },
+  {
+    "scenario": "challenge_near_parallel_2m_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N2a",
+          "N2b"
+        ],
+        "min_d": 2.0,
+        "target": 2.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 2.0
+  },
+  {
+    "scenario": "challenge_near_parallel_2m_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N2a",
+          "N2b"
+        ],
+        "min_d": 2.0,
+        "target": 2.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 2.0
+  },
+  {
+    "scenario": "challenge_near_parallel_2m_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N2a",
+          "N2b"
+        ],
+        "min_d": 2.0,
+        "target": 2.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 2.0
+  },
+  {
+    "scenario": "challenge_near_parallel_5m_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N5a",
+          "N5b"
+        ],
+        "min_d": 5.0,
+        "target": 5.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 5.0
+  },
+  {
+    "scenario": "challenge_near_parallel_5m_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N5a",
+          "N5b"
+        ],
+        "min_d": 5.0,
+        "target": 5.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 5.0
+  },
+  {
+    "scenario": "challenge_near_parallel_5m_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N5a",
+          "N5b"
+        ],
+        "min_d": 5.0,
+        "target": 5.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 5.0
+  },
+  {
+    "scenario": "challenge_near_parallel_10m_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N10a",
+          "N10b"
+        ],
+        "min_d": 10.0,
+        "target": 10.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 10.0
+  },
+  {
+    "scenario": "challenge_near_parallel_10m_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N10a",
+          "N10b"
+        ],
+        "min_d": 10.0,
+        "target": 10.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 10.0
+  },
+  {
+    "scenario": "challenge_near_parallel_10m_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N10a",
+          "N10b"
+        ],
+        "min_d": 10.0,
+        "target": 10.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 10.0
+  },
+  {
+    "scenario": "challenge_near_parallel_30m_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N30a",
+          "N30b"
+        ],
+        "min_d": 30.0,
+        "target": 30.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 30.0
+  },
+  {
+    "scenario": "challenge_near_parallel_30m_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N30a",
+          "N30b"
+        ],
+        "min_d": 30.0,
+        "target": 30.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 30.0
+  },
+  {
+    "scenario": "challenge_near_parallel_30m_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N30a",
+          "N30b"
+        ],
+        "min_d": 30.0,
+        "target": 30.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 30.0
+  },
+  {
+    "scenario": "challenge_near_parallel_100m_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N100a",
+          "N100b"
+        ],
+        "min_d": 100.0,
+        "target": 100.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 100.0
+  },
+  {
+    "scenario": "challenge_near_parallel_100m_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N100a",
+          "N100b"
+        ],
+        "min_d": 100.0,
+        "target": 100.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 100.0
+  },
+  {
+    "scenario": "challenge_near_parallel_100m_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "N100a",
+          "N100b"
+        ],
+        "min_d": 100.0,
+        "target": 100.0,
+        "at": 0.0
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 100.0
+  },
+  {
+    "scenario": "challenge_overtake_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "overtake_order_swap",
+        "ok": true,
+        "pair": [
+          "L",
+          "M"
+        ],
+        "early_behind": true,
+        "late_ahead": true
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 0.20000000000015916
+  },
+  {
+    "scenario": "challenge_overtake_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "overtake_order_swap",
+        "ok": true,
+        "pair": [
+          "L",
+          "M"
+        ],
+        "early_behind": true,
+        "late_ahead": true
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 0.20000000000015916
+  },
+  {
+    "scenario": "challenge_overtake_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "overtake_order_swap",
+        "ok": true,
+        "pair": [
+          "L",
+          "M"
+        ],
+        "early_behind": true,
+        "late_ahead": true
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 0.20000000000015916
+  },
+  {
+    "scenario": "challenge_cross_rid_outage_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "Ho",
+          "Io"
+        ],
+        "min_d": 3.126388037344441e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "rid_outage_near_cross",
+        "ok": true,
+        "aircraft": "Ho",
+        "outage_window_s": [
+          10.0,
+          16.0
+        ]
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 3.126388037344441e-13
+  },
+  {
+    "scenario": "challenge_cross_rid_outage_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "Ho",
+          "Io"
+        ],
+        "min_d": 3.126388037344441e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "rid_outage_near_cross",
+        "ok": true,
+        "aircraft": "Ho",
+        "outage_window_s": [
+          10.0,
+          16.0
+        ]
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 3.126388037344441e-13
+  },
+  {
+    "scenario": "challenge_cross_rid_outage_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "Ho",
+          "Io"
+        ],
+        "min_d": 3.126388037344441e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "rid_outage_near_cross",
+        "ok": true,
+        "aircraft": "Ho",
+        "outage_window_s": [
+          10.0,
+          16.0
+        ]
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 3.126388037344441e-13
+  },
+  {
+    "scenario": "challenge_cross_radar_swap_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "Hs",
+          "Is"
+        ],
+        "min_d": 4.547473508864641e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "radar_id_swap_near_cross",
+        "ok": true,
+        "aircraft": "Is",
+        "swap_at_s": 11.0
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 4.547473508864641e-13
+  },
+  {
+    "scenario": "challenge_cross_radar_swap_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "Hs",
+          "Is"
+        ],
+        "min_d": 4.547473508864641e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "radar_id_swap_near_cross",
+        "ok": true,
+        "aircraft": "Is",
+        "swap_at_s": 11.0
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 4.547473508864641e-13
+  },
+  {
+    "scenario": "challenge_cross_radar_swap_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "Hs",
+          "Is"
+        ],
+        "min_d": 4.547473508864641e-13,
+        "at": 11.999999999999973,
+        "arrival_a_s": 11.999999999999973,
+        "arrival_b_s": 11.999999999999973,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "radar_id_swap_near_cross",
+        "ok": true,
+        "aircraft": "Is",
+        "swap_at_s": 11.0
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 4.547473508864641e-13
+  },
+  {
+    "scenario": "seven_plus_challenges_with_id",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "H",
+          "I"
+        ],
+        "min_d": 6.042538309847401e-13,
+        "at": 13.999999999999966,
+        "arrival_a_s": 13.999999999999966,
+        "arrival_b_s": 13.999999999999966,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "J",
+          "K"
+        ],
+        "min_d": 2.0,
+        "target": 2.0,
+        "at": 0.0
+      },
+      {
+        "kind": "overtake_order_swap",
+        "ok": true,
+        "pair": [
+          "L",
+          "M"
+        ],
+        "early_behind": true,
+        "late_ahead": true
+      }
+    ],
+    "identity_mode": "both_id",
+    "min_truth_distance_m": 6.042538309847401e-13
+  },
+  {
+    "scenario": "seven_plus_challenges_anon",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "H",
+          "I"
+        ],
+        "min_d": 6.042538309847401e-13,
+        "at": 13.999999999999966,
+        "arrival_a_s": 13.999999999999966,
+        "arrival_b_s": 13.999999999999966,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "J",
+          "K"
+        ],
+        "min_d": 2.0,
+        "target": 2.0,
+        "at": 0.0
+      },
+      {
+        "kind": "overtake_order_swap",
+        "ok": true,
+        "pair": [
+          "L",
+          "M"
+        ],
+        "early_behind": true,
+        "late_ahead": true
+      }
+    ],
+    "identity_mode": "both_anon",
+    "min_truth_distance_m": 6.042538309847401e-13
+  },
+  {
+    "scenario": "seven_plus_challenges_mixed",
+    "ok": true,
+    "verification_status": "verified",
+    "checks": [
+      {
+        "kind": "simultaneous_cross",
+        "ok": true,
+        "pair": [
+          "H",
+          "I"
+        ],
+        "min_d": 6.042538309847401e-13,
+        "at": 13.999999999999966,
+        "arrival_a_s": 13.999999999999966,
+        "arrival_b_s": 13.999999999999966,
+        "arrival_delta_s": 0.0
+      },
+      {
+        "kind": "near_parallel_spacing",
+        "ok": true,
+        "pair": [
+          "J",
+          "K"
+        ],
+        "min_d": 2.0,
+        "target": 2.0,
+        "at": 0.0
+      },
+      {
+        "kind": "overtake_order_swap",
+        "ok": true,
+        "pair": [
+          "L",
+          "M"
+        ],
+        "early_behind": true,
+        "late_ahead": true
+      }
+    ],
+    "identity_mode": "mixed",
+    "min_truth_distance_m": 6.042538309847401e-13
+  }
+]

@@ -27,7 +27,8 @@ docker run --rm -p 127.0.0.1:18089:18089 -v "%CD%":/work -w /work -e PYTHONPATH=
 TASK-001 基线 tag：`task-001-three-source-fusion-mvp-v1` → commit `a80553fd…`（本地，未 push）。  
 TASK-002：**FROZEN（本地）** tag `task-002-fusion-validation-workbench-v1` → `5749a240…`（未 push）。  
 TASK-003：**FROZEN（本地）** tag `task-003-workbench-usability-and-association-v1`（未 push）。七机可用性、轨迹显示与关联评估契约见 `reports/task003*`；冻结记录 `TASK-003-local-freeze-record.md`。  
-验证边界保留：真实三源关联 **BLOCKED**；现场精度 **NOT_TESTED**；全量约 2GB SQL **NOT_TESTED**；全部目标坐标逐点浏览器验收未完整覆盖。不代表客户/现场验收通过。
+TASK-005：**本地冻结** tag `task-005-hard-scenarios-and-explainable-workbench-v1`（未 push）。高难合成场景与可解释验证台；候选包 Round3；冻结记录 `TASK-005-local-freeze-record.md`。  
+验证边界保留（TASK-005 同口径）：验证台软件与已登记合成场景可本地冻结，**不**表示困难场景算法全通过或现场精度达标；困难合成场景保留每例实际 PASS/FAIL/不可计算；ID 交换仅可靠身份可映射子集；已提交/展示位置误差分列（末点≠全程）；真实三源同目标关联 **BLOCKED**；现场精度 **NOT_TESTED**；约 2GB 全量 SQL **NOT_TESTED**；TASK-004 仍待设备/后端外部确认（phase1 未开始）。不代表客户/现场验收通过。
 
 ## 测试
 

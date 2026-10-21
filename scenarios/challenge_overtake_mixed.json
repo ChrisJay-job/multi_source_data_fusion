@@ -1,0 +1,146 @@
+{
+  "name": "challenge_overtake_mixed",
+  "seed": 20261042,
+  "duration_s": 45.0,
+  "algorithmHint": "mvp-0.1.0",
+  "notes": "同向追越 L 慢 / M 快；identity_mode=mixed",
+  "opaque_track_ids": true,
+  "challenge_group": "overtake",
+  "focus_hint": null,
+  "challenge_intent": {
+    "kind": "overtake",
+    "pair_labels": [
+      "L",
+      "M"
+    ]
+  },
+  "identity_mode": "mixed",
+  "aircraft": [
+    {
+      "label": "L",
+      "truth_id": "TRUTH-L",
+      "rid_sn": "SN-L",
+      "speed_mps": 8.0,
+      "takeoff_offset_s": 0.0,
+      "waypoints": [
+        {
+          "x_m": 0.0,
+          "y_m": 5000.0,
+          "dwell_s": 0.0
+        },
+        {
+          "x_m": 600.0,
+          "y_m": 5000.0,
+          "dwell_s": 0.0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1.0,
+          "pos_noise_m": 3.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": true
+        },
+        "spectrum": {
+          "period_s": 1.2,
+          "pos_noise_m": 8.0,
+          "bias_east_m": 2.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        },
+        "radar": {
+          "period_s": 2.0,
+          "pos_noise_m": 15.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false,
+          "emit_aircraft_id": false
+        }
+      }
+    },
+    {
+      "label": "M",
+      "truth_id": "TRUTH-M",
+      "rid_sn": null,
+      "speed_mps": 14.0,
+      "takeoff_offset_s": 0.0,
+      "waypoints": [
+        {
+          "x_m": -80.0,
+          "y_m": 5000.0,
+          "dwell_s": 0.0
+        },
+        {
+          "x_m": 520.0,
+          "y_m": 5000.0,
+          "dwell_s": 0.0
+        }
+      ],
+      "sources": {
+        "rid": {
+          "period_s": 1.0,
+          "pos_noise_m": 3.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false,
+          "emit_aircraft_id": false
+        },
+        "spectrum": {
+          "period_s": 1.2,
+          "pos_noise_m": 8.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": false,
+          "emit_aircraft_id": true
+        },
+        "radar": {
+          "period_s": 2.0,
+          "pos_noise_m": 15.0,
+          "bias_east_m": 0.0,
+          "bias_north_m": 0.0,
+          "delay_s": 0.0,
+          "drop_prob": 0.0,
+          "reorder_window_s": 0.0,
+          "clock_bias_s": 0.0,
+          "outage": [],
+          "radar_id_swap_at_s": null,
+          "enabled": true,
+          "emit_aircraft_id": false
+        }
+      }
+    }
+  ]
+}

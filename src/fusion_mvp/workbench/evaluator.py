@@ -1198,21 +1198,181 @@ def position_errors(
     fusion_to_truth: dict[str, str],
     *,
     mode: str = "committed",
+    max_truth_gap_s: float = 0.75,
 ) -> list[dict]:
-    out = []
+    """Eval-side position error only (never fed to frozen engine).
+
+    - committed: last committedHistory lat/lon vs truth at that commit stateTime
+    - display: top-level lat/lon vs truth at displayStateTime
+    Outside truth time span / beyond max_truth_gap_s → skip (not reported as 0).
+    """
+    out: list[dict] = []
     by_truth = {k: v for k, v in truth_timeline.items()}
     for tr in tracks_at:
         tid = fusion_to_truth.get(tr["fusionId"])
         if not tid or tid not in by_truth:
             continue
-        ts = tr.get("displayStateTime") if mode == "display" else tr.get("stateTime")
-        if not ts:
+        if mode == "committed":
+            hist = tr.get("committedHistory") or []
+            if not hist:
+                continue
+            last = hist[-1]
+            ts = last.get("stateTime") or last.get("measurementTime")
+            lat = last.get("latitude")
+            lon = last.get("longitude")
+            scope = "last_committed_point"
+        else:
+            ts = tr.get("displayStateTime") or tr.get("stateTime")
+            lat = tr.get("latitude")
+            lon = tr.get("longitude")
+            scope = "display_predicted"
+        if not ts or lat is None or lon is None:
             continue
         t = _parse(ts).timestamp()
         samples = by_truth[tid]
+        if not samples:
+            continue
+        times = [_parse(s["time"]).timestamp() for s in samples]
+        t_min, t_max = min(times), max(times)
+        if t < t_min - 1e-9 or t > t_max + 1e-9:
+            out.append(
+                {
+                    "truth_id": tid,
+                    "fusionId": tr["fusionId"],
+                    "error_m": None,
+                    "mode": mode,
+                    "scope": scope,
+                    "computable": False,
+                    "reason": "estimate_time_outside_truth_span",
+                }
+            )
+            continue
         best = min(samples, key=lambda s: abs(_parse(s["time"]).timestamp() - t))
-        dlat = (tr["latitude"] - best["lat"]) * 111_320.0
-        dlon = (tr["longitude"] - best["lon"]) * 111_320.0 * math.cos(math.radians(best["lat"]))
+        gap = abs(_parse(best["time"]).timestamp() - t)
+        if gap > max_truth_gap_s:
+            out.append(
+                {
+                    "truth_id": tid,
+                    "fusionId": tr["fusionId"],
+                    "error_m": None,
+                    "mode": mode,
+                    "scope": scope,
+                    "computable": False,
+                    "reason": f"truth_gap_{gap:.3f}s_exceeds_{max_truth_gap_s}s",
+                }
+            )
+            continue
+        dlat = (float(lat) - best["lat"]) * 111_320.0
+        dlon = (float(lon) - best["lon"]) * 111_320.0 * math.cos(math.radians(best["lat"]))
         err = math.hypot(dlat, dlon)
-        out.append({"truth_id": tid, "fusionId": tr["fusionId"], "error_m": err, "mode": mode})
+        out.append(
+            {
+                "truth_id": tid,
+                "fusionId": tr["fusionId"],
+                "error_m": err,
+                "mode": mode,
+                "scope": scope,
+                "computable": True,
+                "truth_gap_s": gap,
+            }
+        )
     return out
+
+
+def count_id_exchanges(
+    snapshots: list[dict],
+    *,
+    sn_to_truth: Optional[dict[str, str]] = None,
+) -> dict[str, Any]:
+    """Timeline ID exchange from snapshot tracks (not reason-string heuristics).
+
+    Cross-machine exchange: two truths swap fusionIds between consecutive evaluated frames.
+    Same-truth recreate: truth changes fusionId without reciprocal swap (split/rebuild).
+
+    Scope: only tracks with aircraftId→sn_to_truth mapping. Anonymous / unmapped
+    targets are outside this metric. Fewer than 2 mappable frames → null (not 0).
+    """
+    scope_note = (
+        "统计范围=仅 aircraftId→sn_to_truth 可映射子集；"
+        "匿名/未映射目标不在本指标内，不得解读为全场景已验证0交换"
+    )
+    if not snapshots:
+        return {
+            "id_exchange_count": None,
+            "cross_exchange_count": None,
+            "recreate_count": None,
+            "frames_mapped": 0,
+            "computable": False,
+            "note": f"不可计算：无快照；{scope_note}",
+        }
+    sn_to_truth = sn_to_truth or {}
+    # truth_id -> fusionId per frame (only when aircraftId maps)
+    series: list[dict[str, str]] = []
+    for snap in snapshots:
+        own: dict[str, str] = {}
+        for tr in snap.get("tracks") or []:
+            aid = tr.get("aircraftId")
+            fid = tr.get("fusionId")
+            if not aid or not fid:
+                continue
+            tid = sn_to_truth.get(aid)
+            if not tid:
+                continue
+            # first wins; ambiguous same-truth multi-fid → skip counting that frame for this truth
+            if tid in own and own[tid] != fid:
+                own.pop(tid, None)
+                continue
+            own[tid] = fid
+        if own:
+            series.append(own)
+    if len(series) < 2:
+        reason = (
+            "无可映射身份（frames_mapped=0）"
+            if len(series) == 0
+            else "可映射帧不足2、无有效时间转换（frames_mapped=1）"
+        )
+        return {
+            "id_exchange_count": None,
+            "cross_exchange_count": None,
+            "recreate_count": None,
+            "frames_mapped": len(series),
+            "computable": False,
+            "note": f"不可计算：{reason}；有快照≠已完成测量；{scope_note}",
+        }
+    cross = 0
+    recreate = 0
+    for i in range(1, len(series)):
+        prev, cur = series[i - 1], series[i]
+        changed = []
+        for tid, fid in cur.items():
+            if tid in prev and prev[tid] != fid:
+                changed.append((tid, prev[tid], fid))
+        used = set()
+        for tid_a, old_a, new_a in changed:
+            if tid_a in used:
+                continue
+            partner = None
+            for tid_b, old_b, new_b in changed:
+                if tid_b == tid_a or tid_b in used:
+                    continue
+                if old_b == new_a and new_b == old_a:
+                    partner = tid_b
+                    break
+            if partner is not None:
+                cross += 1
+                used.add(tid_a)
+                used.add(partner)
+            else:
+                recreate += 1
+                used.add(tid_a)
+    return {
+        "id_exchange_count": cross,
+        "cross_exchange_count": cross,
+        "recreate_count": recreate,
+        "frames_mapped": len(series),
+        "computable": True,
+        "note": (
+            f"跨机交换=互为对换的 fusionId；同机重建计入 recreate_count，不并入 id_exchange_count；"
+            f"frames_mapped={len(series)}；{scope_note}"
+        ),
+    }

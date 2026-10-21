@@ -1,0 +1,24 @@
+{
+  "pass": true,
+  "hardFail": 0,
+  "steps": [
+    {
+      "step": "anon_id_exchange_null_api",
+      "ok": true,
+      "detail": "{\"c\":null,\"note\":\"不可计算：无可映射身份（frames_mapped=0）；有快照≠已完成测量；统计范围=仅 aircraftId→sn_to_truth 可映射子集；匿名/未映射目标不在本指标内，不得解读为全场景已验证0交换\"}",
+      "at": "2026-10-21T02:37:40.738Z"
+    },
+    {
+      "step": "anon_ui_not_zero",
+      "ok": true,
+      "detail": "整次评估：FAIL（硬错误保留原始 FAIL；能力边界不覆盖）目标数=2 · 误合并=35 · 拆轨/重复=0 · ID交换=不可计算 · 重建=不可计算 · 错绑=0不可计算：无可映射身份（frames_mapped=0）；有快照≠已完成测量；统计范围=仅 aircraftId→sn_to_truth 可映射子集；匿名/未映射目标不在本指标内，不得解读为全场景已验证0交换末快照实体覆盖率=50.",
+      "at": "2026-10-21T02:37:40.738Z"
+    },
+    {
+      "step": "id_mode_shows_number",
+      "ok": true,
+      "detail": "整次评估：PASS（硬错误保留原始 FAIL；能力边界不覆盖）目标数=7 · 误合并=0 · 拆轨/重复=0 · ID交换=0 · 重建=0 · 错绑=0跨机交换=互为对换的 fusionId；同机重建计入 recreate_count，不并入 id_exchange_count；frames_mapped=237；统计范围=仅 aircraftId→sn_to_truth 可映射子集；匿名/未映",
+      "at": "2026-10-21T02:37:59.858Z"
+    }
+  ]
+}

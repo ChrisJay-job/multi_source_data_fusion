@@ -1,0 +1,174 @@
+GEO challenge_simultaneous_cross_with_id True verified checks 1
+GEO challenge_simultaneous_cross_anon True verified checks 1
+GEO challenge_simultaneous_cross_mixed True verified checks 1
+GEO challenge_async_cross_with_id True verified checks 1
+GEO challenge_async_cross_anon True verified checks 1
+GEO challenge_async_cross_mixed True verified checks 1
+GEO challenge_near_parallel_2m_with_id True verified checks 1
+GEO challenge_near_parallel_2m_anon True verified checks 1
+GEO challenge_near_parallel_2m_mixed True verified checks 1
+GEO challenge_near_parallel_5m_with_id True verified checks 1
+GEO challenge_near_parallel_5m_anon True verified checks 1
+GEO challenge_near_parallel_5m_mixed True verified checks 1
+GEO challenge_near_parallel_10m_with_id True verified checks 1
+GEO challenge_near_parallel_10m_anon True verified checks 1
+GEO challenge_near_parallel_10m_mixed True verified checks 1
+GEO challenge_near_parallel_30m_with_id True verified checks 1
+GEO challenge_near_parallel_30m_anon True verified checks 1
+GEO challenge_near_parallel_30m_mixed True verified checks 1
+GEO challenge_near_parallel_100m_with_id True verified checks 1
+GEO challenge_near_parallel_100m_anon True verified checks 1
+GEO challenge_near_parallel_100m_mixed True verified checks 1
+GEO challenge_overtake_with_id True verified checks 1
+GEO challenge_overtake_anon True verified checks 1
+GEO challenge_overtake_mixed True verified checks 1
+GEO challenge_cross_rid_outage_with_id True verified checks 2
+GEO challenge_cross_rid_outage_anon True verified checks 2
+GEO challenge_cross_rid_outage_mixed True verified checks 2
+GEO challenge_cross_radar_swap_with_id True verified checks 2
+GEO challenge_cross_radar_swap_anon True verified checks 2
+GEO challenge_cross_radar_swap_mixed True verified checks 2
+GEO seven_plus_challenges_with_id True verified checks 3
+GEO seven_plus_challenges_anon True verified checks 3
+GEO seven_plus_challenges_mixed True verified checks 3
+challenge_near_parallel_2m_with_id 101 PASS fm 0
+challenge_near_parallel_2m_with_id 102 PASS fm 0
+challenge_near_parallel_2m_with_id 103 FAIL fm 0
+challenge_near_parallel_2m_with_id 104 PASS fm 0
+challenge_near_parallel_2m_with_id 105 FAIL fm 110
+challenge_near_parallel_2m_anon 101 FAIL fm 37
+challenge_near_parallel_2m_anon 102 FAIL fm 37
+challenge_near_parallel_2m_anon 103 FAIL fm 37
+challenge_near_parallel_2m_anon 104 FAIL fm 37
+challenge_near_parallel_2m_anon 105 FAIL fm 37
+challenge_near_parallel_2m_mixed 101 FAIL fm 55
+challenge_near_parallel_2m_mixed 102 FAIL fm 55
+challenge_near_parallel_2m_mixed 103 FAIL fm 55
+challenge_near_parallel_2m_mixed 104 FAIL fm 55
+challenge_near_parallel_2m_mixed 105 FAIL fm 55
+challenge_near_parallel_5m_with_id 101 FAIL fm 110
+challenge_near_parallel_5m_with_id 102 PASS fm 0
+challenge_near_parallel_5m_with_id 103 PASS fm 0
+challenge_near_parallel_5m_with_id 104 PASS fm 0
+challenge_near_parallel_5m_with_id 105 FAIL fm 110
+challenge_near_parallel_5m_anon 101 FAIL fm 37
+challenge_near_parallel_5m_anon 102 FAIL fm 37
+challenge_near_parallel_5m_anon 103 FAIL fm 37
+challenge_near_parallel_5m_anon 104 FAIL fm 37
+challenge_near_parallel_5m_anon 105 FAIL fm 37
+challenge_near_parallel_5m_mixed 101 FAIL fm 55
+challenge_near_parallel_5m_mixed 102 FAIL fm 55
+challenge_near_parallel_5m_mixed 103 FAIL fm 55
+challenge_near_parallel_5m_mixed 104 FAIL fm 55
+challenge_near_parallel_5m_mixed 105 FAIL fm 55
+challenge_near_parallel_10m_with_id 101 FAIL fm 110
+challenge_near_parallel_10m_with_id 102 PASS fm 0
+challenge_near_parallel_10m_with_id 103 PASS fm 0
+challenge_near_parallel_10m_with_id 104 PASS fm 0
+challenge_near_parallel_10m_with_id 105 FAIL fm 0
+challenge_near_parallel_10m_anon 101 FAIL fm 37
+challenge_near_parallel_10m_anon 102 FAIL fm 37
+challenge_near_parallel_10m_anon 103 FAIL fm 37
+challenge_near_parallel_10m_anon 104 FAIL fm 37
+challenge_near_parallel_10m_anon 105 FAIL fm 37
+challenge_near_parallel_10m_mixed 101 FAIL fm 55
+challenge_near_parallel_10m_mixed 102 FAIL fm 55
+challenge_near_parallel_10m_mixed 103 FAIL fm 55
+challenge_near_parallel_10m_mixed 104 FAIL fm 55
+challenge_near_parallel_10m_mixed 105 FAIL fm 55
+challenge_near_parallel_30m_with_id 101 PASS fm 0
+challenge_near_parallel_30m_with_id 102 PASS fm 0
+challenge_near_parallel_30m_with_id 103 PASS fm 0
+challenge_near_parallel_30m_with_id 104 PASS fm 0
+challenge_near_parallel_30m_with_id 105 PASS fm 0
+challenge_near_parallel_30m_anon 101 FAIL fm 37
+challenge_near_parallel_30m_anon 102 FAIL fm 37
+challenge_near_parallel_30m_anon 103 FAIL fm 37
+challenge_near_parallel_30m_anon 104 FAIL fm 37
+challenge_near_parallel_30m_anon 105 FAIL fm 37
+challenge_near_parallel_30m_mixed 101 FAIL fm 55
+challenge_near_parallel_30m_mixed 102 FAIL fm 55
+challenge_near_parallel_30m_mixed 103 FAIL fm 55
+challenge_near_parallel_30m_mixed 104 FAIL fm 55
+challenge_near_parallel_30m_mixed 105 FAIL fm 55
+challenge_near_parallel_100m_with_id 101 PASS fm 0
+challenge_near_parallel_100m_with_id 102 PASS fm 0
+challenge_near_parallel_100m_with_id 103 PASS fm 0
+challenge_near_parallel_100m_with_id 104 PASS fm 0
+challenge_near_parallel_100m_with_id 105 PASS fm 0
+challenge_near_parallel_100m_anon 101 FAIL fm 37
+challenge_near_parallel_100m_anon 102 FAIL fm 37
+challenge_near_parallel_100m_anon 103 FAIL fm 37
+challenge_near_parallel_100m_anon 104 FAIL fm 37
+challenge_near_parallel_100m_anon 105 FAIL fm 37
+challenge_near_parallel_100m_mixed 101 PASS fm 0
+challenge_near_parallel_100m_mixed 102 PASS fm 0
+challenge_near_parallel_100m_mixed 103 PASS fm 0
+challenge_near_parallel_100m_mixed 104 PASS fm 0
+challenge_near_parallel_100m_mixed 105 PASS fm 0
+challenge_simultaneous_cross_with_id 101 PASS fm 0
+challenge_simultaneous_cross_with_id 102 PASS fm 0
+challenge_simultaneous_cross_with_id 103 PASS fm 0
+challenge_simultaneous_cross_with_id 104 PASS fm 0
+challenge_simultaneous_cross_with_id 105 PASS fm 0
+challenge_simultaneous_cross_anon 101 FAIL fm 49
+challenge_simultaneous_cross_anon 102 FAIL fm 49
+challenge_simultaneous_cross_anon 103 FAIL fm 49
+challenge_simultaneous_cross_anon 104 FAIL fm 49
+challenge_simultaneous_cross_anon 105 FAIL fm 49
+challenge_simultaneous_cross_mixed 101 PASS fm 0
+challenge_simultaneous_cross_mixed 102 PASS fm 0
+challenge_simultaneous_cross_mixed 103 PASS fm 0
+challenge_simultaneous_cross_mixed 104 PASS fm 0
+challenge_simultaneous_cross_mixed 105 PASS fm 0
+challenge_async_cross_with_id 101 PASS fm 0
+challenge_async_cross_with_id 102 PASS fm 0
+challenge_async_cross_with_id 103 PASS fm 0
+challenge_async_cross_with_id 104 PASS fm 0
+challenge_async_cross_with_id 105 PASS fm 0
+challenge_async_cross_anon 101 FAIL fm 42
+challenge_async_cross_anon 102 FAIL fm 42
+challenge_async_cross_anon 103 FAIL fm 42
+challenge_async_cross_anon 104 FAIL fm 42
+challenge_async_cross_anon 105 FAIL fm 42
+challenge_overtake_with_id 101 PASS fm 0
+challenge_overtake_with_id 102 PASS fm 0
+challenge_overtake_with_id 103 PASS fm 0
+challenge_overtake_with_id 104 PASS fm 0
+challenge_overtake_with_id 105 PASS fm 0
+challenge_overtake_anon 101 FAIL fm 77
+challenge_overtake_anon 102 FAIL fm 77
+challenge_overtake_anon 103 FAIL fm 77
+challenge_overtake_anon 104 FAIL fm 77
+challenge_overtake_anon 105 FAIL fm 77
+challenge_cross_rid_outage_with_id 101 PASS fm 0
+challenge_cross_rid_outage_with_id 102 PASS fm 0
+challenge_cross_rid_outage_with_id 103 PASS fm 0
+challenge_cross_rid_outage_with_id 104 PASS fm 0
+challenge_cross_rid_outage_with_id 105 PASS fm 0
+challenge_cross_rid_outage_anon 101 FAIL fm 49
+challenge_cross_rid_outage_anon 102 FAIL fm 49
+challenge_cross_rid_outage_anon 103 FAIL fm 49
+challenge_cross_rid_outage_anon 104 FAIL fm 49
+challenge_cross_rid_outage_anon 105 FAIL fm 49
+challenge_cross_rid_outage_mixed 101 PASS fm 0
+challenge_cross_rid_outage_mixed 102 PASS fm 0
+challenge_cross_rid_outage_mixed 103 PASS fm 0
+challenge_cross_rid_outage_mixed 104 PASS fm 0
+challenge_cross_rid_outage_mixed 105 PASS fm 0
+challenge_cross_radar_swap_with_id 101 PASS fm 0
+challenge_cross_radar_swap_with_id 102 FAIL fm 0
+challenge_cross_radar_swap_with_id 103 PASS fm 0
+challenge_cross_radar_swap_with_id 104 PASS fm 0
+challenge_cross_radar_swap_with_id 105 PASS fm 0
+challenge_cross_radar_swap_anon 101 PASS fm 0
+challenge_cross_radar_swap_anon 102 FAIL fm 0
+challenge_cross_radar_swap_anon 103 PASS fm 0
+challenge_cross_radar_swap_anon 104 PASS fm 0
+challenge_cross_radar_swap_anon 105 PASS fm 0
+challenge_cross_radar_swap_mixed 101 PASS fm 0
+challenge_cross_radar_swap_mixed 102 FAIL fm 0
+challenge_cross_radar_swap_mixed 103 PASS fm 0
+challenge_cross_radar_swap_mixed 104 PASS fm 0
+challenge_cross_radar_swap_mixed 105 PASS fm 0
+wrote /work/reports/task005_rework_round1/challenge_matrix.json rows 140

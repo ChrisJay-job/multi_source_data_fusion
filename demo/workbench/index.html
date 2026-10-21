@@ -134,20 +134,21 @@
       <div class="canvas-wrap">
         <canvas id="cv" width="1100" height="720"></canvas>
         <div class="overlay">
-          <span id="clock">t=—</span>
+          <span id="clock">播放时刻 — · 水位 — · 最后实测 —</span>
           <span id="scale">比例尺 —</span>
-          <span id="counts">投递0／缓冲0／处理0／拒绝0</span>
+          <span id="counts">投递0／处理0／主更新0／仅绑定0／缓冲0／拒绝0</span>
         </div>
         <div class="legend-bar" id="legendBar" aria-label="图层图例">
-          <span class="lg plan">计划</span>
-          <span class="lg truth">真值</span>
-          <span class="lg rid">RID</span>
-          <span class="lg spectrum">频谱</span>
-          <span class="lg radar">雷达</span>
-          <span class="lg fused">融合历史</span>
-          <span class="lg current">当前</span>
-          <span class="lg pred">预测</span>
+          <span class="lg plan" title="真值折线作计划参考（当前实现）">计划/真值折线</span>
+          <span class="lg truth">真值已飞</span>
+          <span class="lg rid">RID观测连线</span>
+          <span class="lg spectrum">频谱观测连线</span>
+          <span class="lg radar">雷达观测连线</span>
+          <span class="lg fused">融合提交历史</span>
+          <span class="lg current">当前估计</span>
+          <span class="lg pred">预测历史</span>
         </div>
+        <p class="legend-note" id="legendNote">观测连线＝时间顺序离散点，非额外实测；预测≠新测量；提交历史≠已验证现场精度。</p>
       </div>
       <div class="transport">
         <button id="btnPlay" type="button">播放</button>
@@ -162,28 +163,58 @@
     </main>
 
     <aside class="right panel">
+      <h2>快捷显示</h2>
+      <div class="row tight view-presets">
+        <button type="button" id="viewSimple" class="view-preset">简洁看结果</button>
+        <button type="button" id="viewObs" class="view-preset">原始观测对比</button>
+        <button type="button" id="viewAssoc" class="view-preset">关联排查</button>
+      </div>
+      <div class="row tight">
+        <label class="hint">聚焦
+          <select id="focusGroupSelect" title="七机＋挑战组分焦">
+            <option value="auto">当前组</option>
+            <option value="seven">基础七机 A–G</option>
+            <option value="cross_sim">H–I 交叉</option>
+            <option value="near2">J–K 近距</option>
+            <option value="overtake">L–M 追越</option>
+            <option value="all">全图</option>
+          </select>
+        </label>
+        <button type="button" id="btnFocusGroup" title="按上方选项聚焦">聚焦</button>
+        <button type="button" id="btnFitAll">适应全图</button>
+        <button type="button" id="btnZoomNear" title="2m 局部放大">2m局部放大</button>
+        <label class="hint"><input type="checkbox" id="chkJumpNearTime" /> 跳至对最近时刻</label>
+      </div>
+      <div id="nearDist" class="hint">真值最近距：—</div>
+      <div id="runBanner" class="hint">草稿／运行结果：尚未运行</div>
+
       <h2>显示图层</h2>
       <div class="layer-defaults">
-        <label><input type="checkbox" class="layer" data-layer="fused" checked /> 融合实测历史</label>
+        <label><input type="checkbox" class="layer" data-layer="fused" checked /> 融合提交历史</label>
         <label><input type="checkbox" class="layer" data-layer="current" checked /> 当前位置</label>
-        <label><input type="checkbox" class="layer" data-layer="pred" checked /> 预测段（虚线）</label>
-        <label><input type="checkbox" class="layer" data-layer="plan" checked /> 计划航线</label>
-        <label><input type="checkbox" class="layer" data-layer="truth" checked /> 仿真真值</label>
+        <label><input type="checkbox" class="layer" data-layer="pred" /> 预测历史（虚线）</label>
+        <label><input type="checkbox" class="layer" data-layer="plan" /> 计划/真值折线</label>
+        <label><input type="checkbox" class="layer" data-layer="truth" checked /> 真值已飞</label>
       </div>
       <details id="advLayers" class="adv-layers">
-        <summary>全部图层（高级）</summary>
-        <label><input type="checkbox" class="layer" data-layer="rid" checked /> RID 观测（淡）</label>
-        <label><input type="checkbox" class="layer" data-layer="spectrum" checked /> 频谱观测（淡）</label>
-        <label><input type="checkbox" class="layer" data-layer="radar" checked /> 雷达观测（淡）</label>
-        <p class="hint">原始观测默认较淡；融合轨迹突出。图层开关不影响算法输入。</p>
+        <summary>原始三源观测（按需）</summary>
+        <label><input type="checkbox" class="layer" data-layer="rid" /> RID 观测连线</label>
+        <label><input type="checkbox" class="layer" data-layer="spectrum" /> 频谱观测连线</label>
+        <label><input type="checkbox" class="layer" data-layer="radar" /> 雷达观测连线</label>
+        <p class="hint">默认不叠满；图层开关不影响算法输入。</p>
       </details>
 
-      <h2>目标筛选</h2>
+      <h2>目标（按飞机／融合目标）</h2>
       <div id="targetFilters" class="filters"></div>
-      <p class="hint">空选＝全部；勾选或左侧选中飞机后只画对应目标。</p>
+      <p class="hint">空选＝全部。详情含 label／SN／fusionId／局部源 ID。</p>
+
+      <h2>为什么这样关联</h2>
+      <div id="explainAssoc" class="summary-box">点击目标后显示算法已输出的绑定／事件；未输出的候选距离标「当前未输出」。</div>
 
       <h2>结果摘要</h2>
       <div id="resultSummary" class="summary-box">运行后显示</div>
+      <div id="metricsDisplay" class="summary-box">指标分列：运行后显示（缺值≠0）</div>
+      <div id="capabilityNote" class="hint">高歧义场景会显示可辨识性说明；原始评估 FAIL 不会被界面标绿掩盖。</div>
 
       <h2>逐飞机</h2>
       <div id="acResultTable" class="table-wrap">

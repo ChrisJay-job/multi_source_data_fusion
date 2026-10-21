@@ -72,6 +72,8 @@ canvas {
   position: absolute; left: 10px; top: 8px; display: flex; gap: 10px; flex-wrap: wrap;
   font-size: 11px; color: var(--muted); pointer-events: none; max-width: calc(100% - 20px);
 }
+.legend-note { margin: 0; padding: 2px 8px; font-size: 11px; color: var(--muted); }
+.view-presets button { font-size: 12px; }
 .legend-bar {
   position: absolute; left: 10px; bottom: 8px; right: 10px;
   display: flex; gap: 6px; flex-wrap: wrap; align-items: center;

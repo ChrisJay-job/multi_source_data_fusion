@@ -1,0 +1,9 @@
+{
+  "test_type": "source-level VM probe, not browser E2E",
+  "future_event_in_current_explanation": true,
+  "unrelated_target_rejection_in_explanation": true,
+  "observation_click_leaves_previous_explanation": true,
+  "metric_breakdown_used_in_UI": false,
+  "trackHTML": "<div><b>算法输出</b> fusionId=F1 · 主位置=RID</div><div>活跃源 vs 历史绑定：见检查器；门控／歧义候选距离：<b>当前未输出</b></div><div>近期事件：future_event_at_t20</div><div>评估裁决：FAIL</div><div class=\"muted\">拒绝样本(末5)：OTHER_TARGET_REJECTION</div>",
+  "browser_evidence_limit": "Submitted Playwright switches scenario but waits only for any existing snapshots; does not await matching new run, and does not reimport download."
+}

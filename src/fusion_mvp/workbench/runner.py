@@ -132,6 +132,7 @@ class WorkbenchRunner:
         scenario: Optional[dict[str, Any]] = None,
         scenario_t0: Optional[str] = None,
         time_step_s: Optional[float] = None,
+        truth_timeline: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         sid = session_id or f"wb-{uuid4().hex[:10]}"
         sess = FusionSession(sid, deepcopy(self.cfg))
@@ -168,8 +169,11 @@ class WorkbenchRunner:
                     "delivered": int(coll.counts.get("delivered", 0)),
                     "rejected": int(coll.counts.get("rejected", 0)),
                     "source_binds": int(coll.counts.get("source_binds", 0)),
+                    "bind_only": int(coll.counts.get("bind_only", 0)),
                     "processed_updates": int(coll.counts.get("processed_updates", 0)),
                     "pending_buffer": int(coll.counts.get("pending_buffer", 0)),
+                    # No reliable "observations flushed past watermark" counter yet.
+                    "processed_observations": None,
                 },
             }
 
@@ -246,6 +250,24 @@ class WorkbenchRunner:
                 rid_fresh_s=float((self.cfg or {}).get("rid_fresh_s") or 2.5),
                 scenario_t0=scenario_t0,
             )
+            # Display breakdown only; does not change association rules or invent PASS.
+            if eval_out is not None:
+                from .metrics_display import build_metrics_display
+
+                last_tracks = (snapshots[-1].get("tracks") if snapshots else []) or []
+                sn_map = {}
+                if isinstance(scenario, dict):
+                    for a in scenario.get("aircraft") or []:
+                        if a.get("rid_sn") and a.get("truth_id"):
+                            sn_map[a["rid_sn"]] = a["truth_id"]
+                eval_out["metrics_display"] = build_metrics_display(
+                    eval_out=eval_out,
+                    last_tracks=last_tracks,
+                    snapshots=snapshots,
+                    expected_stable_entities=expected_stable_entities,
+                    truth_timeline=truth_timeline,
+                    sn_to_truth=sn_map,
+                )
 
         return {
             "sessionId": sid,
@@ -294,4 +316,5 @@ class WorkbenchRunner:
             scenario_t0=bundle.get("t0"),
             batch_size=40,
             time_step_s=1.0 if mode == "realtime" else None,
+            truth_timeline=bundle.get("truth_timeline"),
         )

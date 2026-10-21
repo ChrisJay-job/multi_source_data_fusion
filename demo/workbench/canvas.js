@@ -148,6 +148,56 @@ export class MapView {
   }
   resetView() { this.fitToData(); this.draw(); }
 
+  fitToLabels(labels, { padding = 1.3, minSpanM = 50, maxSpanM = null, atTimeS = null } = {}) {
+    const want = new Set((labels || []).map(String));
+    const pts = [];
+    const s = this.state;
+    if (!s) return;
+    const idx = this.displayIndex || new Map();
+    for (const [lab, info] of idx.entries()) {
+      if (want.size && !want.has(lab) && ![...(info.truthIds || [])].some((t) => want.has(t))) continue;
+      for (const tid of info.truthIds || []) {
+        for (const p of s.truth_polyline?.[tid] || []) {
+          if (atTimeS != null && p.t != null && Math.abs(p.t - atTimeS) > 1.0) continue;
+          pts.push([p.x_m, p.y_m]);
+        }
+      }
+    }
+    for (const a of s.scenario?.aircraft || []) {
+      if (want.size && !want.has(a.label)) continue;
+      for (const p of s.truth_polyline?.[a.truth_id] || []) {
+        if (atTimeS != null && p.t != null && Math.abs(p.t - atTimeS) > 1.0) continue;
+        pts.push([p.x_m, p.y_m]);
+      }
+      if (atTimeS == null) {
+        for (const w of a.waypoints || []) pts.push([w.x_m, w.y_m]);
+      }
+    }
+    if (!pts.length) {
+      this.fitToData();
+      return;
+    }
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const [x, y] of pts) {
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    }
+    let cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    let dx = Math.max(minSpanM, maxX - minX);
+    let dy = Math.max(minSpanM, maxY - minY);
+    // Local near-pair zoom: clamp long-axis span so 400m tracks don't fill the canvas.
+    if (maxSpanM != null && Number.isFinite(maxSpanM)) {
+      dx = Math.min(Math.max(dx, minSpanM), maxSpanM);
+      dy = Math.min(Math.max(dy, minSpanM), maxSpanM);
+      minX = cx - dx / 2; maxX = cx + dx / 2;
+      minY = cy - dy / 2; maxY = cy + dy / 2;
+    }
+    this.scale = Math.min(this.cv.width / (dx * padding), this.cv.height / (dy * padding));
+    this.ox = this.cv.width / 2 - cx * this.scale;
+    this.oy = this.cv.height / 2 + cy * this.scale;
+    this._fitted = true;
+  }
+
   currentTimeMs() {
     const snap = this.state?.snapshots?.[this.tIndex];
     return parseT(snap?.processingTime || snap?.watermark);
