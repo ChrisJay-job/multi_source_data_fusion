@@ -46,3 +46,48 @@ sources:
   tj-rid: rid
   tj-pp: spectrum
   tj-leida: radar
+multisensor_v1:
+  # positionStdM is a standard deviation in metres. The KF measurement
+  # covariance uses variance = std^2. These defaults are uncalibrated.
+  position_std_m:
+    rid: 8.0
+    spectrum: 25.0
+    radar: 40.0
+  position_std_uncalibrated: true
+  r_definition: variance
+  variance_floor_std_m: 1.0
+  gate_m: 80.0
+  ambiguity_ratio: 1.15
+  confirm_distinct_times: 3
+  bind_confirm_times: 2
+  primary_fresh_s: 4.0
+  # Without scanId, same-detector observations in one bucket compete as one
+  # group. The bucket is not a cross-device identity.
+  noscan_bucket_ms: 50
+  # A named scan is committed once. A different device local id on that scan
+  # inside this window is scan_closed. The same local id may continue, and the
+  # scan id may be reused after the window. The map itself is capped.
+  closed_scan_reject_s: 4.0
+  max_closed_scans: 4096
+  max_seen: 20000
+  max_distinct_times: 32
+  max_bind_times: 8
+  max_binds_per_track: 24
+  max_consumed: 64
+  # Remembered batch ids (live cache + evicted). Further new batches are
+  # rejected with idempotency_capacity instead of being forgotten in-window.
+  max_idempotency_ids: 4096
+  hover_speed_mps: 1.5
+  heading_gate_deg: 70.0
+  coast_s: 4.0
+  lost_s: 12.0
+  terminate_s: 30.0
+  predict_horizon_s: 4.0
+  future_skew_s: 2.0
+  merge_gate_m: 30.0
+  merge_min_times: 3
+  max_observations_per_request: 5000
+  max_replay_observations: 20000
+  trajectory_batch_cap: 500
+  committed_history_cap: 80
+  primary_source_order: [rid, spectrum, radar]

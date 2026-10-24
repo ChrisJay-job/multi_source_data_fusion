@@ -1,0 +1,47 @@
+{
+  "importable": [
+    {
+      "file": "slice_rid_continuous_std.jsonl",
+      "source": "rid",
+      "detectorId": "78799483c4da136d0000",
+      "sourceTrackId": "1581F6N8C243S003A2N0",
+      "n_points": 1606,
+      "t_first": "2026-06-24T17:28:58.036000+08:00",
+      "t_last": "2026-06-24T17:39:04.092000+08:00",
+      "max_gap_s": 3.865000009536743,
+      "p50_gap_s": 0.3250000476837158,
+      "gap_rule_s": 5.0,
+      "note": "true continuous single-source window under max gap 5s"
+    }
+  ],
+  "renamed_longspan": [
+    {
+      "file": "importable/slice_spectrum_longspan_smoke_std.jsonl",
+      "n": 500,
+      "note": "long-span/smoke — not continuous track evidence"
+    },
+    {
+      "file": "importable/slice_radar_longspan_smoke_std.jsonl",
+      "n": 800,
+      "note": "long-span/smoke — not continuous track evidence"
+    },
+    {
+      "file": "importable/slice_day2_mixed_region_summary_std.jsonl",
+      "n": 1200,
+      "note": "long-span/smoke — not continuous track evidence"
+    }
+  ],
+  "continuous": {
+    "file": "slice_rid_continuous_std.jsonl",
+    "source": "rid",
+    "detectorId": "78799483c4da136d0000",
+    "sourceTrackId": "1581F6N8C243S003A2N0",
+    "n_points": 1606,
+    "t_first": "2026-06-24T17:28:58.036000+08:00",
+    "t_last": "2026-06-24T17:39:04.092000+08:00",
+    "max_gap_s": 3.865000009536743,
+    "p50_gap_s": 0.3250000476837158,
+    "gap_rule_s": 5.0,
+    "note": "true continuous single-source window under max gap 5s"
+  }
+}

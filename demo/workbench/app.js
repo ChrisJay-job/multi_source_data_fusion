@@ -1,4 +1,4 @@
-import { MapView } from "./canvas.js";
+import { MapView, computeZoomAt, MAP_ZOOM_FACTOR, MAP_MIN_SCALE, MAP_MAX_SCALE } from "./canvas.js";
 
 const api = "";
 const DEFAULT_SCENARIO = "seven_aircraft_combinations";
@@ -15,7 +15,12 @@ let runReqSeq = 0;
 let staleRunKeep = null; // previous run kept visibly as "旧运行"
 
 map.onPick = (obj, kind) => {
-  if (kind === "track" || obj.fusionId) pinnedDetail = obj;
+  if (kind === "track" || obj.fusionId) {
+    pinnedDetail = obj;
+    map.setSelectedFusionId(obj.fusionId || null);
+  } else {
+    map.setSelectedFusionId(null);
+  }
   renderInspector(obj, kind);
   document.getElementById("detail").textContent = JSON.stringify({ kind: kind || "track", ...obj }, null, 2);
   const rows = (obj.sourceTracks || []).map((s) =>
@@ -28,6 +33,62 @@ map.onPick = (obj, kind) => {
     document.getElementById("assoc").innerHTML = rows.join("") || "无";
   }
 };
+
+function setFocusStatus(msg, ok = true) {
+  const el = document.getElementById("focusStatus");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.style.color = ok ? "#90be6d" : "#f9c74f";
+}
+
+/** Resolve a real fusionId from pin / checkbox / explicit id (exact fusionId or sim label→id). */
+function resolveFusionId(explicit) {
+  const tryMap = (id) => {
+    if (!id) return null;
+    const s = String(id);
+    const hit = (runState?.final_tracks || []).find((t) => t.fusionId === s);
+    if (hit) return hit.fusionId;
+    const byLabel = (runState?.final_tracks || []).find((t) =>
+      (runState?.scenario?.aircraft || []).some((a) =>
+        a.label === s && (
+          (runState?.evaluation?.fusion_to_truth || {})[t.fusionId] === a.truth_id ||
+          (a.rid_sn && t.aircraftId === a.rid_sn)
+        )
+      )
+    );
+    if (byLabel) return byLabel.fusionId;
+    // Real-data keys are full fusionIds; accept as-is when no scenario mapping.
+    if (s.includes("-") || s.length > 8) return s;
+    return null;
+  };
+  if (explicit) return tryMap(explicit);
+  if (pinnedDetail?.fusionId) return String(pinnedDetail.fusionId);
+  const checked = [...document.querySelectorAll(".tfilt:checked")].map((c) => c.dataset.id).filter(Boolean);
+  if (checked.length === 1) return tryMap(checked[0]);
+  return null;
+}
+
+function locateSelectedTrack(explicitFid) {
+  const fid = resolveFusionId(explicitFid);
+  if (!fid) {
+    setFocusStatus("请先选中一条真实融合目标", false);
+    return;
+  }
+  map.setSelectedFusionId(fid);
+  const r = map.centerOnFusionId(fid);
+  setFocusStatus(r.message || (r.ok ? "定位完成" : "定位失败"), !!r.ok);
+}
+
+function viewSelectedTrackHistory(explicitFid) {
+  const fid = resolveFusionId(explicitFid);
+  if (!fid) {
+    setFocusStatus("请先选中一条真实融合目标", false);
+    return;
+  }
+  map.setSelectedFusionId(fid);
+  const r = map.fitFusionTrackHistory(fid);
+  setFocusStatus(r.message || (r.ok ? "航迹聚焦完成" : "航迹聚焦失败"), !!r.ok);
+}
 
 function parseT(s) {
   if (!s) return 0;
@@ -116,6 +177,10 @@ function renderInspector(obj, kind) {
   )?.label || "—";
   box.innerHTML = [
     `<div><b>目标</b> 机=${labelHint} · SN=${obj.aircraftId || "(无)"} · fusionId=<span class="k">${obj.fusionId || ""}</span></div>`,
+    `<div class="row tight track-focus-actions">` +
+      `<button type="button" id="btnLocateTrack" data-fid="${obj.fusionId || ""}">定位</button>` +
+      `<button type="button" id="btnViewTrackHist" data-fid="${obj.fusionId || ""}">查看航迹</button>` +
+    `</div>`,
     `<div><span class="k">trackStatus</span>：${obj.trackStatus || "—"} · <span class="k">positionMode</span>：${obj.positionMode || "—"}</div>`,
     `<div><span class="k">主位置来源</span>：${SRC_LABEL[primary] || primary}</div>`,
     `<div><span class="k">活跃源</span>：${active.map((s) => SRC_LABEL[s] || s).join("+") || "—"}</div>`,
@@ -124,6 +189,14 @@ function renderInspector(obj, kind) {
     `<div><span class="k">最近观测</span>：${lastObs} · 时差=${lag}</div>`,
     `<div><span class="k">seg</span>：${obj.trackSegmentId ?? "—"} · stateTime=${obj.stateTime || "—"}</div>`,
   ].join("");
+  document.getElementById("btnLocateTrack")?.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    locateSelectedTrack(ev.currentTarget.dataset.fid);
+  });
+  document.getElementById("btnViewTrackHist")?.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    viewSelectedTrackHistory(ev.currentTarget.dataset.fid);
+  });
   renderExplainAssoc(obj, kind);
 }
 
@@ -218,13 +291,64 @@ function syncLayersFromUi() {
   const layers = {};
   document.querySelectorAll(".layer").forEach((c) => { layers[c.dataset.layer] = c.checked; });
   map.setLayers(layers);
+  maybeWarnRawLayersHidden();
 }
 document.querySelectorAll(".layer").forEach((cb) => {
   cb.onchange = syncLayersFromUi;
 });
 syncLayersFromUi();
 
-document.getElementById("btnResetView").onclick = () => map.resetView();
+function maybeWarnRawLayersHidden() {
+  const hint = document.getElementById("layerHint");
+  if (!hint) return;
+  if (!runState?.preview_sample || !(runState.observations || []).length) {
+    hint.textContent = "";
+    return;
+  }
+  const present = new Set((runState.observations || []).map((o) => o.source));
+  const anyOn = [...present].some((s) => map.layers[s]);
+  if (!anyOn) {
+    hint.textContent = "数据存在但来源图层已全部关闭 — 勾选 RID/频谱/雷达，或点「原始观测对比」恢复可见";
+    hint.hidden = false;
+  } else {
+    hint.textContent = "";
+    hint.hidden = true;
+  }
+}
+
+function enableRawLayersForPreview(sample) {
+  const present = new Set((sample || []).map((o) => o.source).filter(Boolean));
+  for (const src of ["rid", "spectrum", "radar"]) {
+    const el = document.querySelector(`.layer[data-layer="${src}"]`);
+    if (el) el.checked = present.has(src);
+  }
+  for (const layer of ["truth", "plan"]) {
+    const el = document.querySelector(`.layer[data-layer="${layer}"]`);
+    if (el) el.checked = false;
+  }
+  // Preview is raw-obs focused: keep fused/current optional; open advanced layer panel
+  const adv = document.getElementById("advLayers");
+  if (adv) adv.open = true;
+  map.setTargetFilter(null);
+  const box = document.getElementById("targetFilters");
+  if (box) box.querySelectorAll("input[type=checkbox]").forEach((c) => { c.checked = false; });
+  syncLayersFromUi();
+}
+
+function seekToFrame(i) {
+  map.setTimeIndex(i);
+  updateTransport();
+}
+
+document.getElementById("btnResetView").onclick = () => {
+  // 适配可见：尊重当前勾选目标与图层，不改播放时刻、不清空过滤。
+  map.fitToData({ respectFilter: true });
+  map._viewManual = false;
+  map.draw();
+  setFocusStatus("已适配当前可见范围（未改勾选／图层／播放时刻）", true);
+};
+document.getElementById("btnLocateTrackGlobal")?.addEventListener("click", () => locateSelectedTrack());
+document.getElementById("btnViewTrackHistGlobal")?.addEventListener("click", () => viewSelectedTrackHistory());
 
 function applyViewPreset(name) {
   const set = (layer, on) => {
@@ -287,8 +411,21 @@ function focusChallengeGroup() {
 }
 document.getElementById("btnFocusGroup")?.addEventListener("click", focusChallengeGroup);
 document.getElementById("btnFitAll")?.addEventListener("click", () => {
+  // 适配可见范围：不暗中清空目标勾选。
+  map.fitToData({ respectFilter: true });
+  map._viewManual = false;
+  map.draw();
+  setFocusStatus("已适配当前勾选／图层可见范围", true);
+});
+document.getElementById("btnShowAllFit")?.addEventListener("click", () => {
+  // 显示全部并适配：显式清空勾选后再总览。
+  const box = document.getElementById("targetFilters");
+  if (box) box.querySelectorAll(".tfilt").forEach((c) => { c.checked = false; });
   map.setTargetFilter(null);
-  map.resetView();
+  map.fitToData({ respectFilter: false });
+  map._viewManual = false;
+  map.draw();
+  setFocusStatus("已显示全部目标并适配总览", true);
 });
 document.getElementById("btnZoomNear")?.addEventListener("click", () => {
   const sc = runState?.scenario || draftScenario;
@@ -464,14 +601,62 @@ function rebuildTargetFilters(result) {
       detail: `SN=${tr.aircraftId || "(无)"} · 局部源=${(tr.sourceTracks || []).map((s) => s.sourceTrackId).join(",") || "—"}`,
     });
   }
+  // Real-file fallback: if final_tracks empty/omitted, list last-snapshot fusionIds for locate/history.
+  if (!groups.length) {
+    const last = (result.snapshots || [])[(result.snapshots || []).length - 1];
+    const seen = new Set();
+    for (const tr of last?.tracks || []) {
+      if (!tr.fusionId || seen.has(tr.fusionId)) continue;
+      seen.add(tr.fusionId);
+      groups.push({
+        key: tr.fusionId,
+        title: `融合目标 ${String(tr.fusionId).slice(-8)}`,
+        detail: `SN=${tr.aircraftId || "(无)"} · 局部源=${(tr.sourceTracks || []).map((s) => s.sourceTrackId).join(",") || "—"}`,
+      });
+    }
+  }
   box.innerHTML = groups.map((g) =>
     `<details class="tfilt-group"><summary><label><input type="checkbox" class="tfilt" data-id="${g.key}" /> ${g.title}</label></summary>` +
-    `<div class="hint">${g.detail}</div></details>`
+    `<div class="hint">${g.detail}</div>` +
+    (g.key && String(g.key).length > 2
+      ? `<div class="row tight"><button type="button" class="btnLocTfilt" data-fid="${g.key}">定位</button>` +
+        `<button type="button" class="btnHistTfilt" data-fid="${g.key}">查看航迹</button></div>`
+      : "") +
+    `</details>`
   ).join("") || "<span class='hint'>运行后出现目标</span>";
   box.querySelectorAll(".tfilt").forEach((cb) => {
     cb.onchange = () => {
       const checked = [...box.querySelectorAll(".tfilt:checked")].map((c) => c.dataset.id);
       map.setTargetFilter(checked.length ? new Set(checked) : null);
+    };
+  });
+  box.querySelectorAll(".btnLocTfilt").forEach((btn) => {
+    btn.onclick = (ev) => {
+      ev.preventDefault();
+      const key = btn.dataset.fid;
+      const fid = resolveFusionId(key) || key;
+      // Select matching track for inspector
+      const tr = (runState?.final_tracks || []).find((t) => t.fusionId === fid)
+        || (runState?.snapshots?.[map.tIndex]?.tracks || []).find((t) => t.fusionId === fid);
+      if (tr) {
+        pinnedDetail = tr;
+        renderInspector(tr, "track");
+      }
+      locateSelectedTrack(fid);
+    };
+  });
+  box.querySelectorAll(".btnHistTfilt").forEach((btn) => {
+    btn.onclick = (ev) => {
+      ev.preventDefault();
+      const key = btn.dataset.fid;
+      const fid = resolveFusionId(key) || key;
+      const tr = (runState?.final_tracks || []).find((t) => t.fusionId === fid)
+        || (runState?.snapshots?.[map.tIndex]?.tracks || []).find((t) => t.fusionId === fid);
+      if (tr) {
+        pinnedDetail = tr;
+        renderInspector(tr, "track");
+      }
+      viewSelectedTrackHistory(fid);
     };
   });
 }
@@ -775,12 +960,31 @@ function formatAnomaly(e) {
 }
 
 function updateTransport() {
-  if (!runState?.snapshots) return;
+  if (!runState?.snapshots?.length) {
+    const seek = document.getElementById("seek");
+    if (seek) { seek.max = "0"; seek.value = "0"; }
+    const sl = document.getElementById("seekLabel");
+    if (sl) sl.textContent = "0/0";
+    const clock = document.getElementById("clock");
+    if (clock) clock.textContent = "无当前运行／预览";
+    const counts = document.getElementById("counts");
+    if (counts) counts.textContent = "—";
+    const events = document.getElementById("events");
+    if (events) events.textContent = "—";
+    return;
+  }
   const seek = document.getElementById("seek");
   seek.max = String(Math.max(0, runState.snapshots.length - 1));
   seek.value = String(map.tIndex);
   document.getElementById("seekLabel").textContent = `${map.tIndex + 1}/${runState.snapshots.length}`;
   const snap = runState.snapshots[map.tIndex];
+  if (runState.preview_sample) {
+    const nObs = (runState.observations || []).length;
+    document.getElementById("clock").textContent =
+      `原始观测预览时刻=${snap?.processingTime || "—"} · 未执行融合 · 样本 ${runState.t0 || "—"} → ${nObs ? (runState.observations[nObs - 1].measurementTime) : "—"}`;
+    document.getElementById("counts").textContent =
+      `预览样本点数=${nObs}／帧=${map.tIndex + 1}/${runState.snapshots.length}／融合主位置更新=不适用／来源绑定=不适用／拒绝=见导入报告`;
+  } else {
   let lastMeas = "—";
   for (const tr of snap?.tracks || []) {
     if (tr.lastObservedAt && (lastMeas === "—" || String(tr.lastObservedAt) > lastMeas)) lastMeas = tr.lastObservedAt;
@@ -796,6 +1000,7 @@ function updateTransport() {
     `来源新绑定(source_bound)=${c.source_binds_at_t ?? "—"}／仅绑定(secondary_bind_only)=${c.bind_only_at_t ?? "—"}／` +
     `缓冲=${c.pending_buffer ?? "未提供"}／拒绝=${c.rejected_at_t ?? "—"}` +
     `（分列，勿互比当漏数）`;
+  }
   const now = parseT(snap?.processingTime);
   const ev = (runState.events || []).filter((e) => {
     const t = parseT(e.time || e.eventTime || e.ts);
@@ -867,9 +1072,20 @@ function updateRunBanner(result, { stale = false } = {}) {
   const scName = result?.scenario?.name || result?.runScenarioName || "—";
   const rid = result?.runId || result?.sessionId || "—";
   const idMode = result?.scenario?.identity_mode || result?.identity_audit?.identity_mode || "—";
-  el.textContent = stale
-    ? `旧运行（未替换）：场景=${scName} · runId=${rid} · identity_mode=${idMode}`
-    : `当前运行结果：场景=${scName} · runId=${rid} · identity_mode=${idMode} · 草稿=${draftScenario?.name || "—"}`;
+  const profile = result?.fusionProfile ? ` · profile=${result.fusionProfile}` : "";
+  const ver = result?.algorithmVersion ? ` · ${result.algorithmVersion}` : "";
+  const realFile = !!(result?.import_summary || result?.real_file);
+  if (realFile) {
+    el.textContent = stale
+      ? `旧文件运行（未替换）：${scName}`
+      : `当前文件：${scName} · runId=${rid} · 融合输出${profile}${ver}`;
+  } else if (result?.preview_sample) {
+    el.textContent = `原始观测预览，未执行融合 · ${scName}`;
+  } else {
+    el.textContent = stale
+      ? `旧运行（未替换）：场景=${scName} · runId=${rid} · identity_mode=${idMode}`
+      : `当前运行结果：场景=${scName} · runId=${rid} · identity_mode=${idMode}${profile}${ver}${result?.fusionProfile === "multisensor-v1" ? "" : ` · 草稿=${draftScenario?.name || "—"}`}`;
+  }
   el.dataset.runId = rid;
   el.dataset.scenario = scName;
 }
@@ -920,11 +1136,19 @@ function showRun(result, { reqToken = null } = {}) {
   map.setState(result, { fit: true, resetTime: true });
   updateTransport();
   updateRunBanner(result);
-  renderMetricsDisplay(result);
+  if (result.preview_sample || result.import_summary || result.real_file) {
+    const box = document.getElementById("metricsDisplay");
+    if (box) box.innerHTML = `<div>${result.accuracy_note || "真实文件默认无真值，不显示虚假关联准确率"}</div>`;
+    if (result.import_summary || result.real_file) enableRawLayersForPreview(result.observations || []);
+  } else {
+    renderMetricsDisplay(result);
+  }
   updateNearDist(result.challenge_geometry, null);
-  document.getElementById("eval").textContent = result.evaluation
-    ? JSON.stringify(result.evaluation, null, 2)
-    : (result.accuracy_note || "无评估／无真值");
+  document.getElementById("eval").textContent = (result.preview_sample || result.import_summary || result.real_file)
+    ? (result.accuracy_note || "真实文件默认无真值，不显示虚假关联准确率")
+    : (result.evaluation
+      ? JSON.stringify(result.evaluation, null, 2)
+      : (result.accuracy_note || "无评估／无真值"));
   if (result.scenario?.aircraft) {
     if (!draftScenario) draftScenario = JSON.parse(JSON.stringify(result.scenario));
   }
@@ -1451,22 +1675,215 @@ function mappingFromForm() {
   };
 }
 
+function clearImportVisualization(reason) {
+  if (playTimer) { clearTimeout(playTimer); playTimer = null; }
+  pinnedDetail = null;
+  clearInspectorPanels(reason || "已清空预览/运行可视化");
+  runState = null;
+  staleRunKeep = null;
+  map.setTargetFilter(null);
+  map.setState(
+    { observations: [], snapshots: [], final_tracks: [], scenario: { name: "empty", aircraft: [] }, preview_sample: false },
+    { fit: false, resetTime: true }
+  );
+  updateTransport();
+  maybeWarnRawLayersHidden();
+  const banner = document.getElementById("runBanner");
+  if (banner) banner.textContent = reason || "无当前运行";
+  const evalEl = document.getElementById("eval");
+  if (evalEl) evalEl.textContent = reason || "无评估／无真值";
+}
+
+function buildPreviewSnapshots(sample) {
+  // Static preview: cover full sample span so all points are drawable.
+  // Also emit sparse intermediate snaps so transport can scrub/play to end.
+  const snaps = [];
+  const n = sample.length;
+  const idxs = new Set([0, n - 1]);
+  const step = Math.max(1, Math.floor((n - 1) / 12));
+  for (let i = 0; i < n; i += step) idxs.add(i);
+  const ordered = [...idxs].sort((a, b) => a - b);
+  for (const i of ordered) {
+    const t = sample[i].measurementTime;
+    snaps.push({ processingTime: t, watermark: t, tracks: [], counts_at: {}, preview_frame: true });
+  }
+  return snaps;
+}
+
+function importStatusProse(j) {
+  const src = (j && j.detail && typeof j.detail === "object") ? j.detail : (j || {});
+  const summary = src.summary && typeof src.summary === "object" ? src.summary : src;
+  const name = summary.datasetId || summary.filename || summary.stored_as || summary.path || "未命名文件";
+  const container = summary.json_container || summary.suffix || "表格/文本";
+  const scanned = summary.scanned_rows ?? summary.scanned ?? "—";
+  const valid = summary.n_observations ?? "—";
+  const rejected = summary.n_errors ?? summary.error_count ?? "—";
+  const by = summary.by_source
+    ? Object.entries(summary.by_source).map(([k, v]) => `${k}=${v}`).join("，")
+    : "无";
+  const tr = Array.isArray(summary.time_range) ? `${summary.time_range[0]} .. ${summary.time_range[1]}` : "无";
+  const reasons = [...new Set((summary.errors_sample || []).map((e) => e.reason || e.detail).filter(Boolean))].slice(0, 6);
+  let kind = "已读入";
+  if (summary.ok === false || summary.error === "json_structure" || String(summary.error || "").startsWith("json_")) {
+    kind = "解析失败";
+  } else if (summary.empty_record_set) {
+    kind = "空文件/空记录集";
+  } else if (Number(summary.n_observations || 0) === 0 && Number(summary.n_errors || 0) > 0) {
+    kind = "记录已读入，全部被校验拒绝";
+  } else if (Number(summary.n_observations || 0) === 0 && Number(summary.skipped_outside_window || 0) > 0) {
+    kind = "筛选零匹配";
+  }
+  return [
+    `文件：${name}`,
+    `容器：${container}`,
+    `结果：${kind}`,
+    `扫描=${scanned} 有效=${valid} 拒绝=${rejected}`,
+    `来源：${by}`,
+    `时间：${tr}`,
+    `拒绝原因：${reasons.join("；") || "无"}`,
+    summary.detail ? `说明：${summary.detail}` : "",
+    summary.error ? `错误：${summary.error}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function renderImportPreviewReport(j, { reqToken = null } = {}) {
+  if (reqToken != null && reqToken !== runReqSeq) return;
+  importMeta = j && j.stored_as ? j : importMeta;
+  const box = document.getElementById("importReport");
+  const prose = importStatusProse(j);
+  if (!j || j.ok === false) {
+    clearImportVisualization(j?.error || j?.detail?.error || "预览失败");
+    box.textContent = `${prose}\n\n${JSON.stringify(j, null, 2)}`;
+    return;
+  }
+  const sample = [...(j.observations_sample || j.preview || [])].filter((o) => o && o.measurementTime);
+  sample.sort((a, b) => parseT(a.measurementTime) - parseT(b.measurementTime));
+  const tFirst = sample[0]?.measurementTime || null;
+  const tLast = sample[sample.length - 1]?.measurementTime || null;
+  box.textContent = `${prose}\n\n${JSON.stringify(
+    {
+      file_read_ok: j.file_read_ok,
+      ok: j.ok,
+      n_observations: j.n_observations,
+      scanned_rows: j.scanned_rows,
+      n_errors: j.n_errors,
+      by_source: j.by_source,
+      time_range: j.time_range || (tFirst && tLast ? [tFirst, tLast] : null),
+      json_container: j.json_container,
+      empty_record_set: j.empty_record_set,
+      preview_sample_drawn: sample.length,
+      preview_mode: "static_sample_cover_end",
+      preview_label: "原始观测预览，未执行融合",
+      raw_columns: j.raw_columns,
+      raw_preview_rows: j.raw_preview_rows,
+      sample_errors: j.errors_sample,
+      stored_as: j.stored_as,
+      preview_only: j.preview_only,
+      truncated: j.truncated,
+      note: "预览行有限额；全量扫描见 reports/task006，不等于本预览行数",
+    },
+    null,
+    2
+  )}`;
+  if (!sample.length) {
+    const emptyKind = j.empty_record_set
+      ? "空文件/空记录集"
+      : (Number(j.n_errors || 0) > 0 ? "记录已读入，全部被校验拒绝" : "筛选零匹配");
+    clearImportVisualization(emptyKind);
+    return;
+  }
+  // Prefer full preview summary sources so layers match file content, not just sample slice.
+  const layerSample = sample.slice();
+  for (const src of Object.keys(j.by_source || {})) {
+    if (["rid", "spectrum", "radar"].includes(src) && !layerSample.some((o) => o.source === src)) {
+      layerSample.push({ source: src });
+    }
+  }
+  enableRawLayersForPreview(layerSample);
+  showRun(
+    {
+      runId: `preview-${reqToken ?? Date.now()}`,
+      scenario: { name: (j.stored_as || "import-preview") + " · 原始观测预览", aircraft: [] },
+      observations: sample,
+      snapshots: buildPreviewSnapshots(sample),
+      final_tracks: [],
+      evaluation: null,
+      t0: tFirst,
+      preview_sample: true,
+      accuracy_note: "原始观测预览，未执行融合",
+    },
+    { reqToken }
+  );
+  // Unified seek: canvas + transport/clock/seek label stay in sync at sample end.
+  const nSnap = (map.state?.snapshots || []).length;
+  if (nSnap > 0) seekToFrame(nSnap - 1);
+  maybeWarnRawLayersHidden();
+  const banner = document.getElementById("runBanner");
+  if (banner) {
+    banner.textContent = `原始观测预览，未执行融合 · ${j.stored_as || ""} · 样本点=${sample.length} · 来源层已按样本开启`;
+  }
+}
+
 document.getElementById("btnPreview").onclick = async () => {
   const f = document.getElementById("fileInput").files[0];
   if (!f) { alert("请选择文件"); return; }
+  const token = ++runReqSeq;
   const fd = new FormData();
   fd.append("file", f);
   fd.append("mapping_json", JSON.stringify(mappingFromForm()));
-  fd.append("max_rows", "2000");
-  const r = await fetch(api + "/v1/workbench/import/preview", { method: "POST", body: fd });
-  const j = await r.json();
-  importMeta = j;
-  document.getElementById("importReport").textContent = JSON.stringify({
-    ok: j.ok, n: j.n_observations, errors: j.n_errors, by_source: j.by_source,
-    time_range: j.time_range, sample_errors: j.errors_sample, stored_as: j.stored_as,
-    preview_only: j.preview_only,
-  }, null, 2);
+  fd.append("max_rows", String(Number(document.getElementById("maxRows").value || 2000)));
+  document.getElementById("importReport").textContent = "上传并预览中…";
+  clearImportVisualization("新上传预览进行中…");
+  try {
+    const r = await fetch(api + "/v1/workbench/import/preview", { method: "POST", body: fd });
+    let j;
+    try { j = await r.json(); } catch (_) { j = { ok: false, error: `HTTP ${r.status}` }; }
+    if (!r.ok) {
+      j.ok = false;
+      j.error = j.error || j.detail?.error || `HTTP ${r.status}`;
+    }
+    renderImportPreviewReport(j, { reqToken: token });
+  } catch (err) {
+    if (token !== runReqSeq) return;
+    clearImportVisualization("预览请求失败");
+    document.getElementById("importReport").textContent = `预览请求失败：${err.message || err}`;
+  }
 };
+
+let localSelectedPath = null;
+document.getElementById("btnLocalPreview")?.addEventListener("click", async () => {
+  if (!localSelectedPath) {
+    alert("请先在「本地 data/」列表点选择");
+    return;
+  }
+  const token = ++runReqSeq;
+  document.getElementById("importReport").textContent = `本地预览 ${localSelectedPath}…`;
+  clearImportVisualization("新本地预览进行中…");
+  const filters = selectionFilters();
+  try {
+    const r = await fetch(api + "/v1/workbench/import/local-preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path: localSelectedPath,
+        mapping: mappingFromForm(),
+        maxRows: Number(document.getElementById("maxRows").value || 2000),
+        ...filters,
+      }),
+    });
+    let j;
+    try { j = await r.json(); } catch (_) { j = { ok: false, error: `HTTP ${r.status}` }; }
+    if (!r.ok) {
+      j.ok = false;
+      j.error = j.error || `HTTP ${r.status}`;
+    }
+    renderImportPreviewReport(j, { reqToken: token });
+  } catch (err) {
+    if (token !== runReqSeq) return;
+    clearImportVisualization("本地预览请求失败");
+    document.getElementById("importReport").textContent = `本地预览请求失败：${err.message || err}`;
+  }
+});
 
 function selectionFilters() {
   const num = (id) => {
@@ -1494,74 +1911,137 @@ let pageState = { offset: 0, limit: 50, path: null, has_more: false, next_offset
 
 document.getElementById("btnRunImport").onclick = async () => {
   if (!importMeta?.stored_as) { alert("请先预览导入"); return; }
+  const token = ++runReqSeq;
+  const path = importMeta.stored_as;
   const maxRows = Number(document.getElementById("maxRows").value || 5000);
   const filters = selectionFilters();
-  const r = await fetch(api + "/v1/workbench/run/import", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      path: importMeta.stored_as,
-      mode: "replay",
-      mapping: mappingFromForm(),
-      maxRows,
-      ...filters,
-      truncated: true,
-    }),
-  });
-  const j = await r.json();
-  if (!r.ok) {
-    document.getElementById("importReport").textContent = JSON.stringify(j, null, 2);
-    return;
+  clearImportVisualization("回放进行中…");
+  importMeta = { stored_as: path };
+  document.getElementById("importReport").textContent = `回放 ${path} …`;
+  try {
+    const r = await fetch(api + "/v1/workbench/run/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path,
+        mode: "replay",
+        mapping: mappingFromForm(),
+        maxRows,
+        fusionProfile: document.getElementById("fusionProfile")?.value || "legacy",
+        ...filters,
+        truncated: true,
+      }),
+    });
+    let j;
+    try { j = await r.json(); } catch (_) { j = { ok: false, error: `HTTP ${r.status}` }; }
+    if (token !== runReqSeq) return;
+    if (!r.ok || !j.observations?.length) {
+      const reason = !r.ok ? `回放失败 HTTP ${r.status}` : "回放无有效观测";
+      document.getElementById("importReport").textContent = `${reason}\n${importStatusProse(j)}\n\n${JSON.stringify(j, null, 2)}`;
+      clearImportVisualization(reason);
+      importMeta = { stored_as: path };
+      setStatus(false, reason);
+      return;
+    }
+    showRun(j, { reqToken: token });
+    document.getElementById("importReport").textContent = `${importStatusProse({
+      filename: j.scenario?.name,
+      stored_as: path,
+      n_observations: j.n_observations,
+      scanned_rows: j.import_summary?.scanned,
+      n_errors: j.import_summary?.n_errors,
+      by_source: j.import_summary?.by_source,
+      errors_sample: j.import_summary?.errors_sample,
+      json_container: j.import_summary?.json_container ? `JSON/${j.import_summary.json_container}` : undefined,
+      time_range: j.import_summary?.time_range,
+      empty_record_set: j.import_summary?.empty_record_set,
+      ok: true,
+    })}\n\n${JSON.stringify({
+      n: j.n_observations,
+      import_summary: j.import_summary,
+      filters: j.import_summary?.filters,
+      window_note: j.import_summary?.window_note,
+    }, null, 2)}`;
+  } catch (err) {
+    if (token !== runReqSeq) return;
+    document.getElementById("importReport").textContent = `回放请求失败：${err.message || err}`;
+    clearImportVisualization("回放请求失败");
+    importMeta = { stored_as: path };
   }
-  if (!j.observations?.length) {
-    document.getElementById("importReport").textContent = JSON.stringify({ error: "no_observations", ...j }, null, 2);
-    setStatus(false, "无有效观测");
-    return;
+};
+
+document.getElementById("btnMsDemo").onclick = async () => {
+  const token = ++runReqSeq;
+  clearImportVisualization("无SN多设备演示加载中…");
+  try {
+    const sampleResp = await fetch("/workbench-static/task007_offline_single_target.json");
+    if (!sampleResp.ok) throw new Error("演示样本不可用");
+    const sample = await sampleResp.json();
+    sample.jobId = "ui-ms-" + Date.now();
+    const r = await fetch(api + "/v1/fusion/replay", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sample),
+    });
+    const j = await r.json();
+    if (token !== runReqSeq) return;
+    if (!r.ok || j.error) {
+      document.getElementById("importReport").textContent = `演示失败 HTTP ${r.status}\n${JSON.stringify(j, null, 2)}`;
+      clearImportVisualization("演示失败");
+      return;
+    }
+    const snaps = (j.snapshots || []).map((s) => ({
+      batchId: s.batchId,
+      processingTime: s.processingTime,
+      watermark: s.watermark,
+      tracks: s.tracks || [],
+    }));
+    const last = snaps.length ? snaps[snaps.length - 1].tracks : [];
+    const binds = last.flatMap((t) => t.sourceTracks || []);
+    showRun({
+      runId: j.jobId,
+      sessionId: j.jobId,
+      fusionProfile: j.fusionProfile,
+      algorithmVersion: j.algorithmVersion,
+      configVersion: j.configVersion,
+      scenario: { name: "multisensor-v1-demo", aircraft: [], identity_mode: "anonymous" },
+      observations: sample.observations,
+      snapshots: snaps,
+      final_tracks: last,
+      rejected: j.rejected || [],
+      events: j.events || [],
+      accuracy_note: "合成无SN演示，不是现场精度",
+    });
+    document.getElementById("importReport").textContent = [
+      `profile=${j.fusionProfile} version=${j.algorithmVersion}`,
+      `轨迹 ${last.length} · 绑定 ${binds.length} · 已确认 ${binds.filter((b) => b.bindingStatus === "confirmed").length} · 候选 ${binds.filter((b) => b.bindingStatus !== "confirmed").length}`,
+      `拒绝 ${ (j.rejected || []).length } · 历史点 ${ (j.trajectory || []).length }`,
+      "预测仅在配置的预测窗内显示，不把平滑点写成实测真值",
+    ].join("\n");
+  } catch (err) {
+    if (token !== runReqSeq) return;
+    document.getElementById("importReport").textContent = `演示请求失败：${err.message || err}`;
+    clearImportVisualization("演示请求失败");
   }
-  showRun(j);
-  document.getElementById("importReport").textContent = JSON.stringify({
-    n: j.n_observations,
-    import_summary: j.import_summary,
-    filters: j.import_summary?.filters,
-    window_note: j.import_summary?.window_note,
-  }, null, 2);
 };
 
 async function loadLocalFiles() {
   const r = await fetch(api + "/v1/workbench/local-data");
   const j = await r.json();
   document.getElementById("localFiles").innerHTML = (j.files || []).map((f) =>
-    `<li><button type="button" class="localpick" data-path="${f.path}">选择</button> ${f.path} (${(f.bytes / 1e6).toFixed(2)} MB)</li>`
-  ).join("") || "<li>无（将 SQL 放在 data/ 只读使用）</li>";
+    `<li><button type="button" class="localpick" data-path="${f.path}" data-bytes="${f.bytes}">选择</button> ${f.path} (${(f.bytes / 1e6).toFixed(2)} MB)</li>`
+  ).join("") || "<li>无（将 SQL/XLS 放在 data/ 只读使用）</li>";
   document.querySelectorAll(".localpick").forEach((btn) => {
-    btn.onclick = async () => {
+    btn.onclick = () => {
       const path = btn.dataset.path;
-      document.getElementById("importReport").textContent = `选中 ${path}，开始回放…`;
-      const maxRows = Number(document.getElementById("maxRows").value || 5000);
-      const filters = selectionFilters();
-      const r2 = await fetch(api + "/v1/workbench/run/local", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          path,
-          mode: "replay",
-          mapping: mappingFromForm(),
-          maxRows,
-          ...filters,
-          truncated: true,
-        }),
-      });
-      const j2 = await r2.json();
-      if (!r2.ok) {
-        document.getElementById("importReport").textContent = JSON.stringify(j2, null, 2);
-        return;
-      }
+      localSelectedPath = path;
+      ++runReqSeq; // invalidate in-flight preview/run for previous file
       importMeta = { stored_as: path };
       pageState = { offset: 0, limit: 50, path, has_more: false, next_offset: null };
-      showRun(j2);
-      document.getElementById("importReport").textContent = JSON.stringify({
-        path, n: j2.n_observations, import_summary: j2.import_summary, filters: j2.import_summary?.filters,
-      }, null, 2);
+      clearImportVisualization("已切换本地文件，旧轨迹已清除");
+      const mb = (Number(btn.dataset.bytes || 0) / 1e6).toFixed(2);
+      document.getElementById("importReport").textContent =
+        `已选中 ${path}（${mb} MB）。请点「预览本地选中」查看原始列与观测点；确认映射后再「回放融合」。大文件勿重复上传。`;
     };
   });
 }
@@ -1679,6 +2159,11 @@ document.getElementById("btnQueueClear")?.addEventListener("click", () => {
 });
 document.getElementById("fileInput")?.addEventListener("change", () => {
   window.__wbNewFilesSelected = true;
+  ++runReqSeq;
+  importMeta = {};
+  clearImportVisualization("已更换上传文件，旧画面已清除。请重新预览。");
+  const box = document.getElementById("importReport");
+  if (box) box.textContent = "已更换文件，旧预览和融合画面已清除。请点「预览映射」。";
 });
 
 document.getElementById("btnRunMulti").onclick = async () => {
@@ -1773,6 +2258,10 @@ window.__wb = {
   get selectedAcIndex() { return selectedAcIndex; },
   get pinnedDetail() { return pinnedDetail; },
   set pinnedDetail(v) { pinnedDetail = v; },
+  computeZoomAt,
+  MAP_ZOOM_FACTOR,
+  MAP_MIN_SCALE,
+  MAP_MAX_SCALE,
   mappingFromForm,
   selectionFilters,
   parseT,
@@ -1780,6 +2269,11 @@ window.__wb = {
   pairDistanceInfo,
   updateNearDist,
   clearInspectorPanels,
+  clearImportVisualization,
+  renderImportPreviewReport,
+  buildPreviewSnapshots,
+  enableRawLayersForPreview,
+  seekToFrame,
   fetchPage,
   loadScenarioByName,
   commitDrawerToDraft,
@@ -1788,6 +2282,10 @@ window.__wb = {
   renderInspector,
   updateTransport,
   showRun,
+  locateSelectedTrack,
+  viewSelectedTrackHistory,
+  resolveFusionId,
+  get runReqSeq() { return runReqSeq; },
   DEFAULT_SCENARIO,
 };
 

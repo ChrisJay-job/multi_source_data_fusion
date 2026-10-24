@@ -1,0 +1,22 @@
+{
+  "module": "demo/workbench/canvas.js",
+  "cases": [
+    {
+      "expectedCommittedPoints": 81,
+      "collectorCommittedPoints": 81,
+      "renderedDistinctPoints": 81,
+      "firstPointCollected": true,
+      "firstPointRendered": true,
+      "pass": true
+    },
+    {
+      "expectedCommittedPoints": 400,
+      "collectorCommittedPoints": 400,
+      "renderedDistinctPoints": 400,
+      "firstPointCollected": true,
+      "firstPointRendered": true,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

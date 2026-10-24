@@ -1,0 +1,1 @@
+R1 evidence archived; R2 authoritative evidence under reports/task007/map_interaction/r2/. Do not mix older browser SHA dirs as PASS.

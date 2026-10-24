@@ -1,0 +1,1690 @@
+﻿diff --git a/demo/workbench/app.js b/demo/workbench/app.js
+index 79ffdc5..9876242 100644
+--- a/demo/workbench/app.js
++++ b/demo/workbench/app.js
+@@ -1,4 +1,4 @@
+-import { MapView } from "./canvas.js";
++import { MapView, computeZoomAt, MAP_ZOOM_FACTOR, MAP_MIN_SCALE, MAP_MAX_SCALE } from "./canvas.js";
+ 
+ const api = "";
+ const DEFAULT_SCENARIO = "seven_aircraft_combinations";
+@@ -15,7 +15,12 @@ let runReqSeq = 0;
+ let staleRunKeep = null; // previous run kept visibly as "鏃ц繍琛?
+ 
+ map.onPick = (obj, kind) => {
+-  if (kind === "track" || obj.fusionId) pinnedDetail = obj;
++  if (kind === "track" || obj.fusionId) {
++    pinnedDetail = obj;
++    map.setSelectedFusionId(obj.fusionId || null);
++  } else {
++    map.setSelectedFusionId(null);
++  }
+   renderInspector(obj, kind);
+   document.getElementById("detail").textContent = JSON.stringify({ kind: kind || "track", ...obj }, null, 2);
+   const rows = (obj.sourceTracks || []).map((s) =>
+@@ -29,6 +34,62 @@ map.onPick = (obj, kind) => {
+   }
+ };
+ 
++function setFocusStatus(msg, ok = true) {
++  const el = document.getElementById("focusStatus");
++  if (!el) return;
++  el.textContent = msg || "";
++  el.style.color = ok ? "#90be6d" : "#f9c74f";
++}
++
++/** Resolve a real fusionId from pin / checkbox / explicit id (exact fusionId or sim label鈫抜d). */
++function resolveFusionId(explicit) {
++  const tryMap = (id) => {
++    if (!id) return null;
++    const s = String(id);
++    const hit = (runState?.final_tracks || []).find((t) => t.fusionId === s);
++    if (hit) return hit.fusionId;
++    const byLabel = (runState?.final_tracks || []).find((t) =>
++      (runState?.scenario?.aircraft || []).some((a) =>
++        a.label === s && (
++          (runState?.evaluation?.fusion_to_truth || {})[t.fusionId] === a.truth_id ||
++          (a.rid_sn && t.aircraftId === a.rid_sn)
++        )
++      )
++    );
++    if (byLabel) return byLabel.fusionId;
++    // Real-data keys are full fusionIds; accept as-is when no scenario mapping.
++    if (s.includes("-") || s.length > 8) return s;
++    return null;
++  };
++  if (explicit) return tryMap(explicit);
++  if (pinnedDetail?.fusionId) return String(pinnedDetail.fusionId);
++  const checked = [...document.querySelectorAll(".tfilt:checked")].map((c) => c.dataset.id).filter(Boolean);
++  if (checked.length === 1) return tryMap(checked[0]);
++  return null;
++}
++
++function locateSelectedTrack(explicitFid) {
++  const fid = resolveFusionId(explicitFid);
++  if (!fid) {
++    setFocusStatus("璇峰厛閫変腑涓€鏉＄湡瀹炶瀺鍚堢洰鏍?, false);
++    return;
++  }
++  map.setSelectedFusionId(fid);
++  const r = map.centerOnFusionId(fid);
++  setFocusStatus(r.message || (r.ok ? "瀹氫綅瀹屾垚" : "瀹氫綅澶辫触"), !!r.ok);
++}
++
++function viewSelectedTrackHistory(explicitFid) {
++  const fid = resolveFusionId(explicitFid);
++  if (!fid) {
++    setFocusStatus("璇峰厛閫変腑涓€鏉＄湡瀹炶瀺鍚堢洰鏍?, false);
++    return;
++  }
++  map.setSelectedFusionId(fid);
++  const r = map.fitFusionTrackHistory(fid);
++  setFocusStatus(r.message || (r.ok ? "鑸抗鑱氱劍瀹屾垚" : "鑸抗鑱氱劍澶辫触"), !!r.ok);
++}
++
+ function parseT(s) {
+   if (!s) return 0;
+   return Date.parse(String(s).replace("Z", "+00:00"));
+@@ -116,6 +177,10 @@ function renderInspector(obj, kind) {
+   )?.label || "鈥?;
+   box.innerHTML = [
+     `<div><b>鐩爣</b> 鏈?${labelHint} 路 SN=${obj.aircraftId || "(鏃?"} 路 fusionId=<span class="k">${obj.fusionId || ""}</span></div>`,
++    `<div class="row tight track-focus-actions">` +
++      `<button type="button" id="btnLocateTrack" data-fid="${obj.fusionId || ""}">瀹氫綅</button>` +
++      `<button type="button" id="btnViewTrackHist" data-fid="${obj.fusionId || ""}">鏌ョ湅鑸抗</button>` +
++    `</div>`,
+     `<div><span class="k">trackStatus</span>锛?{obj.trackStatus || "鈥?} 路 <span class="k">positionMode</span>锛?{obj.positionMode || "鈥?}</div>`,
+     `<div><span class="k">涓讳綅缃潵婧?/span>锛?{SRC_LABEL[primary] || primary}</div>`,
+     `<div><span class="k">娲昏穬婧?/span>锛?{active.map((s) => SRC_LABEL[s] || s).join("+") || "鈥?}</div>`,
+@@ -124,6 +189,14 @@ function renderInspector(obj, kind) {
+     `<div><span class="k">鏈€杩戣娴?/span>锛?{lastObs} 路 鏃跺樊=${lag}</div>`,
+     `<div><span class="k">seg</span>锛?{obj.trackSegmentId ?? "鈥?} 路 stateTime=${obj.stateTime || "鈥?}</div>`,
+   ].join("");
++  document.getElementById("btnLocateTrack")?.addEventListener("click", (ev) => {
++    ev.preventDefault();
++    locateSelectedTrack(ev.currentTarget.dataset.fid);
++  });
++  document.getElementById("btnViewTrackHist")?.addEventListener("click", (ev) => {
++    ev.preventDefault();
++    viewSelectedTrackHistory(ev.currentTarget.dataset.fid);
++  });
+   renderExplainAssoc(obj, kind);
+ }
+ 
+@@ -218,13 +291,64 @@ function syncLayersFromUi() {
+   const layers = {};
+   document.querySelectorAll(".layer").forEach((c) => { layers[c.dataset.layer] = c.checked; });
+   map.setLayers(layers);
++  maybeWarnRawLayersHidden();
+ }
+ document.querySelectorAll(".layer").forEach((cb) => {
+   cb.onchange = syncLayersFromUi;
+ });
+ syncLayersFromUi();
+ 
+-document.getElementById("btnResetView").onclick = () => map.resetView();
++function maybeWarnRawLayersHidden() {
++  const hint = document.getElementById("layerHint");
++  if (!hint) return;
++  if (!runState?.preview_sample || !(runState.observations || []).length) {
++    hint.textContent = "";
++    return;
++  }
++  const present = new Set((runState.observations || []).map((o) => o.source));
++  const anyOn = [...present].some((s) => map.layers[s]);
++  if (!anyOn) {
++    hint.textContent = "鏁版嵁瀛樺湪浣嗘潵婧愬浘灞傚凡鍏ㄩ儴鍏抽棴 鈥?鍕鹃€?RID/棰戣氨/闆疯揪锛屾垨鐐广€屽師濮嬭娴嬪姣斻€嶆仮澶嶅彲瑙?;
++    hint.hidden = false;
++  } else {
++    hint.textContent = "";
++    hint.hidden = true;
++  }
++}
++
++function enableRawLayersForPreview(sample) {
++  const present = new Set((sample || []).map((o) => o.source).filter(Boolean));
++  for (const src of ["rid", "spectrum", "radar"]) {
++    const el = document.querySelector(`.layer[data-layer="${src}"]`);
++    if (el) el.checked = present.has(src);
++  }
++  for (const layer of ["truth", "plan"]) {
++    const el = document.querySelector(`.layer[data-layer="${layer}"]`);
++    if (el) el.checked = false;
++  }
++  // Preview is raw-obs focused: keep fused/current optional; open advanced layer panel
++  const adv = document.getElementById("advLayers");
++  if (adv) adv.open = true;
++  map.setTargetFilter(null);
++  const box = document.getElementById("targetFilters");
++  if (box) box.querySelectorAll("input[type=checkbox]").forEach((c) => { c.checked = false; });
++  syncLayersFromUi();
++}
++
++function seekToFrame(i) {
++  map.setTimeIndex(i);
++  updateTransport();
++}
++
++document.getElementById("btnResetView").onclick = () => {
++  // 閫傞厤鍙锛氬皧閲嶅綋鍓嶅嬀閫夌洰鏍囦笌鍥惧眰锛屼笉鏀规挱鏀炬椂鍒汇€佷笉娓呯┖杩囨护銆?+  map.fitToData({ respectFilter: true });
++  map._viewManual = false;
++  map.draw();
++  setFocusStatus("宸查€傞厤褰撳墠鍙鑼冨洿锛堟湭鏀瑰嬀閫夛紡鍥惧眰锛忔挱鏀炬椂鍒伙級", true);
++};
++document.getElementById("btnLocateTrackGlobal")?.addEventListener("click", () => locateSelectedTrack());
++document.getElementById("btnViewTrackHistGlobal")?.addEventListener("click", () => viewSelectedTrackHistory());
+ 
+ function applyViewPreset(name) {
+   const set = (layer, on) => {
+@@ -287,8 +411,21 @@ function focusChallengeGroup() {
+ }
+ document.getElementById("btnFocusGroup")?.addEventListener("click", focusChallengeGroup);
+ document.getElementById("btnFitAll")?.addEventListener("click", () => {
++  // 閫傞厤鍙鑼冨洿锛氫笉鏆椾腑娓呯┖鐩爣鍕鹃€夈€?+  map.fitToData({ respectFilter: true });
++  map._viewManual = false;
++  map.draw();
++  setFocusStatus("宸查€傞厤褰撳墠鍕鹃€夛紡鍥惧眰鍙鑼冨洿", true);
++});
++document.getElementById("btnShowAllFit")?.addEventListener("click", () => {
++  // 鏄剧ず鍏ㄩ儴骞堕€傞厤锛氭樉寮忔竻绌哄嬀閫夊悗鍐嶆€昏銆?+  const box = document.getElementById("targetFilters");
++  if (box) box.querySelectorAll(".tfilt").forEach((c) => { c.checked = false; });
+   map.setTargetFilter(null);
+-  map.resetView();
++  map.fitToData({ respectFilter: false });
++  map._viewManual = false;
++  map.draw();
++  setFocusStatus("宸叉樉绀哄叏閮ㄧ洰鏍囧苟閫傞厤鎬昏", true);
+ });
+ document.getElementById("btnZoomNear")?.addEventListener("click", () => {
+   const sc = runState?.scenario || draftScenario;
+@@ -464,9 +601,28 @@ function rebuildTargetFilters(result) {
+       detail: `SN=${tr.aircraftId || "(鏃?"} 路 灞€閮ㄦ簮=${(tr.sourceTracks || []).map((s) => s.sourceTrackId).join(",") || "鈥?}`,
+     });
+   }
++  // Real-file fallback: if final_tracks empty/omitted, list last-snapshot fusionIds for locate/history.
++  if (!groups.length) {
++    const last = (result.snapshots || [])[(result.snapshots || []).length - 1];
++    const seen = new Set();
++    for (const tr of last?.tracks || []) {
++      if (!tr.fusionId || seen.has(tr.fusionId)) continue;
++      seen.add(tr.fusionId);
++      groups.push({
++        key: tr.fusionId,
++        title: `铻嶅悎鐩爣 ${String(tr.fusionId).slice(-8)}`,
++        detail: `SN=${tr.aircraftId || "(鏃?"} 路 灞€閮ㄦ簮=${(tr.sourceTracks || []).map((s) => s.sourceTrackId).join(",") || "鈥?}`,
++      });
++    }
++  }
+   box.innerHTML = groups.map((g) =>
+     `<details class="tfilt-group"><summary><label><input type="checkbox" class="tfilt" data-id="${g.key}" /> ${g.title}</label></summary>` +
+-    `<div class="hint">${g.detail}</div></details>`
++    `<div class="hint">${g.detail}</div>` +
++    (g.key && String(g.key).length > 2
++      ? `<div class="row tight"><button type="button" class="btnLocTfilt" data-fid="${g.key}">瀹氫綅</button>` +
++        `<button type="button" class="btnHistTfilt" data-fid="${g.key}">鏌ョ湅鑸抗</button></div>`
++      : "") +
++    `</details>`
+   ).join("") || "<span class='hint'>杩愯鍚庡嚭鐜扮洰鏍?/span>";
+   box.querySelectorAll(".tfilt").forEach((cb) => {
+     cb.onchange = () => {
+@@ -474,6 +630,35 @@ function rebuildTargetFilters(result) {
+       map.setTargetFilter(checked.length ? new Set(checked) : null);
+     };
+   });
++  box.querySelectorAll(".btnLocTfilt").forEach((btn) => {
++    btn.onclick = (ev) => {
++      ev.preventDefault();
++      const key = btn.dataset.fid;
++      const fid = resolveFusionId(key) || key;
++      // Select matching track for inspector
++      const tr = (runState?.final_tracks || []).find((t) => t.fusionId === fid)
++        || (runState?.snapshots?.[map.tIndex]?.tracks || []).find((t) => t.fusionId === fid);
++      if (tr) {
++        pinnedDetail = tr;
++        renderInspector(tr, "track");
++      }
++      locateSelectedTrack(fid);
++    };
++  });
++  box.querySelectorAll(".btnHistTfilt").forEach((btn) => {
++    btn.onclick = (ev) => {
++      ev.preventDefault();
++      const key = btn.dataset.fid;
++      const fid = resolveFusionId(key) || key;
++      const tr = (runState?.final_tracks || []).find((t) => t.fusionId === fid)
++        || (runState?.snapshots?.[map.tIndex]?.tracks || []).find((t) => t.fusionId === fid);
++      if (tr) {
++        pinnedDetail = tr;
++        renderInspector(tr, "track");
++      }
++      viewSelectedTrackHistory(fid);
++    };
++  });
+ }
+ 
+ function applySelectedAircraftFilter() {
+@@ -775,12 +960,31 @@ function formatAnomaly(e) {
+ }
+ 
+ function updateTransport() {
+-  if (!runState?.snapshots) return;
++  if (!runState?.snapshots?.length) {
++    const seek = document.getElementById("seek");
++    if (seek) { seek.max = "0"; seek.value = "0"; }
++    const sl = document.getElementById("seekLabel");
++    if (sl) sl.textContent = "0/0";
++    const clock = document.getElementById("clock");
++    if (clock) clock.textContent = "鏃犲綋鍓嶈繍琛岋紡棰勮";
++    const counts = document.getElementById("counts");
++    if (counts) counts.textContent = "鈥?;
++    const events = document.getElementById("events");
++    if (events) events.textContent = "鈥?;
++    return;
++  }
+   const seek = document.getElementById("seek");
+   seek.max = String(Math.max(0, runState.snapshots.length - 1));
+   seek.value = String(map.tIndex);
+   document.getElementById("seekLabel").textContent = `${map.tIndex + 1}/${runState.snapshots.length}`;
+   const snap = runState.snapshots[map.tIndex];
++  if (runState.preview_sample) {
++    const nObs = (runState.observations || []).length;
++    document.getElementById("clock").textContent =
++      `鍘熷瑙傛祴棰勮鏃跺埢=${snap?.processingTime || "鈥?} 路 鏈墽琛岃瀺鍚?路 鏍锋湰 ${runState.t0 || "鈥?} 鈫?${nObs ? (runState.observations[nObs - 1].measurementTime) : "鈥?}`;
++    document.getElementById("counts").textContent =
++      `棰勮鏍锋湰鐐规暟=${nObs}锛忓抚=${map.tIndex + 1}/${runState.snapshots.length}锛忚瀺鍚堜富浣嶇疆鏇存柊=涓嶉€傜敤锛忔潵婧愮粦瀹?涓嶉€傜敤锛忔嫆缁?瑙佸鍏ユ姤鍛奰;
++  } else {
+   let lastMeas = "鈥?;
+   for (const tr of snap?.tracks || []) {
+     if (tr.lastObservedAt && (lastMeas === "鈥? || String(tr.lastObservedAt) > lastMeas)) lastMeas = tr.lastObservedAt;
+@@ -796,6 +1000,7 @@ function updateTransport() {
+     `鏉ユ簮鏂扮粦瀹?source_bound)=${c.source_binds_at_t ?? "鈥?}锛忎粎缁戝畾(secondary_bind_only)=${c.bind_only_at_t ?? "鈥?}锛廯 +
+     `缂撳啿=${c.pending_buffer ?? "鏈彁渚?}锛忔嫆缁?${c.rejected_at_t ?? "鈥?}` +
+     `锛堝垎鍒楋紝鍕夸簰姣斿綋婕忔暟锛塦;
++  }
+   const now = parseT(snap?.processingTime);
+   const ev = (runState.events || []).filter((e) => {
+     const t = parseT(e.time || e.eventTime || e.ts);
+@@ -867,9 +1072,20 @@ function updateRunBanner(result, { stale = false } = {}) {
+   const scName = result?.scenario?.name || result?.runScenarioName || "鈥?;
+   const rid = result?.runId || result?.sessionId || "鈥?;
+   const idMode = result?.scenario?.identity_mode || result?.identity_audit?.identity_mode || "鈥?;
+-  el.textContent = stale
+-    ? `鏃ц繍琛岋紙鏈浛鎹級锛氬満鏅?${scName} 路 runId=${rid} 路 identity_mode=${idMode}`
+-    : `褰撳墠杩愯缁撴灉锛氬満鏅?${scName} 路 runId=${rid} 路 identity_mode=${idMode} 路 鑽夌=${draftScenario?.name || "鈥?}`;
++  const profile = result?.fusionProfile ? ` 路 profile=${result.fusionProfile}` : "";
++  const ver = result?.algorithmVersion ? ` 路 ${result.algorithmVersion}` : "";
++  const realFile = !!(result?.import_summary || result?.real_file);
++  if (realFile) {
++    el.textContent = stale
++      ? `鏃ф枃浠惰繍琛岋紙鏈浛鎹級锛?{scName}`
++      : `褰撳墠鏂囦欢锛?{scName} 路 runId=${rid} 路 铻嶅悎杈撳嚭${profile}${ver}`;
++  } else if (result?.preview_sample) {
++    el.textContent = `鍘熷瑙傛祴棰勮锛屾湭鎵ц铻嶅悎 路 ${scName}`;
++  } else {
++    el.textContent = stale
++      ? `鏃ц繍琛岋紙鏈浛鎹級锛氬満鏅?${scName} 路 runId=${rid} 路 identity_mode=${idMode}`
++      : `褰撳墠杩愯缁撴灉锛氬満鏅?${scName} 路 runId=${rid} 路 identity_mode=${idMode}${profile}${ver}${result?.fusionProfile === "multisensor-v1" ? "" : ` 路 鑽夌=${draftScenario?.name || "鈥?}`}`;
++  }
+   el.dataset.runId = rid;
+   el.dataset.scenario = scName;
+ }
+@@ -920,11 +1136,19 @@ function showRun(result, { reqToken = null } = {}) {
+   map.setState(result, { fit: true, resetTime: true });
+   updateTransport();
+   updateRunBanner(result);
+-  renderMetricsDisplay(result);
++  if (result.preview_sample || result.import_summary || result.real_file) {
++    const box = document.getElementById("metricsDisplay");
++    if (box) box.innerHTML = `<div>${result.accuracy_note || "鐪熷疄鏂囦欢榛樿鏃犵湡鍊硷紝涓嶆樉绀鸿櫄鍋囧叧鑱斿噯纭巼"}</div>`;
++    if (result.import_summary || result.real_file) enableRawLayersForPreview(result.observations || []);
++  } else {
++    renderMetricsDisplay(result);
++  }
+   updateNearDist(result.challenge_geometry, null);
+-  document.getElementById("eval").textContent = result.evaluation
+-    ? JSON.stringify(result.evaluation, null, 2)
+-    : (result.accuracy_note || "鏃犺瘎浼帮紡鏃犵湡鍊?);
++  document.getElementById("eval").textContent = (result.preview_sample || result.import_summary || result.real_file)
++    ? (result.accuracy_note || "鐪熷疄鏂囦欢榛樿鏃犵湡鍊硷紝涓嶆樉绀鸿櫄鍋囧叧鑱斿噯纭巼")
++    : (result.evaluation
++      ? JSON.stringify(result.evaluation, null, 2)
++      : (result.accuracy_note || "鏃犺瘎浼帮紡鏃犵湡鍊?));
+   if (result.scenario?.aircraft) {
+     if (!draftScenario) draftScenario = JSON.parse(JSON.stringify(result.scenario));
+   }
+@@ -1451,23 +1675,216 @@ function mappingFromForm() {
+   };
+ }
+ 
++function clearImportVisualization(reason) {
++  if (playTimer) { clearTimeout(playTimer); playTimer = null; }
++  pinnedDetail = null;
++  clearInspectorPanels(reason || "宸叉竻绌洪瑙?杩愯鍙鍖?);
++  runState = null;
++  staleRunKeep = null;
++  map.setTargetFilter(null);
++  map.setState(
++    { observations: [], snapshots: [], final_tracks: [], scenario: { name: "empty", aircraft: [] }, preview_sample: false },
++    { fit: false, resetTime: true }
++  );
++  updateTransport();
++  maybeWarnRawLayersHidden();
++  const banner = document.getElementById("runBanner");
++  if (banner) banner.textContent = reason || "鏃犲綋鍓嶈繍琛?;
++  const evalEl = document.getElementById("eval");
++  if (evalEl) evalEl.textContent = reason || "鏃犺瘎浼帮紡鏃犵湡鍊?;
++}
++
++function buildPreviewSnapshots(sample) {
++  // Static preview: cover full sample span so all points are drawable.
++  // Also emit sparse intermediate snaps so transport can scrub/play to end.
++  const snaps = [];
++  const n = sample.length;
++  const idxs = new Set([0, n - 1]);
++  const step = Math.max(1, Math.floor((n - 1) / 12));
++  for (let i = 0; i < n; i += step) idxs.add(i);
++  const ordered = [...idxs].sort((a, b) => a - b);
++  for (const i of ordered) {
++    const t = sample[i].measurementTime;
++    snaps.push({ processingTime: t, watermark: t, tracks: [], counts_at: {}, preview_frame: true });
++  }
++  return snaps;
++}
++
++function importStatusProse(j) {
++  const src = (j && j.detail && typeof j.detail === "object") ? j.detail : (j || {});
++  const summary = src.summary && typeof src.summary === "object" ? src.summary : src;
++  const name = summary.datasetId || summary.filename || summary.stored_as || summary.path || "鏈懡鍚嶆枃浠?;
++  const container = summary.json_container || summary.suffix || "琛ㄦ牸/鏂囨湰";
++  const scanned = summary.scanned_rows ?? summary.scanned ?? "鈥?;
++  const valid = summary.n_observations ?? "鈥?;
++  const rejected = summary.n_errors ?? summary.error_count ?? "鈥?;
++  const by = summary.by_source
++    ? Object.entries(summary.by_source).map(([k, v]) => `${k}=${v}`).join("锛?)
++    : "鏃?;
++  const tr = Array.isArray(summary.time_range) ? `${summary.time_range[0]} .. ${summary.time_range[1]}` : "鏃?;
++  const reasons = [...new Set((summary.errors_sample || []).map((e) => e.reason || e.detail).filter(Boolean))].slice(0, 6);
++  let kind = "宸茶鍏?;
++  if (summary.ok === false || summary.error === "json_structure" || String(summary.error || "").startsWith("json_")) {
++    kind = "瑙ｆ瀽澶辫触";
++  } else if (summary.empty_record_set) {
++    kind = "绌烘枃浠?绌鸿褰曢泦";
++  } else if (Number(summary.n_observations || 0) === 0 && Number(summary.n_errors || 0) > 0) {
++    kind = "璁板綍宸茶鍏ワ紝鍏ㄩ儴琚牎楠屾嫆缁?;
++  } else if (Number(summary.n_observations || 0) === 0 && Number(summary.skipped_outside_window || 0) > 0) {
++    kind = "绛涢€夐浂鍖归厤";
++  }
++  return [
++    `鏂囦欢锛?{name}`,
++    `瀹瑰櫒锛?{container}`,
++    `缁撴灉锛?{kind}`,
++    `鎵弿=${scanned} 鏈夋晥=${valid} 鎷掔粷=${rejected}`,
++    `鏉ユ簮锛?{by}`,
++    `鏃堕棿锛?{tr}`,
++    `鎷掔粷鍘熷洜锛?{reasons.join("锛?) || "鏃?}`,
++    summary.detail ? `璇存槑锛?{summary.detail}` : "",
++    summary.error ? `閿欒锛?{summary.error}` : "",
++  ].filter(Boolean).join("\n");
++}
++
++function renderImportPreviewReport(j, { reqToken = null } = {}) {
++  if (reqToken != null && reqToken !== runReqSeq) return;
++  importMeta = j && j.stored_as ? j : importMeta;
++  const box = document.getElementById("importReport");
++  const prose = importStatusProse(j);
++  if (!j || j.ok === false) {
++    clearImportVisualization(j?.error || j?.detail?.error || "棰勮澶辫触");
++    box.textContent = `${prose}\n\n${JSON.stringify(j, null, 2)}`;
++    return;
++  }
++  const sample = [...(j.observations_sample || j.preview || [])].filter((o) => o && o.measurementTime);
++  sample.sort((a, b) => parseT(a.measurementTime) - parseT(b.measurementTime));
++  const tFirst = sample[0]?.measurementTime || null;
++  const tLast = sample[sample.length - 1]?.measurementTime || null;
++  box.textContent = `${prose}\n\n${JSON.stringify(
++    {
++      file_read_ok: j.file_read_ok,
++      ok: j.ok,
++      n_observations: j.n_observations,
++      scanned_rows: j.scanned_rows,
++      n_errors: j.n_errors,
++      by_source: j.by_source,
++      time_range: j.time_range || (tFirst && tLast ? [tFirst, tLast] : null),
++      json_container: j.json_container,
++      empty_record_set: j.empty_record_set,
++      preview_sample_drawn: sample.length,
++      preview_mode: "static_sample_cover_end",
++      preview_label: "鍘熷瑙傛祴棰勮锛屾湭鎵ц铻嶅悎",
++      raw_columns: j.raw_columns,
++      raw_preview_rows: j.raw_preview_rows,
++      sample_errors: j.errors_sample,
++      stored_as: j.stored_as,
++      preview_only: j.preview_only,
++      truncated: j.truncated,
++      note: "棰勮琛屾湁闄愰锛涘叏閲忔壂鎻忚 reports/task006锛屼笉绛変簬鏈瑙堣鏁?,
++    },
++    null,
++    2
++  )}`;
++  if (!sample.length) {
++    const emptyKind = j.empty_record_set
++      ? "绌烘枃浠?绌鸿褰曢泦"
++      : (Number(j.n_errors || 0) > 0 ? "璁板綍宸茶鍏ワ紝鍏ㄩ儴琚牎楠屾嫆缁? : "绛涢€夐浂鍖归厤");
++    clearImportVisualization(emptyKind);
++    return;
++  }
++  // Prefer full preview summary sources so layers match file content, not just sample slice.
++  const layerSample = sample.slice();
++  for (const src of Object.keys(j.by_source || {})) {
++    if (["rid", "spectrum", "radar"].includes(src) && !layerSample.some((o) => o.source === src)) {
++      layerSample.push({ source: src });
++    }
++  }
++  enableRawLayersForPreview(layerSample);
++  showRun(
++    {
++      runId: `preview-${reqToken ?? Date.now()}`,
++      scenario: { name: (j.stored_as || "import-preview") + " 路 鍘熷瑙傛祴棰勮", aircraft: [] },
++      observations: sample,
++      snapshots: buildPreviewSnapshots(sample),
++      final_tracks: [],
++      evaluation: null,
++      t0: tFirst,
++      preview_sample: true,
++      accuracy_note: "鍘熷瑙傛祴棰勮锛屾湭鎵ц铻嶅悎",
++    },
++    { reqToken }
++  );
++  // Unified seek: canvas + transport/clock/seek label stay in sync at sample end.
++  const nSnap = (map.state?.snapshots || []).length;
++  if (nSnap > 0) seekToFrame(nSnap - 1);
++  maybeWarnRawLayersHidden();
++  const banner = document.getElementById("runBanner");
++  if (banner) {
++    banner.textContent = `鍘熷瑙傛祴棰勮锛屾湭鎵ц铻嶅悎 路 ${j.stored_as || ""} 路 鏍锋湰鐐?${sample.length} 路 鏉ユ簮灞傚凡鎸夋牱鏈紑鍚痐;
++  }
++}
++
+ document.getElementById("btnPreview").onclick = async () => {
+   const f = document.getElementById("fileInput").files[0];
+   if (!f) { alert("璇烽€夋嫨鏂囦欢"); return; }
++  const token = ++runReqSeq;
+   const fd = new FormData();
+   fd.append("file", f);
+   fd.append("mapping_json", JSON.stringify(mappingFromForm()));
+-  fd.append("max_rows", "2000");
+-  const r = await fetch(api + "/v1/workbench/import/preview", { method: "POST", body: fd });
+-  const j = await r.json();
+-  importMeta = j;
+-  document.getElementById("importReport").textContent = JSON.stringify({
+-    ok: j.ok, n: j.n_observations, errors: j.n_errors, by_source: j.by_source,
+-    time_range: j.time_range, sample_errors: j.errors_sample, stored_as: j.stored_as,
+-    preview_only: j.preview_only,
+-  }, null, 2);
++  fd.append("max_rows", String(Number(document.getElementById("maxRows").value || 2000)));
++  document.getElementById("importReport").textContent = "涓婁紶骞堕瑙堜腑鈥?;
++  clearImportVisualization("鏂颁笂浼犻瑙堣繘琛屼腑鈥?);
++  try {
++    const r = await fetch(api + "/v1/workbench/import/preview", { method: "POST", body: fd });
++    let j;
++    try { j = await r.json(); } catch (_) { j = { ok: false, error: `HTTP ${r.status}` }; }
++    if (!r.ok) {
++      j.ok = false;
++      j.error = j.error || j.detail?.error || `HTTP ${r.status}`;
++    }
++    renderImportPreviewReport(j, { reqToken: token });
++  } catch (err) {
++    if (token !== runReqSeq) return;
++    clearImportVisualization("棰勮璇锋眰澶辫触");
++    document.getElementById("importReport").textContent = `棰勮璇锋眰澶辫触锛?{err.message || err}`;
++  }
+ };
+ 
++let localSelectedPath = null;
++document.getElementById("btnLocalPreview")?.addEventListener("click", async () => {
++  if (!localSelectedPath) {
++    alert("璇峰厛鍦ㄣ€屾湰鍦?data/銆嶅垪琛ㄧ偣閫夋嫨");
++    return;
++  }
++  const token = ++runReqSeq;
++  document.getElementById("importReport").textContent = `鏈湴棰勮 ${localSelectedPath}鈥;
++  clearImportVisualization("鏂版湰鍦伴瑙堣繘琛屼腑鈥?);
++  const filters = selectionFilters();
++  try {
++    const r = await fetch(api + "/v1/workbench/import/local-preview", {
++      method: "POST",
++      headers: { "Content-Type": "application/json" },
++      body: JSON.stringify({
++        path: localSelectedPath,
++        mapping: mappingFromForm(),
++        maxRows: Number(document.getElementById("maxRows").value || 2000),
++        ...filters,
++      }),
++    });
++    let j;
++    try { j = await r.json(); } catch (_) { j = { ok: false, error: `HTTP ${r.status}` }; }
++    if (!r.ok) {
++      j.ok = false;
++      j.error = j.error || `HTTP ${r.status}`;
++    }
++    renderImportPreviewReport(j, { reqToken: token });
++  } catch (err) {
++    if (token !== runReqSeq) return;
++    clearImportVisualization("鏈湴棰勮璇锋眰澶辫触");
++    document.getElementById("importReport").textContent = `鏈湴棰勮璇锋眰澶辫触锛?{err.message || err}`;
++  }
++});
++
+ function selectionFilters() {
+   const num = (id) => {
+     const v = document.getElementById(id)?.value;
+@@ -1494,74 +1911,137 @@ let pageState = { offset: 0, limit: 50, path: null, has_more: false, next_offset
+ 
+ document.getElementById("btnRunImport").onclick = async () => {
+   if (!importMeta?.stored_as) { alert("璇峰厛棰勮瀵煎叆"); return; }
++  const token = ++runReqSeq;
++  const path = importMeta.stored_as;
+   const maxRows = Number(document.getElementById("maxRows").value || 5000);
+   const filters = selectionFilters();
+-  const r = await fetch(api + "/v1/workbench/run/import", {
+-    method: "POST",
+-    headers: { "Content-Type": "application/json" },
+-    body: JSON.stringify({
+-      path: importMeta.stored_as,
+-      mode: "replay",
+-      mapping: mappingFromForm(),
+-      maxRows,
+-      ...filters,
+-      truncated: true,
+-    }),
+-  });
+-  const j = await r.json();
+-  if (!r.ok) {
+-    document.getElementById("importReport").textContent = JSON.stringify(j, null, 2);
+-    return;
++  clearImportVisualization("鍥炴斁杩涜涓€?);
++  importMeta = { stored_as: path };
++  document.getElementById("importReport").textContent = `鍥炴斁 ${path} 鈥;
++  try {
++    const r = await fetch(api + "/v1/workbench/run/import", {
++      method: "POST",
++      headers: { "Content-Type": "application/json" },
++      body: JSON.stringify({
++        path,
++        mode: "replay",
++        mapping: mappingFromForm(),
++        maxRows,
++        fusionProfile: document.getElementById("fusionProfile")?.value || "legacy",
++        ...filters,
++        truncated: true,
++      }),
++    });
++    let j;
++    try { j = await r.json(); } catch (_) { j = { ok: false, error: `HTTP ${r.status}` }; }
++    if (token !== runReqSeq) return;
++    if (!r.ok || !j.observations?.length) {
++      const reason = !r.ok ? `鍥炴斁澶辫触 HTTP ${r.status}` : "鍥炴斁鏃犳湁鏁堣娴?;
++      document.getElementById("importReport").textContent = `${reason}\n${importStatusProse(j)}\n\n${JSON.stringify(j, null, 2)}`;
++      clearImportVisualization(reason);
++      importMeta = { stored_as: path };
++      setStatus(false, reason);
++      return;
++    }
++    showRun(j, { reqToken: token });
++    document.getElementById("importReport").textContent = `${importStatusProse({
++      filename: j.scenario?.name,
++      stored_as: path,
++      n_observations: j.n_observations,
++      scanned_rows: j.import_summary?.scanned,
++      n_errors: j.import_summary?.n_errors,
++      by_source: j.import_summary?.by_source,
++      errors_sample: j.import_summary?.errors_sample,
++      json_container: j.import_summary?.json_container ? `JSON/${j.import_summary.json_container}` : undefined,
++      time_range: j.import_summary?.time_range,
++      empty_record_set: j.import_summary?.empty_record_set,
++      ok: true,
++    })}\n\n${JSON.stringify({
++      n: j.n_observations,
++      import_summary: j.import_summary,
++      filters: j.import_summary?.filters,
++      window_note: j.import_summary?.window_note,
++    }, null, 2)}`;
++  } catch (err) {
++    if (token !== runReqSeq) return;
++    document.getElementById("importReport").textContent = `鍥炴斁璇锋眰澶辫触锛?{err.message || err}`;
++    clearImportVisualization("鍥炴斁璇锋眰澶辫触");
++    importMeta = { stored_as: path };
+   }
+-  if (!j.observations?.length) {
+-    document.getElementById("importReport").textContent = JSON.stringify({ error: "no_observations", ...j }, null, 2);
+-    setStatus(false, "鏃犳湁鏁堣娴?);
+-    return;
++};
++
++document.getElementById("btnMsDemo").onclick = async () => {
++  const token = ++runReqSeq;
++  clearImportVisualization("鏃燬N澶氳澶囨紨绀哄姞杞戒腑鈥?);
++  try {
++    const sampleResp = await fetch("/workbench-static/task007_offline_single_target.json");
++    if (!sampleResp.ok) throw new Error("婕旂ず鏍锋湰涓嶅彲鐢?);
++    const sample = await sampleResp.json();
++    sample.jobId = "ui-ms-" + Date.now();
++    const r = await fetch(api + "/v1/fusion/replay", {
++      method: "POST",
++      headers: { "Content-Type": "application/json" },
++      body: JSON.stringify(sample),
++    });
++    const j = await r.json();
++    if (token !== runReqSeq) return;
++    if (!r.ok || j.error) {
++      document.getElementById("importReport").textContent = `婕旂ず澶辫触 HTTP ${r.status}\n${JSON.stringify(j, null, 2)}`;
++      clearImportVisualization("婕旂ず澶辫触");
++      return;
++    }
++    const snaps = (j.snapshots || []).map((s) => ({
++      batchId: s.batchId,
++      processingTime: s.processingTime,
++      watermark: s.watermark,
++      tracks: s.tracks || [],
++    }));
++    const last = snaps.length ? snaps[snaps.length - 1].tracks : [];
++    const binds = last.flatMap((t) => t.sourceTracks || []);
++    showRun({
++      runId: j.jobId,
++      sessionId: j.jobId,
++      fusionProfile: j.fusionProfile,
++      algorithmVersion: j.algorithmVersion,
++      configVersion: j.configVersion,
++      scenario: { name: "multisensor-v1-demo", aircraft: [], identity_mode: "anonymous" },
++      observations: sample.observations,
++      snapshots: snaps,
++      final_tracks: last,
++      rejected: j.rejected || [],
++      events: j.events || [],
++      accuracy_note: "鍚堟垚鏃燬N婕旂ず锛屼笉鏄幇鍦虹簿搴?,
++    });
++    document.getElementById("importReport").textContent = [
++      `profile=${j.fusionProfile} version=${j.algorithmVersion}`,
++      `杞ㄨ抗 ${last.length} 路 缁戝畾 ${binds.length} 路 宸茬‘璁?${binds.filter((b) => b.bindingStatus === "confirmed").length} 路 鍊欓€?${binds.filter((b) => b.bindingStatus !== "confirmed").length}`,
++      `鎷掔粷 ${ (j.rejected || []).length } 路 鍘嗗彶鐐?${ (j.trajectory || []).length }`,
++      "棰勬祴浠呭湪閰嶇疆鐨勯娴嬬獥鍐呮樉绀猴紝涓嶆妸骞虫粦鐐瑰啓鎴愬疄娴嬬湡鍊?,
++    ].join("\n");
++  } catch (err) {
++    if (token !== runReqSeq) return;
++    document.getElementById("importReport").textContent = `婕旂ず璇锋眰澶辫触锛?{err.message || err}`;
++    clearImportVisualization("婕旂ず璇锋眰澶辫触");
+   }
+-  showRun(j);
+-  document.getElementById("importReport").textContent = JSON.stringify({
+-    n: j.n_observations,
+-    import_summary: j.import_summary,
+-    filters: j.import_summary?.filters,
+-    window_note: j.import_summary?.window_note,
+-  }, null, 2);
+ };
+ 
+ async function loadLocalFiles() {
+   const r = await fetch(api + "/v1/workbench/local-data");
+   const j = await r.json();
+   document.getElementById("localFiles").innerHTML = (j.files || []).map((f) =>
+-    `<li><button type="button" class="localpick" data-path="${f.path}">閫夋嫨</button> ${f.path} (${(f.bytes / 1e6).toFixed(2)} MB)</li>`
+-  ).join("") || "<li>鏃狅紙灏?SQL 鏀惧湪 data/ 鍙浣跨敤锛?/li>";
++    `<li><button type="button" class="localpick" data-path="${f.path}" data-bytes="${f.bytes}">閫夋嫨</button> ${f.path} (${(f.bytes / 1e6).toFixed(2)} MB)</li>`
++  ).join("") || "<li>鏃狅紙灏?SQL/XLS 鏀惧湪 data/ 鍙浣跨敤锛?/li>";
+   document.querySelectorAll(".localpick").forEach((btn) => {
+-    btn.onclick = async () => {
++    btn.onclick = () => {
+       const path = btn.dataset.path;
+-      document.getElementById("importReport").textContent = `閫変腑 ${path}锛屽紑濮嬪洖鏀锯€;
+-      const maxRows = Number(document.getElementById("maxRows").value || 5000);
+-      const filters = selectionFilters();
+-      const r2 = await fetch(api + "/v1/workbench/run/local", {
+-        method: "POST",
+-        headers: { "Content-Type": "application/json" },
+-        body: JSON.stringify({
+-          path,
+-          mode: "replay",
+-          mapping: mappingFromForm(),
+-          maxRows,
+-          ...filters,
+-          truncated: true,
+-        }),
+-      });
+-      const j2 = await r2.json();
+-      if (!r2.ok) {
+-        document.getElementById("importReport").textContent = JSON.stringify(j2, null, 2);
+-        return;
+-      }
++      localSelectedPath = path;
++      ++runReqSeq; // invalidate in-flight preview/run for previous file
+       importMeta = { stored_as: path };
+       pageState = { offset: 0, limit: 50, path, has_more: false, next_offset: null };
+-      showRun(j2);
+-      document.getElementById("importReport").textContent = JSON.stringify({
+-        path, n: j2.n_observations, import_summary: j2.import_summary, filters: j2.import_summary?.filters,
+-      }, null, 2);
++      clearImportVisualization("宸插垏鎹㈡湰鍦版枃浠讹紝鏃ц建杩瑰凡娓呴櫎");
++      const mb = (Number(btn.dataset.bytes || 0) / 1e6).toFixed(2);
++      document.getElementById("importReport").textContent =
++        `宸查€変腑 ${path}锛?{mb} MB锛夈€傝鐐广€岄瑙堟湰鍦伴€変腑銆嶆煡鐪嬪師濮嬪垪涓庤娴嬬偣锛涚‘璁ゆ槧灏勫悗鍐嶃€屽洖鏀捐瀺鍚堛€嶃€傚ぇ鏂囦欢鍕块噸澶嶄笂浼犮€俙;
+     };
+   });
+ }
+@@ -1679,6 +2159,11 @@ document.getElementById("btnQueueClear")?.addEventListener("click", () => {
+ });
+ document.getElementById("fileInput")?.addEventListener("change", () => {
+   window.__wbNewFilesSelected = true;
++  ++runReqSeq;
++  importMeta = {};
++  clearImportVisualization("宸叉洿鎹笂浼犳枃浠讹紝鏃х敾闈㈠凡娓呴櫎銆傝閲嶆柊棰勮銆?);
++  const box = document.getElementById("importReport");
++  if (box) box.textContent = "宸叉洿鎹㈡枃浠讹紝鏃ч瑙堝拰铻嶅悎鐢婚潰宸叉竻闄ゃ€傝鐐广€岄瑙堟槧灏勩€嶃€?;
+ });
+ 
+ document.getElementById("btnRunMulti").onclick = async () => {
+@@ -1773,6 +2258,10 @@ window.__wb = {
+   get selectedAcIndex() { return selectedAcIndex; },
+   get pinnedDetail() { return pinnedDetail; },
+   set pinnedDetail(v) { pinnedDetail = v; },
++  computeZoomAt,
++  MAP_ZOOM_FACTOR,
++  MAP_MIN_SCALE,
++  MAP_MAX_SCALE,
+   mappingFromForm,
+   selectionFilters,
+   parseT,
+@@ -1780,6 +2269,11 @@ window.__wb = {
+   pairDistanceInfo,
+   updateNearDist,
+   clearInspectorPanels,
++  clearImportVisualization,
++  renderImportPreviewReport,
++  buildPreviewSnapshots,
++  enableRawLayersForPreview,
++  seekToFrame,
+   fetchPage,
+   loadScenarioByName,
+   commitDrawerToDraft,
+@@ -1788,6 +2282,10 @@ window.__wb = {
+   renderInspector,
+   updateTransport,
+   showRun,
++  locateSelectedTrack,
++  viewSelectedTrackHistory,
++  resolveFusionId,
++  get runReqSeq() { return runReqSeq; },
+   DEFAULT_SCENARIO,
+ };
+ 
+diff --git a/demo/workbench/canvas.js b/demo/workbench/canvas.js
+index 7f2eafe..4f4eb29 100644
+--- a/demo/workbench/canvas.js
++++ b/demo/workbench/canvas.js
+@@ -86,6 +86,34 @@ export function buildDisplayIndex(state) {
+   return byLabel;
+ }
+ 
++/** Pure zoom-at helper (exported for targeted tests). */
++export function computeZoomAt({ ox, oy, scale, px, py, factor, minScale, maxScale }) {
++  if (!Number.isFinite(factor) || factor <= 0) {
++    return { ox, oy, scale, ok: false, reason: "bad_factor" };
++  }
++  if (!Number.isFinite(scale) || scale <= 0) {
++    return { ox, oy, scale, ok: false, reason: "bad_scale" };
++  }
++  const wx = (px - ox) / scale;
++  const wy = (oy - py) / scale;
++  let next = scale * factor;
++  next = Math.min(maxScale, Math.max(minScale, next));
++  if (!Number.isFinite(next) || next <= 0) {
++    return { ox, oy, scale, ok: false, reason: "clamp_illegal" };
++  }
++  return {
++    ox: px - wx * next,
++    oy: py + wy * next,
++    scale: next,
++    ok: true,
++    world: [wx, wy],
++  };
++}
++
++export const MAP_ZOOM_FACTOR = 1.1;
++export const MAP_MIN_SCALE = 1e-4;
++export const MAP_MAX_SCALE = 200;
++
+ export class MapView {
+   constructor(canvas) {
+     this.cv = canvas;
+@@ -93,6 +121,10 @@ export class MapView {
+     this.scale = 1.2;
+     this.ox = canvas.width / 2;
+     this.oy = canvas.height / 2;
++    this.MIN_SCALE = MAP_MIN_SCALE;
++    this.MAX_SCALE = MAP_MAX_SCALE;
++    this.ZOOM_FACTOR = MAP_ZOOM_FACTOR;
++    this.DRAG_CLICK_PX = 5; // CSS pixels
+     // current = marker at clock; fused = measured history; obs layers drawn dimmer by default
+     this.layers = {
+       rid: true, spectrum: true, radar: true,
+@@ -106,37 +138,51 @@ export class MapView {
+     this.drag = null;
+     this.onPick = null;
+     this.routeEdit = null; // { aircraftIndex, points: [{x_m,y_m}], dragging }
++    this.lastDrawStats = { drawn_points: 0, drawn_lines: 0, by_source: {} };
+     this._fitted = false;
++    this.selectedFusionId = null;
++    this._suppressClick = false;
++    this._drawRaf = 0;
++    this._viewManual = false; // user zoom/pan/locate 鈥?seek must not auto-fit
++    this._lastClient = null; // fallback for wheel events missing clientX/Y (some synthesizers)
+     this._cssScale = () => {
+       const r = this.cv.getBoundingClientRect();
+-      return { sx: this.cv.width / Math.max(1, r.width), sy: this.cv.height / Math.max(1, r.height) };
++      return { sx: this.cv.width / Math.max(1, r.width), sy: this.cv.height / Math.max(1, r.height), rect: r };
+     };
+ 
+-    canvas.addEventListener("mousedown", (e) => this._onDown(e));
+-    canvas.addEventListener("mousemove", (e) => this._onMove(e));
+-    canvas.addEventListener("mouseup", () => {
+-      this.drag = null;
+-      if (this.routeEdit) {
+-        if (this.routeEdit.moved || this.routeEdit.dragging != null) {
+-          this.routeEdit.suppressClick = true;
+-        }
+-        this.routeEdit.dragging = null;
++    canvas.addEventListener("pointerdown", (e) => this._onPointerDown(e));
++    canvas.addEventListener("pointermove", (e) => this._onPointerMove(e));
++    canvas.addEventListener("pointerup", (e) => this._onPointerUp(e));
++    canvas.addEventListener("pointercancel", (e) => this._onPointerUp(e));
++    canvas.addEventListener("lostpointercapture", () => this._endPointerGesture());
++    window.addEventListener("blur", () => this._endPointerGesture());
++    canvas.addEventListener("wheel", (e) => this._onWheel(e), { passive: false });
++    canvas.addEventListener("mousemove", (e) => {
++      if (Number.isFinite(e.clientX) && Number.isFinite(e.clientY)) {
++        this._lastClient = { x: e.clientX, y: e.clientY };
+       }
+     });
+-    canvas.addEventListener("wheel", (e) => {
+-      e.preventDefault();
+-      this.scale *= e.deltaY > 0 ? 0.9 : 1.1;
+-      this.draw();
+-    }, { passive: false });
+     canvas.addEventListener("click", (e) => this._onClick(e));
++
++    // Keep world center stable when CSS box / DPR layout changes (no auto fit-all).
++    if (typeof ResizeObserver !== "undefined") {
++      this._ro = new ResizeObserver(() => this._onCssResize());
++      this._ro.observe(canvas);
++      this._lastCss = canvas.getBoundingClientRect();
++    }
+   }
+ 
+   setLayers(layers) { Object.assign(this.layers, layers); this.draw(); }
+   setTargetFilter(set) { this.targetFilter = set; this.draw(); }
++  setSelectedFusionId(fid) {
++    this.selectedFusionId = fid || null;
++    this.draw();
++  }
+   setState(state, { fit = true, resetTime = true } = {}) {
+     this.state = state;
+     this.displayIndex = buildDisplayIndex(state || {});
+     this._fitted = false;
++    this._viewManual = false;
+     if (resetTime) this.tIndex = 0;
+     if (fit) this.fitToData();
+     this.draw();
+@@ -144,19 +190,102 @@ export class MapView {
+   setTimeIndex(i) {
+     const n = this.state?.snapshots?.length || 1;
+     this.tIndex = Math.max(0, Math.min(i, n - 1));
++    // Do not reset camera on seek/play 鈥?only redraw.
+     this.draw();
+   }
+-  resetView() { this.fitToData(); this.draw(); }
++  resetView() { this.fitToData(); this._viewManual = false; this.draw(); }
++
++  _scheduleDraw() {
++    if (this._drawRaf) return;
++    this._drawRaf = requestAnimationFrame(() => {
++      this._drawRaf = 0;
++      this.draw();
++    });
++  }
++
++  _onCssResize() {
++    const r = this.cv.getBoundingClientRect();
++    const prev = this._lastCss;
++    this._lastCss = r;
++    if (!prev || !prev.width || !r.width) return;
++    // Internal buffer size is fixed; CSS scale change does not alter ox/oy in buffer space.
++    // Preserve world point under previous CSS center.
++    if (Math.abs(prev.width - r.width) < 0.5 && Math.abs(prev.height - r.height) < 0.5) return;
++    const { sx: sx0, sy: sy0 } = {
++      sx: this.cv.width / Math.max(1, prev.width),
++      sy: this.cv.height / Math.max(1, prev.height),
++    };
++    const { sx, sy } = this._cssScale();
++    const [wx, wy] = this.screenToWorld((prev.width / 2) * sx0, (prev.height / 2) * sy0);
++    this.ox = (r.width / 2) * sx - wx * this.scale;
++    this.oy = (r.height / 2) * sy + wy * this.scale;
++    this._scheduleDraw();
++  }
++
++  /** Normalize wheel delta to a reciprocal zoom factor (or null if no-op). */
++  _wheelFactor(e) {
++    let dy = e.deltaY;
++    if (!Number.isFinite(dy) || dy === 0) return null;
++    if (e.deltaMode === 1) dy *= 16; // lines 鈫?px
++    else if (e.deltaMode === 2) dy *= this.cv.height || 800; // pages
++    // Continuous reciprocal: factor = exp(-k*dy) with k so |dy|=100 鈫?ZOOM_FACTOR.
++    // Trackpad 1px 鈮?100px; equal reverse deltas restore scale/view.
++    const k = Math.log(this.ZOOM_FACTOR) / 100;
++    let factor = Math.exp(-k * dy);
++    const maxStep = Math.pow(this.ZOOM_FACTOR, 4);
++    if (!Number.isFinite(factor) || factor <= 0) return null;
++    return Math.min(maxStep, Math.max(1 / maxStep, factor));
++  }
++
++  zoomAt(px, py, factor) {
++    const r = computeZoomAt({
++      ox: this.ox, oy: this.oy, scale: this.scale,
++      px, py, factor,
++      minScale: this.MIN_SCALE, maxScale: this.MAX_SCALE,
++    });
++    if (!r.ok) return r;
++    this.ox = r.ox;
++    this.oy = r.oy;
++    this.scale = r.scale;
++    this._viewManual = true;
++    return r;
++  }
++
++  _onWheel(e) {
++    e.preventDefault();
++    e.stopPropagation();
++    const factor = this._wheelFactor(e);
++    if (factor == null) return;
++    // Prefer last known pointer on the canvas as the zoom anchor. Native wheel
++    // usually matches; some synthesizers (or off-canvas values) do not.
++    // Build a plain coord object 鈥?spreading Event instances is unreliable.
++    const clientX = (this._lastClient && Number.isFinite(this._lastClient.x))
++      ? this._lastClient.x
++      : e.clientX;
++    const clientY = (this._lastClient && Number.isFinite(this._lastClient.y))
++      ? this._lastClient.y
++      : e.clientY;
++    const { x, y } = this._eventXY({ type: "wheel", clientX, clientY });
++    this.zoomAt(x, y, factor);
++    this._scheduleDraw();
++  }
+ 
+   fitToLabels(labels, { padding = 1.3, minSpanM = 50, maxSpanM = null, atTimeS = null } = {}) {
+     const want = new Set((labels || []).map(String));
+     const pts = [];
+     const s = this.state;
+-    if (!s) return;
++    if (!s) return { ok: false, reason: "no_state" };
+     const idx = this.displayIndex || new Map();
++    // Real fusionId tokens: collect from committed history / current snap, never silent fit-all.
++    const fusionIds = [...want].filter((t) => t && (t.includes("-") || t.startsWith("F") || String(t).length > 8));
++    for (const fid of fusionIds) {
++      const got = this.collectFusionTrackPoints(fid, { includeFuture: false });
++      for (const p of got.pts) pts.push(p.xy);
++      if (got.current) pts.push(got.current.xy);
++    }
+     for (const [lab, info] of idx.entries()) {
+-      if (want.size && !want.has(lab) && ![...(info.truthIds || [])].some((t) => want.has(t))) continue;
+-      for (const tid of info.truthIds || []) {
++      if (want.size && !want.has(lab) && ![...(info.truths || info.truthIds || [])].some((t) => want.has(t))) continue;
++      for (const tid of info.truths || info.truthIds || []) {
+         for (const p of s.truth_polyline?.[tid] || []) {
+           if (atTimeS != null && p.t != null && Math.abs(p.t - atTimeS) > 1.0) continue;
+           pts.push([p.x_m, p.y_m]);
+@@ -174,28 +303,210 @@ export class MapView {
+       }
+     }
+     if (!pts.length) {
+-      this.fitToData();
+-      return;
++      // Do not pretend success by fitting everything when the requested labels are missing.
++      return { ok: false, reason: "no_points_for_labels" };
+     }
++    this._fitPoints(pts, { padding, minSpanM, maxSpanM });
++    this._fitted = true;
++    this._viewManual = true;
++    return { ok: true, n: pts.length };
++  }
++
++  _isValidLatLon(lat, lon) {
++    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
++    if (Math.abs(lat) < 1e-8 && Math.abs(lon) < 1e-8) return false;
++    return true;
++  }
++
++  _isValidXY(xy) {
++    if (!xy || !Number.isFinite(xy[0]) || !Number.isFinite(xy[1])) return false;
++    return true;
++  }
++
++  _fitPoints(pts, { padding = 1.3, minSpanM = 50, maxSpanM = null } = {}) {
++    const valid = pts.filter((p) => this._isValidXY(p));
++    if (!valid.length) return false;
+     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+-    for (const [x, y] of pts) {
++    for (const [x, y] of valid) {
+       minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+       minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+     }
+     let cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+     let dx = Math.max(minSpanM, maxX - minX);
+     let dy = Math.max(minSpanM, maxY - minY);
+-    // Local near-pair zoom: clamp long-axis span so 400m tracks don't fill the canvas.
+     if (maxSpanM != null && Number.isFinite(maxSpanM)) {
+       dx = Math.min(Math.max(dx, minSpanM), maxSpanM);
+       dy = Math.min(Math.max(dy, minSpanM), maxSpanM);
+-      minX = cx - dx / 2; maxX = cx + dx / 2;
+-      minY = cy - dy / 2; maxY = cy + dy / 2;
+     }
+-    this.scale = Math.min(this.cv.width / (dx * padding), this.cv.height / (dy * padding));
++    // Guard: single point / degenerate line 鈥?still focusable, no divide-by-zero.
++    if (!Number.isFinite(dx) || dx <= 0) dx = minSpanM;
++    if (!Number.isFinite(dy) || dy <= 0) dy = minSpanM;
++    let next = Math.min(this.cv.width / (dx * padding), this.cv.height / (dy * padding));
++    next = Math.min(this.MAX_SCALE, Math.max(this.MIN_SCALE, next));
++    if (!Number.isFinite(next) || next <= 0) return false;
++    this.scale = next;
+     this.ox = this.cv.width / 2 - cx * this.scale;
+     this.oy = this.cv.height / 2 + cy * this.scale;
+-    this._fitted = true;
++    return true;
++  }
++
++  _commitXY(c) {
++    if (c.east_m != null && c.north_m != null) return [Number(c.east_m), Number(c.north_m)];
++    if (this._isValidLatLon(c.latitude, c.longitude)) return this._llToXY(c.latitude, c.longitude);
++    return null;
++  }
++
++  /** Stable dedupe key for a committed point belonging to fusionId. Prefer pointId. */
++  _commitPointKey(c, fusionId) {
++    if (c.pointId != null && c.pointId !== "") return `pid:${c.pointId}`;
++    const ct = parseT(c.stateTime || c.measurementTime);
++    const xy = this._commitXY(c);
++    if (!xy) return null;
++    const oids = (c.observationIds || (c.observationId ? [c.observationId] : [])).join(",");
++    return `fid:${fusionId}|t:${ct}|x:${xy[0].toFixed(4)}|y:${xy[1].toFixed(4)}|o:${oids}`;
++  }
++
++  /**
++   * Collect a fusion track's already-occurred geometry up to the play clock.
++   * Fusion geometry = union of this fusionId's committedHistory (deduped); never bestHist-only.
++   * Raw observations are listed separately and only when observationId is claimed by this
++   * fusionId's committed points 鈥?source-triple equality alone is insufficient.
++   */
++  collectFusionTrackPoints(fusionId, { includeFuture = false } = {}) {
++    const out = {
++      pts: [], // fusion committed (+ current) only
++      obsPts: [], // proven-linked observations; not mixed into fusion history count
++      current: null,
++      reason: null,
++      nFusion: 0,
++      nObs: 0,
++    };
++    const s = this.state;
++    if (!s || !fusionId) {
++      out.reason = "no_state";
++      return out;
++    }
++    const nowT = this.currentTimeMs();
++    const endIdx = Math.min(this.tIndex, (s.snapshots?.length || 1) - 1);
++    const seenCommit = new Set();
++    const claimedObsIds = new Set();
++
++    const pushFusion = (xy, t, meta = {}) => {
++      if (!this._isValidXY(xy)) return;
++      const key = meta.key || `xy:${xy[0].toFixed(4)},${xy[1].toFixed(4)},${t || 0}`;
++      if (seenCommit.has(key)) return;
++      seenCommit.add(key);
++      out.pts.push({ xy, t: t || 0, kind: "fusion", ...meta });
++    };
++
++    // Merge ALL already-occurred committed histories for this fusionId (rolling windows).
++    for (let i = 0; i <= endIdx; i++) {
++      for (const tr of s.snapshots[i]?.tracks || []) {
++        if (tr.fusionId !== fusionId) continue;
++        const hist = tr.committedHistory || tr.committed_updates || [];
++        for (const c of hist) {
++          // Reject commits stamped with a different fusionId when present.
++          if (c.fusionId && c.fusionId !== fusionId) continue;
++          const ct = parseT(c.stateTime || c.measurementTime);
++          if (!includeFuture && nowT && Number.isFinite(ct) && ct > nowT + 1) continue;
++          const xy = this._commitXY(c);
++          if (!xy) continue;
++          const key = this._commitPointKey(c, fusionId);
++          if (!key) continue;
++          pushFusion(xy, ct, { key, pointId: c.pointId || null });
++          for (const oid of c.observationIds || []) if (oid) claimedObsIds.add(String(oid));
++          if (c.observationId) claimedObsIds.add(String(c.observationId));
++        }
++      }
++    }
++
++    // Optional observation overlay: only observationIds proven via this target's commits.
++    const seenObs = new Set();
++    if (claimedObsIds.size && s.observations) {
++      for (const o of s.observations) {
++        const oid = o.observationId != null ? String(o.observationId) : "";
++        if (!oid || !claimedObsIds.has(oid)) continue;
++        const ot = parseT(o.measurementTime);
++        if (!includeFuture && nowT && Number.isFinite(ot) && ot > nowT + 1) continue;
++        if (!this._isValidLatLon(o.latitude, o.longitude)) continue;
++        if (seenObs.has(oid)) continue;
++        seenObs.add(oid);
++        out.obsPts.push({
++          xy: this._llToXY(o.latitude, o.longitude),
++          t: ot || 0,
++          kind: "obs",
++          observationId: oid,
++        });
++      }
++    }
++
++    const snap = s.snapshots?.[this.tIndex];
++    const trNow = snap?.tracks?.find((t) => t.fusionId === fusionId) || null;
++    if (trNow && this._isValidLatLon(trNow.latitude, trNow.longitude)) {
++      const xy = this._llToXY(trNow.latitude, trNow.longitude);
++      out.current = { xy, t: parseT(trNow.stateTime || trNow.displayStateTime) || nowT };
++      // Do not double-count when current coincides with an already-merged commit.
++      const already = out.pts.some((p) => Math.hypot(p.xy[0] - xy[0], p.xy[1] - xy[1]) < 1e-3);
++      if (!already) pushFusion(xy, out.current.t, { key: `current:${fusionId}` });
++    }
++    out.nFusion = out.pts.length;
++    out.nObs = out.obsPts.length;
++    if (!out.pts.length && !out.current) out.reason = "no_history";
++    return out;
++  }
++
++  /** Center current play-time position of a real fusion track; does not change playhead. */
++  centerOnFusionId(fusionId, { localSpanM = 400 } = {}) {
++    if (!fusionId) return { ok: false, message: "鏈寚瀹?fusionId" };
++    this.selectedFusionId = fusionId;
++    const got = this.collectFusionTrackPoints(fusionId, { includeFuture: false });
++    if (got.current) {
++      const spanOnScreen = Math.min(this.cv.width, this.cv.height) / this.scale;
++      if (!Number.isFinite(this.scale) || this.scale <= 0 || spanOnScreen > 5000 || spanOnScreen < 5) {
++        const next = Math.min(this.cv.width, this.cv.height) / Math.max(20, localSpanM);
++        this.scale = Math.min(this.MAX_SCALE, Math.max(this.MIN_SCALE, next));
++      }
++      const [wx, wy] = got.current.xy;
++      this.ox = this.cv.width / 2 - wx * this.scale;
++      this.oy = this.cv.height / 2 + wy * this.scale;
++      this._viewManual = true;
++      this.draw();
++      return { ok: true, hasCurrent: true, message: "宸插畾浣嶅埌褰撳墠鏃跺埢浣嶇疆" };
++    }
++    if (got.pts.length) {
++      this._fitPoints(got.pts.map((p) => p.xy), { padding: 1.2, minSpanM: 30 });
++      this._viewManual = true;
++      this.draw();
++      return { ok: true, hasCurrent: false, hasHistory: true, message: "褰撳墠鏃犱綅缃紱宸插睍绀哄凡鍙戠敓鍘嗗彶" };
++    }
++    this.draw();
++    return { ok: false, hasCurrent: false, hasHistory: false, message: "璇ョ洰鏍囨棤宸插彂鐢熷巻鍙诧紝鏃犳硶瀹氫綅" };
++  }
++
++  /** Fit bbox of already-occurred *fusion* track geometry for a fusionId (not raw obs mix). */
++  fitFusionTrackHistory(fusionId) {
++    if (!fusionId) return { ok: false, message: "鏈寚瀹?fusionId" };
++    this.selectedFusionId = fusionId;
++    const got = this.collectFusionTrackPoints(fusionId, { includeFuture: false });
++    // Use fusion committed (+ current) only 鈥?obsPts are separate and do not expand this fit.
++    const pts = got.pts.map((p) => p.xy);
++    if (!pts.length) {
++      this.draw();
++      return { ok: false, message: got.current ? "浠呮湁褰撳墠鐐逛絾鍑犱綍鏃犳晥" : "璇ョ洰鏍囨棤宸插彂鐢熷巻鍙诧紝鏃犳硶鏌ョ湅鑸抗" };
++    }
++    this._fitPoints(pts, { padding: 1.25, minSpanM: 30 });
++    this._viewManual = true;
++    this.draw();
++    return {
++      ok: true,
++      n: pts.length,
++      nFusion: got.nFusion,
++      nObsLinked: got.nObs,
++      hasCurrent: !!got.current,
++      message: got.current
++        ? `宸查€傞厤铻嶅悎鍘嗗彶 ${got.nFusion} 鐐筦 + (got.nObs ? `锛堝彟鏈夊凡璇佹槑鍏宠仈瑙傛祴 ${got.nObs}锛屾湭娣峰叆璁℃暟锛塦 : "")
++        : `褰撳墠鏃犱綅缃紱宸查€傞厤铻嶅悎鍘嗗彶 ${got.nFusion} 鐐筦,
++    };
+   }
+ 
+   currentTimeMs() {
+@@ -241,33 +552,126 @@ export class MapView {
+     return false;
+   }
+ 
+-  fitToData() {
++  /**
++   * Fit currently *drawn* / filtered geometry (layer semantics match draw()).
++   * - current: only current-frame marker positions
++   * - fused: committed history up to play clock
++   * - pred: predicted history up to play clock
++   * - source layers: observations with measurementTime 鈮?play clock (same as draw)
++   * Hidden layers / unchecked targets / (0,0) never expand bounds.
++   * Does not clear targetFilter or layers.
++   */
++  fitToData({ respectFilter = true } = {}) {
+     const pts = [];
+     const s = this.state;
+     if (!s) return;
++    const allowFilter = respectFilter;
++    const nowT = this.currentTimeMs();
++    const endIdx = Math.min(this.tIndex, (s.snapshots?.length || 1) - 1);
++
++    // Raw source layers: already-occurred observations only (matches draw cutoff).
+     for (const o of s.observations || []) {
++      if (!this.layers[o.source]) continue;
++      if (allowFilter && !this._allowedByFilter("obs", o)) continue;
++      const ot = parseT(o.measurementTime);
++      if (nowT && Number.isFinite(ot) && ot > nowT + 1) continue;
++      if (!this._isValidLatLon(o.latitude, o.longitude)) continue;
+       const xy = this._llToXY(o.latitude, o.longitude);
+-      if (Number.isFinite(xy[0])) pts.push(xy);
++      if (this._isValidXY(xy)) pts.push(xy);
++    }
++
++    if (this.layers.plan && s.truth_polyline) {
++      for (const [tid, arr] of Object.entries(s.truth_polyline)) {
++        if (allowFilter && !this._allowedByFilter("plan", tid)) continue;
++        for (const p of arr) if (this._isValidXY([p.x_m, p.y_m])) pts.push([p.x_m, p.y_m]);
++      }
+     }
+-    for (const arr of Object.values(s.truth_polyline || {})) {
+-      for (const p of arr) pts.push([p.x_m, p.y_m]);
++    if (this.layers.truth && s.truth_polyline) {
++      for (const [tid, arr] of Object.entries(s.truth_polyline)) {
++        if (allowFilter && !this._allowedByFilter("truth", tid)) continue;
++        const timed = (s.truth_timeline?.[tid] || []).filter((p) => parseT(p.time) <= nowT + 1);
++        if (timed.length) {
++          for (const p of timed) {
++            const xy = this._llToXY(p.lat, p.lon);
++            if (this._isValidXY(xy)) pts.push(xy);
++          }
++        } else {
++          for (const p of arr) {
++            if (p.t != null && s.t0Ms != null && s.t0Ms + p.t * 1000 > nowT + 1) continue;
++            if (this._isValidXY([p.x_m, p.y_m])) pts.push([p.x_m, p.y_m]);
++          }
++        }
++      }
+     }
+-    for (const snap of s.snapshots || []) {
+-      for (const tr of snap.tracks || []) {
+-        pts.push(this._llToXY(tr.latitude, tr.longitude));
++
++    // current: ONLY the play-frame marker (no history).
++    if (this.layers.current) {
++      const snap = s.snapshots?.[this.tIndex];
++      for (const tr of snap?.tracks || []) {
++        if (allowFilter && !this._allowedByFilter("fusion", tr)) continue;
++        if (!this._isValidLatLon(tr.latitude, tr.longitude)) continue;
++        const xy = this._llToXY(tr.latitude, tr.longitude);
++        if (this._isValidXY(xy)) pts.push(xy);
+       }
+     }
+-    if (!pts.length) return;
+-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+-    for (const [x, y] of pts) {
+-      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+-      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
++
++    // fused: committed history up to clock (matches draw fused layer).
++    if (this.layers.fused) {
++      const best = new Map();
++      for (let i = 0; i <= endIdx; i++) {
++        for (const tr of s.snapshots[i]?.tracks || []) {
++          if (allowFilter && !this._allowedByFilter("fusion", tr)) continue;
++          const hist = tr.committedHistory || tr.committed_updates || [];
++          if (!hist.length) continue;
++          const seg = String(tr.trackSegmentId ?? "0");
++          const key = `${tr.fusionId}||${seg}`;
++          // Merge all commits (do not discard earlier rolling windows).
++          if (!best.has(key)) best.set(key, new Map());
++          const bucket = best.get(key);
++          for (const c of hist) {
++            const ct = parseT(c.stateTime || c.measurementTime);
++            if (nowT && Number.isFinite(ct) && ct > nowT + 1) continue;
++            const xy = this._commitXY(c);
++            if (!xy || !this._isValidXY(xy)) continue;
++            const ck = this._commitPointKey(c, tr.fusionId) || `${ct}:${xy[0]}:${xy[1]}`;
++            bucket.set(ck, xy);
++          }
++        }
++      }
++      for (const bucket of best.values()) {
++        for (const xy of bucket.values()) pts.push(xy);
++      }
++    }
++
++    // pred: predicted-history points up to clock (same episode rules as draw 鈥?simplified collect).
++    if (this.layers.pred) {
++      for (let i = 0; i <= endIdx; i++) {
++        const snap = s.snapshots[i];
++        const snapT = parseT(snap?.processingTime || snap?.watermark);
++        for (const tr of snap?.tracks || []) {
++          if (allowFilter && !this._allowedByFilter("fusion", tr)) continue;
++          if (!isPredicted(tr.positionMode)) continue;
++          const hist = tr.predictedHistory || tr.predicted_history || [];
++          if (hist.length) {
++            for (const p of hist) {
++              const pt = parseT(p.displayStateTime || p.stateTime || p.time);
++              if (nowT && Number.isFinite(pt) && pt > nowT + 1) continue;
++              const xy = (p.east_m != null && p.north_m != null)
++                ? [Number(p.east_m), Number(p.north_m)]
++                : (this._isValidLatLon(p.latitude, p.longitude) ? this._llToXY(p.latitude, p.longitude) : null);
++              if (xy && this._isValidXY(xy)) pts.push(xy);
++            }
++          } else if (this._isValidLatLon(tr.latitude, tr.longitude)) {
++            const pt = parseT(tr.displayStateTime || tr.stateTime) || snapT;
++            if (nowT && Number.isFinite(pt) && pt > nowT + 1) continue;
++            pts.push(this._llToXY(tr.latitude, tr.longitude));
++          }
++        }
++      }
+     }
+-    const dx = Math.max(50, maxX - minX);
+-    const dy = Math.max(50, maxY - minY);
+-    this.scale = Math.min(this.cv.width / (dx * 1.3), this.cv.height / (dy * 1.3));
+-    this.ox = this.cv.width / 2 - ((minX + maxX) / 2) * this.scale;
+-    this.oy = this.cv.height / 2 + ((minY + maxY) / 2) * this.scale;
++
++    if (!pts.length) return;
++    this._fitPoints(pts, { padding: 1.3, minSpanM: 50 });
+     this._fitted = true;
+   }
+ 
+@@ -282,6 +686,7 @@ export class MapView {
+     const { ctx, cv } = this;
+     ctx.clearRect(0, 0, cv.width, cv.height);
+     this._grid();
++    this.lastDrawStats = { drawn_points: 0, drawn_lines: 0, by_source: {} };
+     if (!this.state && !this.routeEdit) return;
+     const now = this.currentTimeMs();
+     const s = this.state || {};
+@@ -326,11 +731,18 @@ export class MapView {
+         }
+         if (cur.length) segs.push(cur);
+         const color = COLORS[rows[0].source];
++        const src = rows[0].source;
+         for (const seg of segs) {
+           const pts = seg.map((o) => this._llToXY(o.latitude, o.longitude));
+           this._points(pts, color, this.obsAlpha);
+-          if (pts.length >= 2) this._poly(pts, color, false, null, 1.5, this.obsAlpha);
+-          else if (pts.length === 1) this._point(pts[0][0], pts[0][1], color, "circle", null, this.obsAlpha);
++          this.lastDrawStats.drawn_points += pts.length;
++          this.lastDrawStats.by_source[src] = (this.lastDrawStats.by_source[src] || 0) + pts.length;
++          if (pts.length >= 2) {
++            this._poly(pts, color, false, null, 1.5, this.obsAlpha);
++            this.lastDrawStats.drawn_lines += 1;
++          } else if (pts.length === 1) {
++            this._point(pts[0][0], pts[0][1], color, "circle", null, this.obsAlpha);
++          }
+         }
+       }
+     }
+@@ -463,12 +875,14 @@ export class MapView {
+       const snap = s.snapshots[this.tIndex];
+       for (const tr of snap?.tracks || []) {
+         if (!this._allowedByFilter("fusion", tr)) continue;
++        if (!this._isValidLatLon(tr.latitude, tr.longitude)) continue;
+         const xy = this._llToXY(tr.latitude, tr.longitude);
+         const pred = isPredicted(tr.positionMode);
+         const showCurrent = this.layers.current !== false;
+         if (!showCurrent) continue;
+         const label = this._trackLabel(tr);
+-        this._point(xy[0], xy[1], pred ? COLORS.pred : COLORS.fused, pred ? "diamond" : "square", label, 1);
++        const selected = this.selectedFusionId && tr.fusionId === this.selectedFusionId;
++        this._point(xy[0], xy[1], pred ? COLORS.pred : COLORS.fused, pred ? "diamond" : "square", label, 1, selected);
+         // Direction hint is NOT predicted-history evidence (separate color/label).
+         if (this.layers.pred && pred && tr.speed != null && tr.heading != null) {
+           const rad = (tr.heading * Math.PI) / 180;
+@@ -488,37 +902,72 @@ export class MapView {
+     }
+ 
+     const el = document.getElementById("scale");
+-    if (el) el.textContent = `姣斾緥灏?${(50 / this.scale).toFixed(0)} m / 50px`;
++    if (el) {
++      const { sx } = this._cssScale();
++      const barCanvasPx = 50;
++      const barCssPx = barCanvasPx / Math.max(1e-9, sx);
++      const meters = barCanvasPx / Math.max(1e-12, this.scale);
++      el.textContent = `姣斾緥灏?${meters.toFixed(0)} m / ${barCssPx.toFixed(0)} CSS px`;
++    }
+   }
+ 
++  /** Buffer-space XY from client coordinates (works outside canvas with pointer capture). */
+   _eventXY(e) {
+-    const { sx, sy } = this._cssScale();
+-    return { x: e.offsetX * sx, y: e.offsetY * sy };
++    const { sx, sy, rect } = this._cssScale();
++    let clientX = e.clientX;
++    let clientY = e.clientY;
++    const finite = Number.isFinite(clientX) && Number.isFinite(clientY);
++    const outside = finite && (
++      clientX < rect.left - 1 || clientX > rect.right + 1 ||
++      clientY < rect.top - 1 || clientY > rect.bottom + 1
++    );
++    // Wheel synthesizers may omit client coords or place them at (0,0)/off-canvas.
++    if (!finite || (clientX === 0 && clientY === 0) || (e.type === "wheel" && outside)) {
++      clientX = this._lastClient?.x ?? (rect.left + rect.width / 2);
++      clientY = this._lastClient?.y ?? (rect.top + rect.height / 2);
++    } else {
++      this._lastClient = { x: clientX, y: clientY };
++    }
++    const cssX = clientX - rect.left;
++    const cssY = clientY - rect.top;
++    return { x: cssX * sx, y: cssY * sy, cssX, cssY };
+   }
+ 
+-  _onDown(e) {
+-    const { x, y } = this._eventXY(e);
++  _endPointerGesture() {
++    if (this.drag?.moved) this._suppressClick = true;
++    if (this.routeEdit) {
++      if (this.routeEdit.moved || this.routeEdit.dragging != null) {
++        this.routeEdit.suppressClick = true;
++      }
++      this.routeEdit.dragging = null;
++    }
++    this.drag = null;
++  }
++
++  _onPointerDown(e) {
++    if (e.button != null && e.button !== 0) return;
++    const { x, y, cssX, cssY } = this._eventXY(e);
++    try { this.cv.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+     if (this.routeEdit) {
+-      // keep suppressClick until _onClick consumes it (drag must not add a point)
+       this.routeEdit.moved = false;
+       const hit = this._hitRoutePoint(x, y);
+       if (hit >= 0) {
+         this.routeEdit.dragging = hit;
+-        this.routeEdit.down = { x, y };
++        this.routeEdit.down = { x, y, cssX, cssY };
+         return;
+       }
+-      this.routeEdit.down = { x, y };
++      this.routeEdit.down = { x, y, cssX, cssY };
+     }
+-    this.drag = { x, y, ox: this.ox, oy: this.oy };
++    this.drag = { x, y, cssX, cssY, ox: this.ox, oy: this.oy, moved: false, pointerId: e.pointerId };
+   }
+ 
+-  _onMove(e) {
+-    const { x, y } = this._eventXY(e);
++  _onPointerMove(e) {
++    const { x, y, cssX, cssY } = this._eventXY(e);
+     if (this.routeEdit?.dragging != null) {
+-      const dist = this.routeEdit.down
+-        ? Math.hypot(x - this.routeEdit.down.x, y - this.routeEdit.down.y)
++      const distCss = this.routeEdit.down
++        ? Math.hypot(cssX - this.routeEdit.down.cssX, cssY - this.routeEdit.down.cssY)
+         : 0;
+-      if (dist > 4) {
++      if (distCss > this.DRAG_CLICK_PX) {
+         this.routeEdit.moved = true;
+         this.routeEdit.suppressClick = true;
+       }
+@@ -528,24 +977,39 @@ export class MapView {
+         y_m: wy,
+         dwell_s: this.routeEdit.points[this.routeEdit.dragging].dwell_s || 0,
+       };
+-      this.draw();
++      this._scheduleDraw();
+       if (this.routeEdit.onChange) this.routeEdit.onChange(this.routeEdit.points);
+       return;
+     }
+-    if (this.routeEdit?.down && !this.routeEdit.dragging) {
+-      const dist = Math.hypot(x - this.routeEdit.down.x, y - this.routeEdit.down.y);
+-      if (dist > 6) {
++    if (this.routeEdit?.down && this.routeEdit.dragging == null) {
++      const distCss = Math.hypot(cssX - this.routeEdit.down.cssX, cssY - this.routeEdit.down.cssY);
++      if (distCss > this.DRAG_CLICK_PX) {
+         this.routeEdit.moved = true;
+         this.routeEdit.suppressClick = true;
+       }
+     }
+     if (!this.drag) return;
++    const distCss = Math.hypot(cssX - this.drag.cssX, cssY - this.drag.cssY);
++    if (distCss > this.DRAG_CLICK_PX) this.drag.moved = true;
++    if (!this.drag.moved) return;
+     this.ox = this.drag.ox + (x - this.drag.x);
+     this.oy = this.drag.oy + (y - this.drag.y);
+-    this.draw();
++    this._viewManual = true;
++    this._scheduleDraw();
++  }
++
++  _onPointerUp(e) {
++    try {
++      if (e?.pointerId != null) this.cv.releasePointerCapture(e.pointerId);
++    } catch (_) { /* ignore */ }
++    this._endPointerGesture();
+   }
+ 
+   _onClick(e) {
++    if (this._suppressClick) {
++      this._suppressClick = false;
++      return;
++    }
+     const { x, y } = this._eventXY(e);
+     if (this.routeEdit && this.routeEdit.mode === "add") {
+       if (this.routeEdit.suppressClick || this.routeEdit.moved) {
+@@ -554,7 +1018,6 @@ export class MapView {
+         this.routeEdit.down = null;
+         return;
+       }
+-      // blank click adds a point; clicking existing point without move does not add
+       if (this._hitRoutePoint(x, y) >= 0) return;
+       const [wx, wy] = this.screenToWorld(x, y);
+       this.routeEdit.points.push({ x_m: wx, y_m: wy, dwell_s: 0 });
+@@ -675,11 +1138,18 @@ export class MapView {
+     return null;
+   }
+ 
+-  _point(wx, wy, color, shape, label, alpha = 1) {
++  _point(wx, wy, color, shape, label, alpha = 1, selected = false) {
+     const [x, y] = this.worldToScreen(wx, wy);
+     const { ctx } = this;
+     ctx.save();
+     if (alpha < 1) ctx.globalAlpha = alpha;
++    if (selected) {
++      ctx.strokeStyle = "#ffffff";
++      ctx.lineWidth = 2;
++      ctx.beginPath();
++      ctx.arc(x, y, 10, 0, Math.PI * 2);
++      ctx.stroke();
++    }
+     ctx.fillStyle = color;
+     ctx.beginPath();
+     if (shape === "square") ctx.rect(x - 4, y - 4, 8, 8);
+@@ -689,8 +1159,8 @@ export class MapView {
+     ctx.fill();
+     if (label) {
+       ctx.globalAlpha = 1;
+-      ctx.fillStyle = "#cfd8e6";
+-      ctx.font = "10px sans-serif";
++      ctx.fillStyle = selected ? "#ffffff" : "#cfd8e6";
++      ctx.font = selected ? "bold 11px sans-serif" : "10px sans-serif";
+       ctx.fillText(label, x + 6, y + 3);
+     }
+     ctx.restore();
+diff --git a/demo/workbench/index.html b/demo/workbench/index.html
+index f284295..3b3730a 100644
+--- a/demo/workbench/index.html
++++ b/demo/workbench/index.html
+@@ -74,7 +74,7 @@
+           <button id="btnExportSc" type="button">瀵煎嚭JSON</button>
+           <button id="btnImportSc" type="button">瀵煎叆JSON</button>
+           <input type="file" id="scFile" accept="application/json,.json" class="hidden" />
+-          <button id="btnResetView" type="button">閫傞厤瑙嗗浘</button>
++          <button id="btnResetView" type="button" title="閫傞厤褰撳墠鍙鑼冨洿锛屼笉娓呯┖鍕鹃€?>閫傞厤鍙</button>
+         </div>
+       </section>
+ 
+@@ -97,6 +97,12 @@
+           <select id="mapTemplateSelect"></select>
+           <button id="btnLoadMap" type="button">鍔犺浇妯℃澘</button>
+         </div>
++        <label>铻嶅悎鍓栭潰
++          <select id="fusionProfile">
++            <option value="legacy" selected>legacy</option>
++            <option value="multisensor-v1">multisensor-v1</option>
++          </select>
++        </label>
+         <label>maxRows锛堝懡涓笂闄愶紝闈炲畬鏁存枃浠讹級 <input id="maxRows" type="number" value="5000" /></label>
+         <label>鏃堕棿绐楄捣 <input id="timeFrom" type="text" placeholder="2026-04-09T12:00:03+00:00" /></label>
+         <label>鏃堕棿绐楁 <input id="timeTo" type="text" placeholder="2026-04-09T12:00:04+00:00" /></label>
+@@ -106,10 +112,13 @@
+         <label>绾害鈮?<input id="latMin" type="number" step="0.0001" placeholder="鍙€? /></label>
+         <label>绾害鈮?<input id="latMax" type="number" step="0.0001" placeholder="鍙€? /></label>
+         <div class="row">
+-          <button id="btnPreview" class="primary" type="button">棰勮鏄犲皠</button>
++          <button id="btnPreview" class="primary" type="button">棰勮鏄犲皠锛堜笂浼狅級</button>
++          <button id="btnLocalPreview" type="button">棰勮鏈湴閫変腑</button>
+           <button id="btnRunImport" type="button">鍥炴斁铻嶅悎</button>
++          <button id="btnMsDemo" type="button">鏃燬N澶氳澶囨紨绀?/button>
+           <button id="btnRunMulti" type="button">澶氭枃浠跺悎鎴愬洖鏀?/button>
+         </div>
++        <p class="hint">澶?XLS 璇风敤銆屾湰鍦?data/銆嶉€夋嫨鍚庣偣銆岄瑙堟湰鍦伴€変腑銆嶏紝閬垮厤娴忚鍣ㄩ噸澶嶄笂浼狅紱鏄犲皠鏃跺尯寤鸿 Asia/Shanghai锛堝緟璁惧纭锛夈€?/p>
+         <div class="row">
+           <button id="btnPageObs" type="button">鏈夌晫缈婚〉璇?/button>
+           <button id="btnPagePrev" type="button">涓婁竴椤?/button>
+@@ -181,10 +190,16 @@
+           </select>
+         </label>
+         <button type="button" id="btnFocusGroup" title="鎸変笂鏂归€夐」鑱氱劍">鑱氱劍</button>
+-        <button type="button" id="btnFitAll">閫傚簲鍏ㄥ浘</button>
++        <button type="button" id="btnFitAll" title="鎸夊綋鍓嶅嬀閫夌洰鏍囦笌寮€鍚浘灞傞€傞厤锛屼笉娓呯┖杩囨护">閫傞厤鍙</button>
++        <button type="button" id="btnShowAllFit" title="娓呯┖鐩爣鍕鹃€夊悗閫傞厤鍏ㄩ儴鍙鍥惧眰">鏄剧ず鍏ㄩ儴骞堕€傞厤</button>
+         <button type="button" id="btnZoomNear" title="2m 灞€閮ㄦ斁澶?>2m灞€閮ㄦ斁澶?/button>
+         <label class="hint"><input type="checkbox" id="chkJumpNearTime" /> 璺宠嚦瀵规渶杩戞椂鍒?/label>
+       </div>
++      <div class="row tight">
++        <button type="button" id="btnLocateTrackGlobal" title="灏嗛€変腑鐪熷疄鐩爣绉诲埌鐢诲竷涓績">瀹氫綅閫変腑</button>
++        <button type="button" id="btnViewTrackHistGlobal" title="閫傞厤閫変腑鐩爣宸插彂鐢熻埅杩?>鏌ョ湅鑸抗</button>
++      </div>
++      <div id="focusStatus" class="hint">瀹氫綅锛忚埅杩硅仛鐒︾姸鎬侊細鈥?/div>
+       <div id="nearDist" class="hint">鐪熷€兼渶杩戣窛锛氣€?/div>
+       <div id="runBanner" class="hint">鑽夌锛忚繍琛岀粨鏋滐細灏氭湭杩愯</div>
+ 
+@@ -201,7 +216,8 @@
+         <label><input type="checkbox" class="layer" data-layer="rid" /> RID 瑙傛祴杩炵嚎</label>
+         <label><input type="checkbox" class="layer" data-layer="spectrum" /> 棰戣氨瑙傛祴杩炵嚎</label>
+         <label><input type="checkbox" class="layer" data-layer="radar" /> 闆疯揪瑙傛祴杩炵嚎</label>
+-        <p class="hint">榛樿涓嶅彔婊★紱鍥惧眰寮€鍏充笉褰卞搷绠楁硶杈撳叆銆?/p>
++        <p class="hint">浠跨湡榛樿涓嶅彔婊★紱鐪熷疄鏂囦欢棰勮浼氭寜鏍锋湰鑷姩寮€鍚瓨鍦ㄧ殑鏉ユ簮灞傘€傚浘灞傚紑鍏充笉褰卞搷绠楁硶杈撳叆銆?/p>
++        <p id="layerHint" class="hint" hidden></p>
+       </details>
+ 
+       <h2>鐩爣锛堟寜椋炴満锛忚瀺鍚堢洰鏍囷級</h2>

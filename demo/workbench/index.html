@@ -74,7 +74,7 @@
           <button id="btnExportSc" type="button">导出JSON</button>
           <button id="btnImportSc" type="button">导入JSON</button>
           <input type="file" id="scFile" accept="application/json,.json" class="hidden" />
-          <button id="btnResetView" type="button">适配视图</button>
+          <button id="btnResetView" type="button" title="适配当前可见范围，不清空勾选">适配可见</button>
         </div>
       </section>
 
@@ -97,6 +97,12 @@
           <select id="mapTemplateSelect"></select>
           <button id="btnLoadMap" type="button">加载模板</button>
         </div>
+        <label>融合剖面
+          <select id="fusionProfile">
+            <option value="legacy" selected>legacy</option>
+            <option value="multisensor-v1">multisensor-v1</option>
+          </select>
+        </label>
         <label>maxRows（命中上限，非完整文件） <input id="maxRows" type="number" value="5000" /></label>
         <label>时间窗起 <input id="timeFrom" type="text" placeholder="2026-04-09T12:00:03+00:00" /></label>
         <label>时间窗止 <input id="timeTo" type="text" placeholder="2026-04-09T12:00:04+00:00" /></label>
@@ -106,10 +112,13 @@
         <label>纬度≥ <input id="latMin" type="number" step="0.0001" placeholder="可选" /></label>
         <label>纬度≤ <input id="latMax" type="number" step="0.0001" placeholder="可选" /></label>
         <div class="row">
-          <button id="btnPreview" class="primary" type="button">预览映射</button>
+          <button id="btnPreview" class="primary" type="button">预览映射（上传）</button>
+          <button id="btnLocalPreview" type="button">预览本地选中</button>
           <button id="btnRunImport" type="button">回放融合</button>
+          <button id="btnMsDemo" type="button">无SN多设备演示</button>
           <button id="btnRunMulti" type="button">多文件合成回放</button>
         </div>
+        <p class="hint">大 XLS 请用「本地 data/」选择后点「预览本地选中」，避免浏览器重复上传；映射时区建议 Asia/Shanghai（待设备确认）。</p>
         <div class="row">
           <button id="btnPageObs" type="button">有界翻页读</button>
           <button id="btnPagePrev" type="button">上一页</button>
@@ -181,10 +190,16 @@
           </select>
         </label>
         <button type="button" id="btnFocusGroup" title="按上方选项聚焦">聚焦</button>
-        <button type="button" id="btnFitAll">适应全图</button>
+        <button type="button" id="btnFitAll" title="按当前勾选目标与开启图层适配，不清空过滤">适配可见</button>
+        <button type="button" id="btnShowAllFit" title="清空目标勾选后适配全部可见图层">显示全部并适配</button>
         <button type="button" id="btnZoomNear" title="2m 局部放大">2m局部放大</button>
         <label class="hint"><input type="checkbox" id="chkJumpNearTime" /> 跳至对最近时刻</label>
       </div>
+      <div class="row tight">
+        <button type="button" id="btnLocateTrackGlobal" title="将选中真实目标移到画布中心">定位选中</button>
+        <button type="button" id="btnViewTrackHistGlobal" title="适配选中目标已发生航迹">查看航迹</button>
+      </div>
+      <div id="focusStatus" class="hint">定位／航迹聚焦状态：—</div>
       <div id="nearDist" class="hint">真值最近距：—</div>
       <div id="runBanner" class="hint">草稿／运行结果：尚未运行</div>
 
@@ -201,7 +216,8 @@
         <label><input type="checkbox" class="layer" data-layer="rid" /> RID 观测连线</label>
         <label><input type="checkbox" class="layer" data-layer="spectrum" /> 频谱观测连线</label>
         <label><input type="checkbox" class="layer" data-layer="radar" /> 雷达观测连线</label>
-        <p class="hint">默认不叠满；图层开关不影响算法输入。</p>
+        <p class="hint">仿真默认不叠满；真实文件预览会按样本自动开启存在的来源层。图层开关不影响算法输入。</p>
+        <p id="layerHint" class="hint" hidden></p>
       </details>
 
       <h2>目标（按飞机／融合目标）</h2>

@@ -1,0 +1,3 @@
+﻿020110b5559bacbae01821af412faccd01a1383b77caf99b830b7e6582054c6a  TASK-007-attempt-001-rework-r4-review-bundle.zip
+# external hash only; not inside zip
+bytes 5118748

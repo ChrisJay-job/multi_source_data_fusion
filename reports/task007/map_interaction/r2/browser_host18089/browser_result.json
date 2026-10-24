@@ -1,0 +1,88 @@
+{
+  "base": "http://127.0.0.1:18089",
+  "sample": {
+    "path": "D:\\zwyl\\02_algo_project\\multi_source_data_fusion_wt_task006\\samples\\task007\\5_rid_pp5_leida1_simp.csv",
+    "exists": true,
+    "sha256": "32772531c62f4643503892fd31ce1e9e477eff86e482b17eb75b40f107d2d34b",
+    "expected": "32772531c62f4643503892fd31ce1e9e477eff86e482b17eb75b40f107d2d34b",
+    "match": true
+  },
+  "viewports": [
+    {
+      "tag": "1920x1080_dpr1",
+      "width": 1920,
+      "height": 1080,
+      "deviceScaleFactor": 1,
+      "steps": {
+        "static": {
+          "bytes": 48868,
+          "sha256": "bc1c9f397271f664b9a23c319c59068ab5a819ff47e4ca22b90d47f72deaa2b2",
+          "hasUnionDraw": true
+        },
+        "fusedDraw": {
+          "fusionId": "ms-8edce989-0008",
+          "nCollector": 122,
+          "nRenderedDistinct": 468,
+          "earlyDrawn": true,
+          "lateDrawn": true,
+          "focusStatus": "已适配融合历史 122 点（另有已证明关联观测 121，未混入计数）",
+          "layers": {
+            "rid": false,
+            "spectrum": false,
+            "radar": false,
+            "fused": true,
+            "current": true,
+            "pred": false,
+            "truth": false,
+            "plan": false
+          },
+          "pass": true
+        },
+        "histBtn": {
+          "pass": true,
+          "fid": "ms-8edce989-0008"
+        }
+      },
+      "pass": true
+    },
+    {
+      "tag": "1280x800_dpr2",
+      "width": 1280,
+      "height": 800,
+      "deviceScaleFactor": 2,
+      "steps": {
+        "static": {
+          "bytes": 48868,
+          "sha256": "bc1c9f397271f664b9a23c319c59068ab5a819ff47e4ca22b90d47f72deaa2b2",
+          "hasUnionDraw": true
+        },
+        "fusedDraw": {
+          "fusionId": "ms-da3eec82-0008",
+          "nCollector": 122,
+          "nRenderedDistinct": 468,
+          "earlyDrawn": true,
+          "lateDrawn": true,
+          "focusStatus": "已适配融合历史 122 点（另有已证明关联观测 121，未混入计数）",
+          "layers": {
+            "rid": false,
+            "spectrum": false,
+            "radar": false,
+            "fused": true,
+            "current": true,
+            "pred": false,
+            "truth": false,
+            "plan": false
+          },
+          "pass": true
+        },
+        "histBtn": {
+          "pass": true,
+          "fid": "ms-da3eec82-0008"
+        }
+      },
+      "pass": true
+    }
+  ],
+  "consoleErrors": [],
+  "pass": true
+}

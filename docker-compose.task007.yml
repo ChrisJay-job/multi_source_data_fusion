@@ -1,0 +1,13 @@
+# Build this project only. 127.0.0.1 is the host-local dev entry.
+# Set FUSION_PORT when 18089 is already used by another container.
+services:
+  fusion-task007-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.task007
+    image: fusion-task007:attempt001
+    container_name: fusion-task007-api
+    ports:
+      - "127.0.0.1:${FUSION_PORT:-18089}:18089"
+    environment:
+      PYTHONPATH: /work/src

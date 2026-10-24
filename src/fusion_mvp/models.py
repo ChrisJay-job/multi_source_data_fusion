@@ -45,6 +45,7 @@ class SourceTrackRef(BaseModel):
     aircraftId: Optional[str] = None
     lastSeen: str
     bindingStatus: Optional[Literal["candidate", "confirmed"]] = None  # from engine BoundSource.confirmed
+    origin: Optional[Literal["device", "generated"]] = None
 
 
 class TargetSnapshot(BaseModel):
@@ -70,6 +71,10 @@ class TargetSnapshot(BaseModel):
     aliases: list[str] = Field(default_factory=list)
     # Immutable KF primary-update history (not display/predicted coast copies)
     committedHistory: list[dict[str, Any]] = Field(default_factory=list)
+    identityStatus: Optional[Literal["unknown", "identified", "conflict"]] = None
+    objectClass: Optional[Literal["unknown", "drone", "bird", "other"]] = None
+    fusionMethod: Optional[Literal["primary_source", "multi_sensor_estimate"]] = None
+    contributingSources: list[SourceKind] = Field(default_factory=list)
 
 
 class FusionEvent(BaseModel):
@@ -83,6 +88,7 @@ class ProcessRequest(BaseModel):
     sessionId: str
     batchId: str
     mode: Mode = "realtime"
+    fusionProfile: Optional[str] = None  # omitted or legacy keeps the existing engine
     processingTime: str
     observations: list[dict[str, Any]] = Field(default_factory=list)
 
@@ -98,4 +104,26 @@ class ProcessResponse(BaseModel):
     tracks: list[TargetSnapshot]
     rejected: list[Rejected]
     events: list[FusionEvent]
+    error: Optional[str] = None
+    fusionProfile: Optional[str] = None
+    trajectoryUpdates: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ReplayRequest(BaseModel):
+    jobId: str
+    fusionProfile: str = "multisensor-v1"
+    observations: list[dict[str, Any]] = Field(default_factory=list)
+    maxSnapshots: int = 2000
+
+
+class ReplayResponse(BaseModel):
+    jobId: str
+    fusionProfile: str
+    algorithmVersion: str
+    configVersion: str
+    summary: dict[str, Any]
+    snapshots: list[dict[str, Any]]
+    trajectory: list[dict[str, Any]]
+    events: list[dict[str, Any]]
+    rejected: list[dict[str, Any]]
     error: Optional[str] = None

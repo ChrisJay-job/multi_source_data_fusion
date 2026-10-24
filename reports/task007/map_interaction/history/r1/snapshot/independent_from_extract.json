@@ -1,0 +1,68 @@
+{
+  "wheel_handler_anchor": [
+    {
+      "cssWidth": 1200,
+      "canvasWidth": 1200,
+      "steps": 20,
+      "maxErrorCssPx": 7.958078640513122e-13,
+      "pass": true
+    },
+    {
+      "cssWidth": 900,
+      "canvasWidth": 1200,
+      "steps": 20,
+      "maxErrorCssPx": 5.968558980384842e-13,
+      "pass": true
+    },
+    {
+      "cssWidth": 600,
+      "canvasWidth": 1200,
+      "steps": 20,
+      "maxErrorCssPx": 3.979039320256561e-13,
+      "pass": true
+    }
+  ],
+  "binding_reuse": {
+    "expected": "only fusion-B geometry, exclude old fusion-A observation",
+    "containsOtherFusionObservation": false,
+    "returnedPointTimes": [
+      1792800020000
+    ],
+    "nFusion": 1,
+    "nObs": 0,
+    "scaleAfterFit": 21.333333333333332,
+    "pass": true
+  },
+  "rolling_history": {
+    "expected": "union 81 already-occurred points from two 80-point rolling histories",
+    "keepsFirstSnapshotPoint": true,
+    "returnedPointCount": 81,
+    "pass": true
+  },
+  "current_only_fit": {
+    "expected": "current marker centered, hidden history must not expand bounds",
+    "distanceFromCenterCanvasPx": 0,
+    "scale": 12.307692307692308,
+    "pass": true
+  },
+  "trackpad_factor": {
+    "delta1": 1.0009535561438965,
+    "delta100": 1.1,
+    "delta0": null,
+    "distinct": true,
+    "pass": true,
+    "note": "1-pixel trackpad delta must be gentler than 100-pixel notch; reciprocal continuous factor"
+  },
+  "future_and_empty": {
+    "futureLeak": false,
+    "emptyReason": "no_history",
+    "emptyFitOk": false,
+    "scaleUnchangedOnEmpty": true,
+    "pass": true
+  },
+  "summary": {
+    "blockingFailureCount": 0,
+    "blockingFailures": [],
+    "anchorPass": true
+  }
+}

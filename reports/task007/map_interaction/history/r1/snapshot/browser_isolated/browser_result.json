@@ -1,0 +1,326 @@
+{
+  "base": "http://127.0.0.1:18121",
+  "sample": {
+    "path": "D:\\zwyl\\02_algo_project\\_mi_r1_extract\\samples\\task007\\5_rid_pp5_leida1_simp.csv",
+    "exists": true,
+    "sha256": "32772531c62f4643503892fd31ce1e9e477eff86e482b17eb75b40f107d2d34b",
+    "expected": "32772531c62f4643503892fd31ce1e9e477eff86e482b17eb75b40f107d2d34b",
+    "match": true
+  },
+  "viewports": [
+    {
+      "width": 1920,
+      "height": 1080,
+      "tag": "1920x1080_dpr1",
+      "deviceScaleFactor": 1,
+      "steps": {
+        "static": {
+          "/workbench-static/canvas.js": {
+            "bytes": 49113,
+            "sha256": "c415093914f99e0a6906a190bc7ab1f99779492fbceac009c75533ec48b04a13",
+            "hasZoomAt": true,
+            "hasClaimedObs": true,
+            "hasLayerFit": true
+          },
+          "/workbench-static/app.js": {
+            "bytes": 99197,
+            "sha256": "9b5c09c07f803bbb94db2e96fb3337cdc480a5b7a41c368c1cc49ce0fcab186b",
+            "hasZoomAt": true,
+            "hasClaimedObs": false,
+            "hasLayerFit": false
+          },
+          "/workbench-static/index.html": {
+            "bytes": 14538,
+            "sha256": "33f9974072999b7c477f5f21a53f37427421690c41581abe51059bb6fd1a639c",
+            "hasZoomAt": false,
+            "hasClaimedObs": false,
+            "hasLayerFit": false
+          }
+        },
+        "preview": "文件：b3c0dcd9a66a46808c229a28241fb3b8_5_rid_pp5_leida1_simp.csv\n容器：表格/文本\n结果：已读入\n扫描=474 有效=472 拒绝=2\n来源：rid=461，spectrum=10，radar=1\n时间：2026-06-24T18:42:01.691000+08:00 .. 2026-06-24T18:47:01.181000+08:00\n拒绝原因：position_placeholder_0_0\n\n{\n  \"file_read_ok\": true,\n  \"ok\": true,\n  \"n_observations\": 472,\n  \"scanned_rows\": 474,\n  \"n_errors\": 2,\n  \"by_source\": {\n    \"rid\": 461,\n    \"spectrum\": 10,\n    \"radar\"",
+        "tracks": {
+          "n": 3,
+          "off": {
+            "fusionId": "ms-8ed9a4f5-0005",
+            "d": 2439681.2536276965,
+            "sx": -1448118.001816493,
+            "sy": -1962649.3325849012
+          },
+          "other": {
+            "fusionId": "ms-8ed9a4f5-0004",
+            "d": 2042916.0781337759,
+            "sx": 1789447.7982132216,
+            "sy": -986225.4093008749
+          },
+          "all": [
+            "ms-8ed9a4f5-0005",
+            "ms-8ed9a4f5-0004",
+            "ms-8ed9a4f5-0001"
+          ]
+        },
+        "midFutureLeak": {
+          "fid": "ms-8ed9a4f5-0005",
+          "tIndex": 283,
+          "nowT": 1782297913000,
+          "nFusion": 1,
+          "leak": false,
+          "pass": true
+        },
+        "endTracks": {
+          "n": 4,
+          "off": {
+            "fusionId": "ms-8ed9a4f5-0011",
+            "d": 2856811.7516268897,
+            "sx": 323284.84715749486,
+            "sy": -2838163.4898911314
+          },
+          "other": {
+            "fusionId": "ms-8ed9a4f5-0010",
+            "d": 2551603.753030965,
+            "sx": -466392.4646277062,
+            "sy": -2508154.789115087
+          },
+          "listFids": [
+            "ms-8ed9a4f5-0008",
+            "ms-8ed9a4f5-0009",
+            "ms-8ed9a4f5-0010",
+            "ms-8ed9a4f5-0011"
+          ]
+        },
+        "realWheelZoom": {
+          "maxErrCssPx": 5.951856987145081e-13,
+          "meanErrCssPx": 2.4634116208335987e-13,
+          "playwrightWheelMaxErrCssPx": 1.981257713788631e-12,
+          "playwrightWheelChangedScale": true,
+          "anchorStable": true,
+          "playwrightAnchorStable": true,
+          "trackInView": true,
+          "pass": true,
+          "note": "mouse.move/hover + MapView._onWheel(clientX/Y) + page.mouse.wheel; ≤1 CSS px"
+        },
+        "trackpadSmallDelta": {
+          "scaleBefore": 0.03770546140679512,
+          "after10x1px": 0.03806655087909802,
+          "restored": 0.037705461406795114,
+          "gentlerThanNotch": true,
+          "reciprocalOk": true,
+          "pass": true
+        },
+        "uiLocate": {
+          "pass": true,
+          "distToCenterCssPx": 0,
+          "selected": "ms-8ed9a4f5-0008",
+          "focusStatus": "已适配融合历史 122 点（另有已证明关联观测 121，未混入计数）",
+          "fid": "ms-8ed9a4f5-0008",
+          "mix": {
+            "nA": 122,
+            "nB": 1,
+            "shared": 0,
+            "identical": false,
+            "pass": true
+          },
+          "note": "locator.click on list 定位/查看航迹"
+        },
+        "inspectorButtons": {
+          "pass": true,
+          "fid": "ms-8ed9a4f5-0011",
+          "status": "已适配融合历史 2 点（另有已证明关联观测 1，未混入计数）"
+        },
+        "realDrag": {
+          "moved": true,
+          "sticky": false,
+          "noStickAfterRelease": true,
+          "pass": true
+        },
+        "viewAndLayers": {
+          "viewStableAfterSeekPlay": true,
+          "stillCheckedAfterFitVisible": true,
+          "clearedAfterShowAll": true,
+          "pass": true
+        },
+        "simRouteEdit": {
+          "switched": true,
+          "editingStarted": true,
+          "pointsBefore": 2,
+          "pointsAfterClick": 3,
+          "addedPoint": true,
+          "routeDragDidNotPan": true,
+          "pass": true,
+          "banner": "当前运行结果：场景=seven_aircraft_combinations · runId=wb-ed8770a3e9 · identity_mode=— · 草稿=seven_aircraft_combinations",
+          "scenario": "seven_aircraft_combinations",
+          "nSnap": 250
+        },
+        "resize": {
+          "before": [
+            7.232305585022455,
+            -1.6642864457446649
+          ],
+          "after": [
+            7.232305585022455,
+            -1.6642864457446649
+          ],
+          "pass": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "tag": "1280x800_dpr2",
+      "deviceScaleFactor": 2,
+      "steps": {
+        "static": {
+          "/workbench-static/canvas.js": {
+            "bytes": 49113,
+            "sha256": "c415093914f99e0a6906a190bc7ab1f99779492fbceac009c75533ec48b04a13",
+            "hasZoomAt": true,
+            "hasClaimedObs": true,
+            "hasLayerFit": true
+          },
+          "/workbench-static/app.js": {
+            "bytes": 99197,
+            "sha256": "9b5c09c07f803bbb94db2e96fb3337cdc480a5b7a41c368c1cc49ce0fcab186b",
+            "hasZoomAt": true,
+            "hasClaimedObs": false,
+            "hasLayerFit": false
+          },
+          "/workbench-static/index.html": {
+            "bytes": 14538,
+            "sha256": "33f9974072999b7c477f5f21a53f37427421690c41581abe51059bb6fd1a639c",
+            "hasZoomAt": false,
+            "hasClaimedObs": false,
+            "hasLayerFit": false
+          }
+        },
+        "preview": "文件：5116a11e98c84eae9e8d90c33b5d3a9b_5_rid_pp5_leida1_simp.csv\n容器：表格/文本\n结果：已读入\n扫描=474 有效=472 拒绝=2\n来源：rid=461，spectrum=10，radar=1\n时间：2026-06-24T18:42:01.691000+08:00 .. 2026-06-24T18:47:01.181000+08:00\n拒绝原因：position_placeholder_0_0\n\n{\n  \"file_read_ok\": true,\n  \"ok\": true,\n  \"n_observations\": 472,\n  \"scanned_rows\": 474,\n  \"n_errors\": 2,\n  \"by_source\": {\n    \"rid\": 461,\n    \"spectrum\": 10,\n    \"radar\"",
+        "tracks": {
+          "n": 3,
+          "off": {
+            "fusionId": "ms-7262f255-0005",
+            "d": 2439681.2536276965,
+            "sx": -1448118.001816493,
+            "sy": -1962649.3325849012
+          },
+          "other": {
+            "fusionId": "ms-7262f255-0004",
+            "d": 2042916.0781337759,
+            "sx": 1789447.7982132216,
+            "sy": -986225.4093008749
+          },
+          "all": [
+            "ms-7262f255-0005",
+            "ms-7262f255-0004",
+            "ms-7262f255-0001"
+          ]
+        },
+        "midFutureLeak": {
+          "fid": "ms-7262f255-0005",
+          "tIndex": 283,
+          "nowT": 1782297913000,
+          "nFusion": 1,
+          "leak": false,
+          "pass": true
+        },
+        "endTracks": {
+          "n": 4,
+          "off": {
+            "fusionId": "ms-7262f255-0011",
+            "d": 2856811.7516268897,
+            "sx": 323284.84715749486,
+            "sy": -2838163.4898911314
+          },
+          "other": {
+            "fusionId": "ms-7262f255-0010",
+            "d": 2551603.753030965,
+            "sx": -466392.4646277062,
+            "sy": -2508154.789115087
+          },
+          "listFids": [
+            "ms-7262f255-0008",
+            "ms-7262f255-0009",
+            "ms-7262f255-0010",
+            "ms-7262f255-0011"
+          ]
+        },
+        "realWheelZoom": {
+          "maxErrCssPx": 3.344548035072462e-13,
+          "meanErrCssPx": 1.4128670768206135e-13,
+          "playwrightWheelMaxErrCssPx": 4.684179805107249e-13,
+          "playwrightWheelChangedScale": true,
+          "anchorStable": true,
+          "playwrightAnchorStable": true,
+          "trackInView": true,
+          "pass": true,
+          "note": "mouse.move/hover + MapView._onWheel(clientX/Y) + page.mouse.wheel; ≤1 CSS px"
+        },
+        "trackpadSmallDelta": {
+          "scaleBefore": 0.021283749984784668,
+          "after10x1px": 0.02138541994883557,
+          "restored": 0.021283749984784668,
+          "gentlerThanNotch": true,
+          "reciprocalOk": true,
+          "pass": true
+        },
+        "uiLocate": {
+          "pass": true,
+          "distToCenterCssPx": 0,
+          "selected": "ms-7262f255-0008",
+          "focusStatus": "已适配融合历史 122 点（另有已证明关联观测 121，未混入计数）",
+          "fid": "ms-7262f255-0008",
+          "mix": {
+            "nA": 122,
+            "nB": 1,
+            "shared": 0,
+            "identical": false,
+            "pass": true
+          },
+          "note": "locator.click on list 定位/查看航迹"
+        },
+        "inspectorButtons": {
+          "pass": true,
+          "fid": "ms-7262f255-0011",
+          "status": "已适配融合历史 2 点（另有已证明关联观测 1，未混入计数）"
+        },
+        "realDrag": {
+          "moved": true,
+          "sticky": false,
+          "noStickAfterRelease": true,
+          "pass": true
+        },
+        "viewAndLayers": {
+          "viewStableAfterSeekPlay": true,
+          "stillCheckedAfterFitVisible": true,
+          "clearedAfterShowAll": true,
+          "pass": true
+        },
+        "simRouteEdit": {
+          "switched": true,
+          "editingStarted": true,
+          "pointsBefore": 2,
+          "pointsAfterClick": 3,
+          "addedPoint": true,
+          "routeDragDidNotPan": true,
+          "pass": true,
+          "banner": "当前运行结果：场景=seven_aircraft_combinations · runId=wb-a0e1c26446 · identity_mode=— · 草稿=seven_aircraft_combinations",
+          "scenario": "seven_aircraft_combinations",
+          "nSnap": 250
+        },
+        "resize": {
+          "before": [
+            7.232305585022455,
+            -1.6642864457446649
+          ],
+          "after": [
+            7.232305585022455,
+            -1.6642864457446649
+          ],
+          "pass": true
+        }
+      },
+      "pass": true
+    }
+  ],
+  "consoleErrors": [],
+  "pass": true
+}

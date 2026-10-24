@@ -1,0 +1,44 @@
+{
+  "task": "TASK-007-attempt-001-map-interaction",
+  "status": "AWAITING_INDEPENDENT_REVIEW",
+  "instruction": {
+    "path": "review_zip/TASK-007-attempt-001-地图缩放与航迹聚焦专项整改.md",
+    "sha256": "619a1d96f12a2e12c611b12997a344f17e833f17e03ebaf53ab49723a941a40f",
+    "bytes": 13118
+  },
+  "worktree": {
+    "path": "D:/zwyl/02_algo_project/multi_source_data_fusion_wt_task006",
+    "branch": "task-006-real-excel-import-and-cooccurrence",
+    "head": "6abc39d400c4cde60e0c56147e0442212f032b65",
+    "dirtyWorktreeIsBaseline": true
+  },
+  "modified_frontend": {
+    "demo/workbench/canvas.js": "91c173f0797aa20d9b180e56f5465b13313084b999d0a88600c0feb3b88bd30b",
+    "demo/workbench/app.js": "42dded998e605862e65bb6cde80e3fdab3ebbeb4d8d3709d2799f5ad13eec452",
+    "demo/workbench/index.html": "33f9974072999b7c477f5f21a53f37427421690c41581abe51059bb6fd1a639c"
+  },
+  "algorithm_baseline_unchanged": {
+    "multisensor.py": "f5d919551c5ebc921d617a314d8a6be86f818ffe1c6a5a95400097ffa662d6e2",
+    "fusion.yaml": "ab2d9b4f7f7ab893fad8a07e7e8ba4da30b4b1f70a9b43153202a6f74cca7342",
+    "importer.py": "2421fc472d8458cc3355545fe966d501a57257d693bc025ef8de53b60eb0601c",
+    "engine.py": "f98a036d74dd6acb358328e5159cf5c5ed843b7c6050945ce9ac8d2c4d20275b",
+    "kalman.py": "a0e52d4b44c5fbf4b8e00a5627cf0369542e7065c7618a6cd17fa46b98b5a8ae"
+  },
+  "pytest": {
+    "via": "docker exec fusion-task006-api python -m pytest tests/ -q --tb=no",
+    "result": "279 passed, 1 warning",
+    "seconds": 60.98
+  },
+  "browser_entry": "http://127.0.0.1:18089/",
+  "samples": {
+    "5_rid_pp5_leida1_simp.csv": {
+      "sha256": "32772531c62f4643503892fd31ce1e9e477eff86e482b17eb75b40f107d2d34b",
+      "used_in_browser": true
+    },
+    "5_leida_rid_pp.csv": {
+      "sha256": "21778ee3fdb87b6614d9154dd9e4a5228c81847555f6f4db2427dca13319a907",
+      "used_in_browser": false,
+      "note": "NOT_TESTED full-page; SHA verified only"
+    }
+  }
+}

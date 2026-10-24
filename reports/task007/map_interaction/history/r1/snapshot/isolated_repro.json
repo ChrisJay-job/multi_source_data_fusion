@@ -1,0 +1,29 @@
+{
+  "extractDir": "D:/zwyl/02_algo_project/_mi_r1_extract",
+  "composeFile": "docker-compose.task007-mi-r1.yml",
+  "composeProject": "task007-mi-r1",
+  "port": 18121,
+  "baseUrl": "http://127.0.0.1:18121",
+  "commands": [
+    "Expand-Archive TASK-007-attempt-001-map-interaction-rework-r1-review-bundle.zip -> _mi_r1_extract",
+    "docker run --rm -v extract:/pkg -e PYTHONPATH=/pkg/src python:3.11-slim → needs deps (expected ModuleNotFoundError without pip)",
+    "docker exec task007-mi-r1-fusion-mi-r1-api-1 python -c \"import fusion_mvp.api\" → API_IMPORT_OK",
+    "$env:FUSION_PORT=18121; $env:COMPOSE_PROJECT_NAME=task007-mi-r1; docker compose -f docker-compose.task007-mi-r1.yml up -d --build → exit 0",
+    "curl http://127.0.0.1:18121/health → {\"status\":\"ok\"}",
+    "node scripts/task007_map_interaction_independent_r1.mjs → INDEPENDENT_R1_OK exit 0",
+    "node scripts/task007_map_interaction_browser_r1.mjs http://127.0.0.1:18121 → pass true exit 0"
+  ],
+  "staticSha256": {
+    "canvas.js_file_and_18121_and_container": "c415093914f99e0a6906a190bc7ab1f99779492fbceac009c75533ec48b04a13"
+  },
+  "algorithmSha256": {
+    "multisensor.py": "f5d919551c5ebc921d617a314d8a6be86f818ffe1c6a5a95400097ffa662d6e2",
+    "fusion.yaml": "ab2d9b4f7f7ab893fad8a07e7e8ba4da30b4b1f70a9b43153202a6f74cca7342"
+  },
+  "host18089Preserved": true,
+  "host18089Health": 200,
+  "notReadingOnlyWorktreeMount": "browser BASE explicitly http://127.0.0.1:18121; image built from fresh extract COPY demo/",
+  "cleanup": "docker compose -f docker-compose.task007-mi-r1.yml down (project task007-mi-r1)",
+  "browserIsolatedPass": true,
+  "independentFromExtractPass": true
+}

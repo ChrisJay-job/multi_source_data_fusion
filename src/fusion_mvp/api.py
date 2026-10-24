@@ -13,7 +13,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .engine import SessionStore, load_config
-from .models import ProcessRequest, ProcessResponse
+from .models import ProcessRequest, ProcessResponse, ReplayRequest, ReplayResponse
+from .multisensor import PROFILE, MultisensorStore, replay_job
 from .workbench.importer import MappingTemplate, ObsFilter, import_sql_stream, import_tabular, page_observations
 from .workbench.runner import WorkbenchRunner
 from .workbench.scenario import (
@@ -28,6 +29,7 @@ from .workbench.scenario import (
 
 CFG = load_config()
 STORE = SessionStore(CFG)
+MS_STORE = MultisensorStore(CFG)
 RUNNER = WorkbenchRunner(CFG)
 ROOT = Path(__file__).resolve().parents[2]
 UPLOAD_DIR = ROOT / "data" / "uploads"
@@ -70,6 +72,7 @@ class ImportRunRequest(BaseModel):
     latMin: Optional[float] = None
     latMax: Optional[float] = None
     truncated: bool = False  # client acknowledges maxRows is a sample/window
+    fusionProfile: Optional[str] = None
 
 
 class MultiImportRunRequest(BaseModel):
@@ -112,28 +115,35 @@ def health():
 
 @app.get("/ready")
 def ready():
+    import hashlib
+
     required = ["algorithmVersion", "configVersion", "reorder_window_s", "gates", "lifecycle", "kalman"]
     missing = [k for k in required if k not in CFG]
     if missing:
         raise HTTPException(status_code=503, detail={"status": "not_ready", "missing": missing})
+    config_path = ROOT / "config" / "fusion.yaml"
+    module_path = Path(__file__).resolve().parent / "multisensor.py"
     return {
         "status": "ready",
-        "sessions": len(STORE.sessions),
+        "sessions": len(STORE.sessions) + len(MS_STORE.sessions),
         "algorithmVersion": CFG["algorithmVersion"],
         "configVersion": CFG["configVersion"],
         "stateOwner": "single-process-SessionStore",
+        "supportedProfiles": ["legacy", PROFILE],
+        "reorderWindowSeconds": float(CFG["reorder_window_s"]),
+        "configSha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
+        "multisensorModuleSha256": hashlib.sha256(module_path.read_bytes()).hexdigest(),
     }
 
 
-@app.post("/v1/fusion/process", response_model=ProcessResponse)
-def process(req: ProcessRequest):
-    sess = STORE.get(req.sessionId)
-    resp = sess.process(req.batchId, req.processingTime, req.observations, req.mode)
+def _raise_for_process(resp: ProcessResponse) -> None:
     if resp.error in {
         "batch_id_conflict",
         "session_mode_conflict",
+        "session_profile_conflict",
         "idempotency_expired",
         "idempotency_evicted",
+        "idempotency_capacity",
         "observation_id_conflict",
     }:
         raise HTTPException(status_code=409, detail=resp.model_dump())
@@ -141,12 +151,51 @@ def process(req: ProcessRequest):
         raise HTTPException(status_code=500, detail=resp.model_dump())
     if resp.error in {"invalid_processing_time", "processing_time_not_monotonic"}:
         raise HTTPException(status_code=400, detail=resp.model_dump())
+    if resp.error == "too_many_observations":
+        raise HTTPException(status_code=413, detail=resp.model_dump())
+
+
+@app.post("/v1/fusion/process", response_model=ProcessResponse)
+def process(req: ProcessRequest):
+    profile = req.fusionProfile or "legacy"
+    if profile not in {"legacy", PROFILE}:
+        raise HTTPException(status_code=422, detail={"error": "unsupported_profile", "fusionProfile": profile})
+    if profile == PROFILE:
+        if req.sessionId in STORE.sessions:
+            raise HTTPException(status_code=409, detail={"error": "session_profile_conflict", "sessionId": req.sessionId})
+        resp = MS_STORE.get(req.sessionId).process(req.batchId, req.processingTime, req.observations, req.mode)
+        _raise_for_process(resp)
+        return resp
+    if req.sessionId in MS_STORE.sessions:
+        raise HTTPException(status_code=409, detail={"error": "session_profile_conflict", "sessionId": req.sessionId})
+    sess = STORE.get(req.sessionId)
+    resp = sess.process(req.batchId, req.processingTime, req.observations, req.mode)
+    _raise_for_process(resp)
+    return resp
+
+
+@app.post("/v1/fusion/replay", response_model=ReplayResponse)
+def fusion_replay(req: ReplayRequest):
+    if req.fusionProfile != PROFILE:
+        raise HTTPException(status_code=422, detail={"error": "unsupported_profile", "fusionProfile": req.fusionProfile})
+    if req.maxSnapshots < 1:
+        raise HTTPException(status_code=400, detail={"error": "invalid_max_snapshots"})
+    resp = replay_job(CFG, req.jobId, req.observations, req.maxSnapshots)
+    if resp.error == "too_many_observations":
+        raise HTTPException(status_code=413, detail=resp.model_dump())
+    if resp.error in {"invalid_processing_time", "processing_time_not_monotonic"}:
+        raise HTTPException(status_code=400, detail=resp.model_dump())
+    if resp.error == "batch_rollback":
+        raise HTTPException(status_code=500, detail=resp.model_dump())
+    if resp.error:
+        raise HTTPException(status_code=409, detail=resp.model_dump())
     return resp
 
 
 @app.post("/v1/fusion/reset/{session_id}")
 def reset(session_id: str):
     STORE.drop(session_id)
+    MS_STORE.drop(session_id)
     return {"dropped": session_id}
 
 
@@ -369,6 +418,31 @@ def _load_observations(
     return import_tabular(path, tmpl, max_rows=max_rows, filt=f)
 
 
+_PREVIEW_SAMPLE_CAP = 200
+
+
+def _bounded_source_sample(obs: list, cap: int = _PREVIEW_SAMPLE_CAP) -> list:
+    """Full sample when small; otherwise one row per source, then fill up to cap."""
+    if len(obs) <= cap:
+        return list(obs)
+    first: list = []
+    seen = set()
+    rest: list = []
+    for o in obs:
+        src = o.get("source")
+        if src not in seen:
+            seen.add(src)
+            first.append(o)
+        else:
+            rest.append(o)
+    out = first[:cap]
+    for o in rest:
+        if len(out) >= cap:
+            break
+        out.append(o)
+    return out
+
+
 @app.post("/v1/workbench/import/preview")
 async def import_preview(
     file: UploadFile = File(...),
@@ -394,9 +468,57 @@ async def import_preview(
     summary["stored_as"] = meta["file"]
     summary["datasetId"] = dest.name
     summary["preview_only"] = True
-    summary["preview"] = obs[:5]
+    sample = _bounded_source_sample(obs)
+    summary["observations_sample"] = sample
+    summary["preview"] = sample[:5]
     summary["mapping_fp"] = meta["mapping_fp"]
+    summary["file_read_ok"] = summary.get("file_read_ok", True)
     # do NOT write .obs.json as authoritative dataset
+    return summary
+
+
+class LocalPreviewRequest(BaseModel):
+    path: str
+    mapping: dict = Field(default_factory=dict)
+    maxRows: int = 2000
+    timeFrom: Optional[str] = None
+    timeTo: Optional[str] = None
+    detectorId: Optional[str] = None
+    lonMin: Optional[float] = None
+    lonMax: Optional[float] = None
+    latMin: Optional[float] = None
+    latMax: Optional[float] = None
+
+
+@app.post("/v1/workbench/import/local-preview")
+def import_local_preview(req: LocalPreviewRequest):
+    """Preview sandbox data/ file without re-uploading large XLS."""
+    path = _resolve_data_path(req.path)
+    tmpl = _default_mapping(req.mapping or {})
+    filt = _filt_from_args(
+        time_from=req.timeFrom,
+        time_to=req.timeTo,
+        detector_id=req.detectorId,
+        lon_min=req.lonMin,
+        lon_max=req.lonMax,
+        lat_min=req.latMin,
+        lat_max=req.latMax,
+    )
+    summary = _load_observations(path, tmpl, max_rows=int(req.maxRows or 2000), filt=filt)
+    obs = summary.pop("observations", [])
+    summary["n_observations"] = len(obs)
+    summary["stored_as"] = str(path.relative_to(ROOT)).replace("\\", "/")
+    summary["datasetId"] = path.name
+    summary["preview_only"] = True
+    sample = _bounded_source_sample(obs)
+    summary["observations_sample"] = sample
+    summary["preview"] = sample[:5]
+    summary["mapping_fp"] = tmpl.fingerprint()
+    summary["filters"] = filt.to_dict() if hasattr(filt, "to_dict") else {
+        "timeFrom": req.timeFrom,
+        "timeTo": req.timeTo,
+        "detectorId": req.detectorId,
+    }
     return summary
 
 
@@ -449,7 +571,41 @@ def run_import(req: ImportRunRequest):
     observations = summary.get("observations") or []
     if not observations:
         raise HTTPException(400, detail={"error": "no_valid_observations", "summary": summary})
-    result = RUNNER.run_batch_replay(observations, mode=req.mode, batch_size=25)
+    if (req.fusionProfile or "legacy") == PROFILE:
+        replayed = replay_job(CFG, f"import-{path.stem}", observations, max_snapshots=2000)
+        if replayed.error:
+            raise HTTPException(400, detail=replayed.model_dump())
+        snaps = [
+            {
+                "batchId": s.get("batchId"),
+                "processingTime": s.get("processingTime"),
+                "watermark": s.get("watermark"),
+                "tracks": s.get("tracks") or [],
+                "error": None,
+                "counts_at": {},
+            }
+            for s in replayed.snapshots
+        ]
+        result = {
+            "sessionId": replayed.jobId,
+            "runId": replayed.jobId,
+            "epoch": None,
+            "mode": req.mode,
+            "fusionProfile": PROFILE,
+            "algorithmVersion": replayed.algorithmVersion,
+            "configVersion": replayed.configVersion,
+            "snapshots": snaps,
+            "rejected": replayed.rejected,
+            "events": replayed.events,
+            "final_tracks": snaps[-1]["tracks"] if snaps else [],
+            "counts": replayed.summary,
+            "evaluation": None,
+            "truth_leaked_to_algorithm": False,
+        }
+    elif req.fusionProfile not in (None, "", "legacy"):
+        raise HTTPException(422, detail={"error": "unsupported_profile", "fusionProfile": req.fusionProfile})
+    else:
+        result = RUNNER.run_batch_replay(observations, mode=req.mode, batch_size=25)
     result["n_observations"] = len(observations)
     result["observations"] = observations
     result["import_summary"] = {
@@ -465,8 +621,14 @@ def run_import(req: ImportRunRequest):
         "truncated": summary.get("truncated"),
         "window_note": "先按时间/设备/区域筛选，再累计 maxRows；maxRows 为命中上限，非完整文件保证",
         "field_map_applied": summary.get("field_map_applied"),
+        "json_container": summary.get("json_container"),
+        "time_range": summary.get("time_range"),
+        "empty_record_set": summary.get("empty_record_set"),
     }
     result["accuracy_note"] = "真实文件默认无真值，不显示虚假关联准确率"
+    result["real_file"] = True
+    result["scenario"] = {"name": path.name, "aircraft": [], "identity_mode": "real_file"}
+    result["import_summary"]["filename"] = path.name
     return result
 
 
@@ -660,6 +822,8 @@ def dataset_observations(
         "observations": page.get("observations") or [],
         "n_errors": page.get("n_errors"),
         "errors_sample": page.get("errors_sample"),
+        "json_container": page.get("json_container"),
+        "empty_record_set": page.get("empty_record_set"),
     }
 
 
@@ -672,7 +836,7 @@ def list_local_data():
         for p in sorted(data.rglob("*")):
             if not p.is_file():
                 continue
-            if p.suffix.lower() not in {".sql", ".csv", ".json", ".jsonl"}:
+            if p.suffix.lower() not in {".sql", ".csv", ".json", ".jsonl", ".xls", ".xlsx"}:
                 continue
             name = p.name.lower()
             if name.endswith(".meta.json") or name.endswith(".obs.json"):

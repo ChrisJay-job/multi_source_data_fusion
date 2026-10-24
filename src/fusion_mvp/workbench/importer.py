@@ -121,11 +121,83 @@ def apply_schema_candidates(tmpl: MappingTemplate, row: dict, *, force_sql: bool
     return notes
 
 
+def _apply_tz(naive: datetime, tmpl: MappingTemplate, flags: list[str]) -> tuple[Optional[str], list[str]]:
+    if naive.tzinfo is not None:
+        return naive.isoformat(), flags
+    tz_name = tmpl.source_timezone
+    if tz_name and tz_name not in ("", "assume_utc") and not tmpl.assume_utc_naive:
+        try:
+            zi = ZoneInfo(tz_name)
+            aware = naive.replace(tzinfo=zi)
+            flags.append(f"timezone_applied:{tz_name}")
+            # Asia/Shanghai is a local-replay assumption until device confirms
+            if tz_name in ("Asia/Shanghai", "Asia/Chongqing"):
+                flags.append("timezone_pending_device_confirm")
+            return aware.isoformat(), flags
+        except Exception:
+            return None, flags + ["unknown_timezone"]
+    if tmpl.assume_utc_naive or tz_name == "assume_utc":
+        flags.append("timezone_assumed_utc")
+        return naive.replace(tzinfo=timezone.utc).isoformat(), flags
+    return None, flags + ["timezone_required"]
+
+
+def _parse_slash_or_iso_naive(s: str) -> Optional[datetime]:
+    """Parse ISO / space / slash local datetimes (Y/M/D or D/M/Y when unambiguous)."""
+    s = s.strip()
+    if not s:
+        return None
+    # Normalize slash dates: 2026/6/24 or 24/6/2026 8:00:30.123
+    if "/" in s[:12]:
+        parts = s.replace("T", " ").split(" ", 1)
+        nums = [int(x) for x in parts[0].split("/")]
+        if len(nums) != 3:
+            return None
+        a, b, c = nums
+        if a > 31:  # Y/M/D
+            y, m, day = a, b, c
+        elif c > 31:  # day/month/year or month/day/year
+            if a > 12:  # D/M/Y
+                day, m, y = a, b, c
+            elif b > 12:  # M/D/Y
+                m, day, y = a, b, c
+            else:
+                # Ambiguous (both <=12): prefer D/M/Y (common in this project's CSV export)
+                day, m, y = a, b, c
+        else:
+            return None
+        if not (1 <= m <= 12 and 1 <= day <= 31 and y >= 1):
+            return None
+        d_norm = f"{y:04d}-{m:02d}-{day:02d}"
+        t = parts[1] if len(parts) > 1 else "00:00:00"
+        tp = t.split(":")
+        if len(tp) >= 1 and tp[0].isdigit():
+            tp[0] = f"{int(tp[0]):02d}"
+        t_norm = ":".join(tp)
+        s = f"{d_norm}T{t_norm}"
+    elif " " in s and "T" not in s:
+        s = s.replace(" ", "T", 1)
+    try:
+        return datetime.fromisoformat(s)
+    except Exception:
+        return None
+
+
 def _to_iso(val: Any, tmpl: MappingTemplate) -> tuple[Optional[str], list[str]]:
     flags: list[str] = []
     if val is None or val == "":
         return None, ["missing_time"]
-    if isinstance(val, (int, float)) or (isinstance(val, str) and val.replace(".", "", 1).isdigit()):
+    # Generic numeric / digit-string → epoch (s|ms|auto). Excel serials are converted
+    # only in the OLE reader (typed date cells / known time columns + workbook datemode).
+    if isinstance(val, (int, float)) and not isinstance(val, bool):
+        num = float(val)
+        try:
+            if tmpl.time_unit == "ms" or (tmpl.time_unit == "auto" and num > 1e12):
+                num = num / 1000.0
+            return datetime.fromtimestamp(num, tz=timezone.utc).isoformat(), flags
+        except Exception:
+            return None, ["bad_epoch"]
+    if isinstance(val, str) and val.replace(".", "", 1).replace("-", "", 1).isdigit() and "/" not in val and ":" not in val:
         try:
             num = float(val)
             if tmpl.time_unit == "ms" or (tmpl.time_unit == "auto" and num > 1e12):
@@ -138,31 +210,15 @@ def _to_iso(val: Any, tmpl: MappingTemplate) -> tuple[Optional[str], list[str]]:
         if s.endswith("Z"):
             return datetime.fromisoformat(s.replace("Z", "+00:00")).isoformat(), flags
         # with offset already
-        if "+" in s[10:] or s.count("-") >= 3 and "T" in s and (s.rfind("+") > 10 or s[s.find("T"):].count("-") >= 2):
+        if "+" in s[10:] or (s.count("-") >= 3 and "T" in s and (s.rfind("+") > 10 or s[s.find("T") :].count("-") >= 2)):
             try:
                 return datetime.fromisoformat(s).isoformat(), flags
             except Exception:
                 pass
-        # naive
-        if "T" in s:
-            naive = datetime.fromisoformat(s)
-        else:
-            naive = datetime.fromisoformat(s.replace(" ", "T"))
-        if naive.tzinfo is not None:
-            return naive.isoformat(), flags
-        tz_name = tmpl.source_timezone
-        if tz_name and tz_name not in ("", "assume_utc") and not tmpl.assume_utc_naive:
-            try:
-                zi = ZoneInfo(tz_name)
-                aware = naive.replace(tzinfo=zi)
-                flags.append(f"timezone_applied:{tz_name}")
-                return aware.isoformat(), flags
-            except Exception:
-                return None, ["unknown_timezone"]
-        if tmpl.assume_utc_naive or tz_name == "assume_utc":
-            flags.append("timezone_assumed_utc")
-            return naive.replace(tzinfo=timezone.utc).isoformat(), flags
-        return None, ["timezone_required"]
+        naive = _parse_slash_or_iso_naive(s)
+        if naive is None:
+            return None, ["unparseable_time"]
+        return _apply_tz(naive, tmpl, flags)
     except Exception:
         return None, ["unparseable_time"]
 
@@ -179,24 +235,57 @@ def _finite_float(val: Any) -> tuple[Optional[float], bool]:
         return None, False
 
 
+def _normalize_source(raw: Any) -> tuple[Optional[str], Optional[str]]:
+    """Map row source aliases → rid|spectrum|radar. Returns (canonical, original_or_None)."""
+    if raw is None or raw == "":
+        return None, None
+    s = str(raw).strip()
+    low = s.lower()
+    if low in ("rid", "tj-rid") or s == "RID":
+        return "rid", s if s != "rid" else None
+    if low in ("pp", "tj-pp", "spectrum") or s == "PP":
+        return "spectrum", s if low != "spectrum" else None
+    if low in ("leida", "tj-leida", "radar", "lida") or s == "LEIDA":
+        return "radar", s if low != "radar" else None
+    return None, s
+
+
 def row_to_observation(row: dict, tmpl: MappingTemplate, line_no: int) -> tuple[Optional[dict], Optional[dict]]:
     fm = tmpl.field_map
     flags: list[str] = []
-    oid = _get(row, fm.get("observationId")) or f"imp-{line_no}"
-    source = tmpl.source or _get(row, fm.get("source"))
-    if source in ("tj-rid", "RID"):
-        source = "rid"
-    elif source in ("tj-pp", "PP", "spectrum"):
-        source = "spectrum"
-    elif source in ("tj-leida", "LEIDA", "radar"):
-        source = "radar"
+    sheet = row.get("__sheet__") or "sheet"
+    prow = row.get("__row__") or line_no
+    oid = _get(row, fm.get("observationId"))
+    if oid in (None, ""):
+        oid = f"imp-{sheet}-{prow}"
+    source_raw = tmpl.source or _get(row, fm.get("source") or "source")
+    source, alias_from = _normalize_source(source_raw)
+    if alias_from:
+        flags.append(f"source_alias:{alias_from}->{source}")
     if source not in ("rid", "spectrum", "radar"):
-        return None, {"line": line_no, "reason": "unknown_source", "detail": str(source)}
+        return None, {"line": line_no, "reason": "unknown_source", "detail": str(source_raw), "sheet": sheet, "row": prow}
 
-    mt, f1 = _to_iso(_get(row, fm.get("measurementTime") or fm.get("created_at")), tmpl)
+    # Prefer created_at; keep created_time as parallel mark (do not silently rewrite)
+    mt_raw = _get(row, fm.get("measurementTime") or fm.get("created_at") or "created_at")
+    mt, f1 = _to_iso(mt_raw, tmpl)
     flags.extend(f1)
+    ct_raw = row.get("created_time")
+    if ct_raw not in (None, "") and str(ct_raw) != str(mt_raw):
+        flags.append("created_time_present_distinct")
+        # optional delta note only — do not replace measurementTime
+        ct_iso, _ = _to_iso(ct_raw, tmpl)
+        if mt and ct_iso:
+            try:
+                dlt = abs(
+                    datetime.fromisoformat(mt.replace("Z", "+00:00")).timestamp()
+                    - datetime.fromisoformat(ct_iso.replace("Z", "+00:00")).timestamp()
+                )
+                if dlt > 1.0:
+                    flags.append(f"created_time_delta_s:{dlt:.3f}")
+            except Exception:
+                pass
     if mt is None:
-        return None, {"line": line_no, "reason": "bad_measurement_time", "flags": flags}
+        return None, {"line": line_no, "reason": "bad_measurement_time", "flags": flags, "sheet": sheet, "row": prow}
 
     recv_raw = _get(row, fm.get("receivedAt"))
     if recv_raw is not None and recv_raw != "":
@@ -208,59 +297,72 @@ def row_to_observation(row: dict, tmpl: MappingTemplate, line_no: int) -> tuple[
         received_basis = "proxy_measurementTime"
         flags.append("receivedAt_proxied_from_measurement")
 
-    lon, ok_lon = _finite_float(_get(row, fm.get("longitude")))
-    lat, ok_lat = _finite_float(_get(row, fm.get("latitude")))
+    lon, ok_lon = _finite_float(_get(row, fm.get("longitude") or "longitude"))
+    lat, ok_lat = _finite_float(_get(row, fm.get("latitude") or "latitude"))
     if not ok_lon or not ok_lat:
-        return None, {"line": line_no, "reason": "bad_coordinates"}
+        return None, {"line": line_no, "reason": "bad_coordinates", "sheet": sheet, "row": prow}
     if lon is None or lat is None:
         return None, {
             "line": line_no,
             "reason": "position_fusion_unsupported",
             "detail": "当前位置融合接口需要目标经纬度；测向-only 不可伪造位置",
             "raw_keep": True,
+            "sheet": sheet,
+            "row": prow,
         }
     if not (-180 <= lon <= 180 and -90 <= lat <= 90):
-        return None, {"line": line_no, "reason": "coordinates_out_of_range"}
+        return None, {"line": line_no, "reason": "coordinates_out_of_range", "sheet": sheet, "row": prow}
+    # Dataset placeholder: exact (0,0) — isolate; do not use for map fit / co-occurrence hard filter
+    if lon == 0.0 and lat == 0.0:
+        return None, {
+            "line": line_no,
+            "reason": "position_placeholder_0_0",
+            "detail": "lon=lat=0 treated as invalid placeholder for this dataset",
+            "raw_keep": True,
+            "sheet": sheet,
+            "row": prow,
+            "flags": ["position_placeholder_0_0"],
+        }
 
-    stid = _get(row, fm.get("sourceTrackId") or fm.get("id"))
+    stid = _get(row, fm.get("sourceTrackId") or fm.get("id") or "id")
     if stid is None or stid == "":
-        return None, {"line": line_no, "reason": "missing_sourceTrackId"}
+        return None, {"line": line_no, "reason": "missing_sourceTrackId", "sheet": sheet, "row": prow}
 
-    det = _get(row, fm.get("detectorId") or fm.get("detector"))
+    det = _get(row, fm.get("detectorId") or fm.get("detector") or "detector")
     if det is None or det == "":
         if tmpl.detectorId:
             det = tmpl.detectorId
             flags.append("detectorId_from_template")
         else:
-            return None, {"line": line_no, "reason": "missing_detectorId"}
+            return None, {"line": line_no, "reason": "missing_detectorId", "sheet": sheet, "row": prow}
 
-    aircraft_id = _get(row, fm.get("aircraftId"))
+    aircraft_id = _get(row, fm.get("aircraftId") or "aircraftId")
     if aircraft_id is None and tmpl.treat_raw_id_as_aircraftId and source in ("rid", "spectrum"):
         aircraft_id = stid
         flags.append("raw_id_as_aircraftId")
     elif aircraft_id in (None, "") and source in ("rid", "spectrum") and not tmpl.treat_raw_id_as_aircraftId:
         flags.append("aircraftId_unconfirmed")
 
-    alt, ok_alt = _finite_float(_get(row, fm.get("altitude")))
+    alt, ok_alt = _finite_float(_get(row, fm.get("altitude") or "altitude"))
     if not ok_alt:
         flags.append("altitude_dropped")
         alt = None
-    speed, ok_sp = _finite_float(_get(row, fm.get("speed")))
+    speed, ok_sp = _finite_float(_get(row, fm.get("speed") or "speed"))
     if not ok_sp:
         flags.append("speed_dropped")
         speed = None
-    heading, ok_hd = _finite_float(_get(row, fm.get("heading")))
+    heading, ok_hd = _finite_float(_get(row, fm.get("heading") or "heading"))
     if not ok_hd:
         flags.append("heading_dropped")
         heading = None
     elif heading is not None and not (0 <= heading < 360):
         flags.append("heading_out_of_range")
         heading = None
-    vs, ok_vs = _finite_float(_get(row, fm.get("verticalSpeed")))
+    vs, ok_vs = _finite_float(_get(row, fm.get("verticalSpeed") or "verticalSpeed"))
     if not ok_vs:
         flags.append("verticalSpeed_dropped")
         vs = None
-    datum = _get(row, fm.get("altitudeDatum")) or ("unknown" if alt is not None else "unknown")
+    datum = _get(row, fm.get("altitudeDatum") or "altitudeDatum") or ("unknown" if alt is not None else "unknown")
 
     obs = {
         "observationId": str(oid),
@@ -279,7 +381,13 @@ def row_to_observation(row: dict, tmpl: MappingTemplate, line_no: int) -> tuple[
         "heading": heading,
         "verticalSpeed": vs,
         "qualityFlags": flags,
-        "rawRef": {"line": line_no, "receivedAtBasis": received_basis},
+        "rawRef": {
+            "line": line_no,
+            "sheet": sheet,
+            "row": prow,
+            "receivedAtBasis": received_basis,
+            "sourceRaw": str(source_raw) if source_raw is not None else None,
+        },
     }
     return obs, None
 
@@ -380,16 +488,121 @@ def _obs_matches(obs: dict, filt: Optional[ObsFilter]) -> bool:
     return True
 
 
+# path -> (fp8, size, mtime_ns). Invalidated when size/mtime change; value is content hash.
+_PATH_FP_CACHE: dict[str, tuple[str, int, int]] = {}
+
+
+def clear_path_fp_cache() -> None:
+    _PATH_FP_CACHE.clear()
+
+
+def _path_fp8(path: Path) -> str:
+    """Stable content-based file identity (8 hex). Cache keyed by path+size+mtime_ns."""
+    key = str(path.resolve())
+    st = path.stat()
+    mtime_ns = int(getattr(st, "st_mtime_ns", int(st.st_mtime * 1_000_000_000)))
+    cached = _PATH_FP_CACHE.get(key)
+    if cached and cached[1] == st.st_size and cached[2] == mtime_ns:
+        return cached[0]
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    fid = h.hexdigest()[:8]
+    _PATH_FP_CACHE[key] = (fid, st.st_size, mtime_ns)
+    return fid
+
+
 def _namespace_obs(obs: dict, path: Path) -> dict:
     stem = path.stem[:24]
-    if str(obs["observationId"]).startswith("imp-"):
-        obs["observationId"] = f"{stem}-{obs['observationId']}"
+    fid = _path_fp8(path)
+    oid = str(obs["observationId"])
+    if oid.startswith("imp-"):
+        obs["observationId"] = f"{stem}-{fid}-{oid}"
+    obs.setdefault("rawRef", {})
+    if isinstance(obs["rawRef"], dict):
+        obs["rawRef"]["fileFp8"] = fid
+        obs["rawRef"]["fileStem"] = stem
     return obs
 
 
-def _iter_raw_rows(path: Path) -> Iterator[tuple[int, dict, bool]]:
+# Object containers. A present key wins even when its value is an empty list.
+# Two or more of these keys at once is an ambiguity error, not a truthiness fallback.
+JSON_CONTAINER_KEYS = ("observations", "rows", "RECORDS")
+# JSON-only marks. Spreadsheet __sheet__/__row__ stay until row_to_observation.
+_JSON_META_KEYS = frozenset({
+    "__json_row_error__",
+    "__json_index__",
+    "__json_type__",
+    "__record_index__",
+})
+
+
+def _row_for_mapping(row: dict) -> dict:
+    return {k: v for k, v in row.items() if k not in _JSON_META_KEYS}
+
+
+def _json_container(data: Any) -> tuple[list, str]:
+    """Return (records, container name) or raise ValueError('json_structure:...')."""
+    if isinstance(data, list):
+        return data, "top_level_array"
+    if isinstance(data, dict):
+        present = [k for k in JSON_CONTAINER_KEYS if k in data]
+        if len(present) > 1:
+            raise ValueError("json_structure:ambiguous_containers:" + ",".join(present))
+        if not present:
+            raise ValueError("json_structure:unknown_object")
+        key = present[0]
+        rows = data[key]
+        if not isinstance(rows, list):
+            raise ValueError(f"json_structure:container_not_array:{key}:{type(rows).__name__}")
+        return rows, key
+    raise ValueError(f"json_structure:top_level_{type(data).__name__}")
+
+
+def _json_structure_result(msg: str) -> dict[str, Any]:
+    return {
+        "ok": False,
+        "error": "json_structure",
+        "detail": msg,
+        "file_read_ok": False,
+        "scanned_rows": 0,
+        "n_observations": 0,
+        "n_errors": 0,
+        "empty_record_set": False,
+    }
+
+
+def _note_json_row_error(row: dict, line_no: int, errors: list[dict], error_count: int, max_error_samples: int) -> int:
+    error_count += 1
+    if len(errors) < max_error_samples:
+        errors.append(
+            {
+                "line": line_no,
+                "record_index": row.get("__json_index__"),
+                "index_kind": "json_record",
+                "reason": row.get("__json_row_error__"),
+                "detail": row.get("__json_type__"),
+            }
+        )
+    return error_count
+
+
+def _iter_raw_rows(path: Path, meta: Optional[dict] = None) -> Iterator[tuple[int, dict, bool]]:
     """Yield (line_no, row_dict, force_sql). force_sql True for SQL inserts."""
     suffix = path.suffix.lower()
+    kind = None
+    if suffix in {".xls", ".xlsx"}:
+        from .xls_reader import detect_spreadsheet_kind, iter_ole_xls_rows
+
+        kind = detect_spreadsheet_kind(path)
+        if kind == "ole_xls":
+            for line_no, row in iter_ole_xls_rows(path):
+                yield line_no, row, False
+            return
+        if kind == "ooxml_xlsx":
+            raise ValueError("unsupported_format:.xlsx_ooxml_not_enabled")
+        raise ValueError(f"unsupported_format:{suffix}:{kind}")
     if suffix == ".csv":
         with path.open("r", encoding="utf-8-sig", newline="") as f:
             reader = csv.DictReader(f)
@@ -399,10 +612,26 @@ def _iter_raw_rows(path: Path) -> Iterator[tuple[int, dict, bool]]:
         if path.stat().st_size > 32_000_000:
             raise ValueError("json_too_large")
         text = path.read_text(encoding="utf-8")
-        data = json.loads(text)
-        rows = data if isinstance(data, list) else data.get("observations") or data.get("rows") or []
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"json_structure:malformed:{exc.lineno}:{exc.colno}") from exc
+        rows, container = _json_container(data)
+        if meta is not None:
+            meta["json_container"] = container
+            meta["json_record_count"] = len(rows)
+            meta["empty_record_set"] = len(rows) == 0
         for i, row in enumerate(rows, start=1):
-            yield i, dict(row), False
+            if not isinstance(row, dict):
+                yield i, {
+                    "__json_row_error__": "json_element_not_object",
+                    "__json_index__": i,
+                    "__json_type__": type(row).__name__,
+                }, False
+                continue
+            tagged = dict(row)
+            tagged["__record_index__"] = i
+            yield i, tagged, False
     elif suffix == ".jsonl":
         with path.open("r", encoding="utf-8") as f:
             for i, line in enumerate(f, start=1):
@@ -443,9 +672,13 @@ def page_observations(
     error_count = 0
     max_error_samples = 20
     has_more = False
+    read_meta: dict[str, Any] = {}
     try:
-        for line_no, row, force_sql in _iter_raw_rows(path):
+        for line_no, row, force_sql in _iter_raw_rows(path, read_meta):
             scanned += 1
+            if row.get("__json_row_error__"):
+                error_count = _note_json_row_error(row, line_no, errors, error_count, max_error_samples)
+                continue
             if row.get("__sql_error__"):
                 error_count += 1
                 if len(errors) < max_error_samples:
@@ -458,12 +691,16 @@ def page_observations(
                         }
                     )
                 continue
-            mapped = dict(row)
+            mapped = _row_for_mapping(row)
             apply_schema_candidates(tmpl, mapped, force_sql=force_sql)
             obs, err = row_to_observation(mapped, tmpl, line_no)
             if err:
                 error_count += 1
                 if len(errors) < max_error_samples:
+                    if row.get("__record_index__") is not None:
+                        err = dict(err)
+                        err["record_index"] = row["__record_index__"]
+                        err["index_kind"] = "json_record"
                     errors.append(err)
                 continue
             assert obs is not None
@@ -483,6 +720,8 @@ def page_observations(
         msg = str(e)
         if msg.startswith("json_too_large"):
             return {"ok": False, "error": "json_too_large", "limit_bytes": 32_000_000}
+        if msg.startswith("json_structure"):
+            return _json_structure_result(msg)
         if msg.startswith("unsupported_format"):
             return {"ok": False, "error": "unsupported_format", "suffix": path.suffix.lower()}
         raise
@@ -501,6 +740,8 @@ def page_observations(
         "skipped_offset": skipped_offset,
         "n_errors": error_count,
         "errors_sample": errors[:max_error_samples],
+        "json_container": read_meta.get("json_container"),
+        "empty_record_set": bool(read_meta.get("empty_record_set")),
         "filters": (filt.to_dict() if filt else ObsFilter().to_dict()),
         "truncated": has_more,
         # Memory bound: only page (+ nothing of skipped prefix)
@@ -541,58 +782,66 @@ def import_tabular(
     scanned = 0
     skipped_outside_window = 0
     max_error_samples = 20
+    raw_preview_rows: list[dict] = []
+    columns: list[str] = []
+    read_meta: dict[str, Any] = {}
 
-    def handle_row(row: dict, i: int) -> None:
-        nonlocal error_count, scanned, skipped_outside_window
-        scanned += 1
-        if max_rows is not None and len(observations) >= max_rows:
-            return
-        apply_schema_candidates(tmpl, row, force_sql=False)
-        obs, err = row_to_observation(row, tmpl, i)
-        if err:
-            error_count += 1
-            if len(errors) < max_error_samples:
-                errors.append(err)
-            return
-        assert obs is not None
-        if not _obs_matches(obs, filt):
-            skipped_outside_window += 1
-            return
-        observations.append(_namespace_obs(obs, path))
-        if len(preview) < 5:
-            preview.append(obs)
-
-    if suffix == ".csv":
-        with path.open("r", encoding="utf-8-sig", newline="") as f:
-            reader = csv.DictReader(f)
-            for i, row in enumerate(reader, start=2):
-                handle_row(dict(row), i)
-                if max_rows is not None and len(observations) >= max_rows:
-                    break
-    elif suffix == ".json":
-        # size guard BEFORE read_text (Round3)
-        if path.stat().st_size > 32_000_000:
-            return {"ok": False, "error": "json_too_large", "limit_bytes": 32_000_000, "hint": "use JSONL or SQL stream"}
-        text = path.read_text(encoding="utf-8")
-        data = json.loads(text)
-        rows = data if isinstance(data, list) else data.get("observations") or data.get("rows") or []
-        for i, row in enumerate(rows, start=1):
-            handle_row(dict(row), i)
+    try:
+        for i, row, force_sql in _iter_raw_rows(path, read_meta):
+            if len(raw_preview_rows) < 5:
+                # strip internal keys for UI
+                raw_preview_rows.append({k: v for k, v in row.items() if not str(k).startswith("__")})
+            if not columns:
+                columns = [k for k in row.keys() if not str(k).startswith("__")]
+            scanned += 1
             if max_rows is not None and len(observations) >= max_rows:
+                # continue counting scan? stop early for import_tabular materialize path
                 break
-    elif suffix == ".jsonl":
-        with path.open("r", encoding="utf-8") as f:
-            for i, line in enumerate(f, start=1):
-                line = line.strip()
-                if not line:
-                    continue
-                handle_row(json.loads(line), i)
-                if max_rows is not None and len(observations) >= max_rows:
-                    break
-    else:
-        return {"ok": False, "error": "unsupported_format", "suffix": suffix}
+            if row.get("__json_row_error__"):
+                error_count = _note_json_row_error(row, i, errors, error_count, max_error_samples)
+                continue
+            if row.get("__sql_error__"):
+                error_count += 1
+                if len(errors) < max_error_samples:
+                    errors.append({"line": i, "reason": row["__sql_error__"]})
+                continue
+            mapped = _row_for_mapping(row)
+            apply_schema_candidates(tmpl, mapped, force_sql=force_sql)
+            obs, err = row_to_observation(mapped, tmpl, i)
+            if err:
+                error_count += 1
+                if len(errors) < max_error_samples:
+                    if row.get("__record_index__") is not None:
+                        err = dict(err)
+                        err["record_index"] = row["__record_index__"]
+                        err["index_kind"] = "json_record"
+                    errors.append(err)
+                continue
+            assert obs is not None
+            if not _obs_matches(obs, filt):
+                skipped_outside_window += 1
+                continue
+            observations.append(_namespace_obs(obs, path))
+            if len(preview) < 5:
+                preview.append(obs)
+    except ValueError as e:
+        msg = str(e)
+        if msg.startswith("unsupported_format"):
+            return {"ok": False, "error": "unsupported_format", "suffix": suffix, "detail": msg}
+        if msg.startswith("json_too_large"):
+            return {"ok": False, "error": "json_too_large", "limit_bytes": 32_000_000}
+        if msg.startswith("json_structure"):
+            out = _json_structure_result(msg)
+            out["suffix"] = suffix
+            return out
+        raise
 
     summary = _summarize(observations, errors, preview, path)
+    summary["raw_columns"] = columns
+    summary["raw_preview_rows"] = raw_preview_rows
+    summary["file_read_ok"] = True
+    summary["json_container"] = read_meta.get("json_container")
+    summary["empty_record_set"] = bool(read_meta.get("empty_record_set"))
     summary["error_count"] = error_count
     summary["n_errors"] = error_count
     summary["errors_sample"] = errors[:max_error_samples]

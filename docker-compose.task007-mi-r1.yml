@@ -1,0 +1,13 @@
+# Isolated MI-R1 reproduce. Does not use container_name fusion-task006-api / :18089.
+#   set FUSION_PORT=18121
+#   set COMPOSE_PROJECT_NAME=task007-mi-r1
+services:
+  fusion-mi-r1-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.task007
+    image: fusion-task007:mi-r1
+    ports:
+      - "127.0.0.1:${FUSION_PORT:-18121}:18089"
+    environment:
+      PYTHONPATH: /work/src

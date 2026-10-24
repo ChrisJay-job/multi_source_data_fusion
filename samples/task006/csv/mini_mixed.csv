@@ -1,0 +1,6 @@
+type,aerial_sn,uav_type,model,brand,model_number,base_latitude,base_longitude,azimuth_angle,target_distance,sensors,freq,tenant_region_code,height,is_cooperation,id,longitude,latitude,altitude,speed,heading,created_at,source,detector,source_data,district,created_time
+,,,,,,,,,,,,,,,R1,120.301,36.101,50,5,10,2026/6/24 8:00:30,rid,D1,"{""identification1"": {""uasIdAsString"": ""UAS-R1""}, ""note"": ""comma, and quote \""q\""""}",qd,2026/6/24 8:00:30
+,,,,,,,,,,,,,,,R1,120.302,36.102,51,5,12,2026/6/24 8:00:31,rid,D1,"{""identification1"": {""uasIdAsString"": ""UAS-R1""}}",qd,2026/6/24 8:00:31
+,,,,,,,,,,,,,,,S1,120.303,36.103,40,3,20,2026-06-24 08:00:32.100000,pp,D2,"{""serialNumber"": ""SPEC-001"", ""blob"": ""line1\nline2 with, comma""}",qd,2026-06-24 08:00:32.100000
+,,,,,,,,,,,,,,,L1,118.501,37.451,80,8,30,2026-06-24 08:00:33,leida,D3,{},dy,2026-06-24 08:00:33
+,,,,,,,,,,,,,,,R1,120.301,36.101,50,5,10,2026/6/24 8:00:30,rid,D1,"{""identification1"": {""uasIdAsString"": ""UAS-R1""}, ""note"": ""comma, and quote \""q\""""}",qd,2026/6/24 8:00:30

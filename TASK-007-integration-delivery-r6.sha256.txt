@@ -1,0 +1,3 @@
+﻿3519c74a8e5910b68de68b8bbacabfdffdbb811206461c2f58eef0a21f7db476  TASK-007-integration-delivery-r6.zip
+# external hash only; not inside zip
+bytes 284370

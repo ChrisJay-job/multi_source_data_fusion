@@ -1,0 +1,10 @@
+﻿{
+    "demo/workbench/app.js":  "9b5c09c07f803bbb94db2e96fb3337cdc480a5b7a41c368c1cc49ce0fcab186b",
+    "demo/workbench/index.html":  "33f9974072999b7c477f5f21a53f37427421690c41581abe51059bb6fd1a639c",
+    "src/fusion_mvp/workbench/importer.py":  "2421fc472d8458cc3355545fe966d501a57257d693bc025ef8de53b60eb0601c",
+    "src/fusion_mvp/multisensor.py":  "f5d919551c5ebc921d617a314d8a6be86f818ffe1c6a5a95400097ffa662d6e2",
+    "src/fusion_mvp/kalman.py":  "a0e52d4b44c5fbf4b8e00a5627cf0369542e7065c7618a6cd17fa46b98b5a8ae",
+    "src/fusion_mvp/engine.py":  "f98a036d74dd6acb358328e5159cf5c5ed843b7c6050945ce9ac8d2c4d20275b",
+    "demo/workbench/canvas.js":  "c415093914f99e0a6906a190bc7ab1f99779492fbceac009c75533ec48b04a13",
+    "config/fusion.yaml":  "ab2d9b4f7f7ab893fad8a07e7e8ba4da30b4b1f70a9b43153202a6f74cca7342"
+}

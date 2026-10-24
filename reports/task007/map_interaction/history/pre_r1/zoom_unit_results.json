@@ -1,0 +1,88 @@
+{
+  "generatedAt": "2026-10-24T07:51:10.955Z",
+  "cases": [
+    {
+      "name": "anchor_20x_center",
+      "ok": true,
+      "maxErr": 0,
+      "meanErr": 0,
+      "liveErr": 0,
+      "finalScale": 8.072999939190733
+    },
+    {
+      "name": "anchor_20x_near_tl",
+      "ok": true,
+      "maxErr": 1.3642420526593924e-12,
+      "meanErr": 5.861581598125548e-13,
+      "liveErr": 1.1368683772161603e-13,
+      "finalScale": 8.072999939190733
+    },
+    {
+      "name": "anchor_20x_near_tr",
+      "ok": true,
+      "maxErr": 1.3642420526593924e-12,
+      "meanErr": 5.599076757789589e-13,
+      "liveErr": 0,
+      "finalScale": 8.072999939190733
+    },
+    {
+      "name": "anchor_20x_near_bl",
+      "ok": true,
+      "maxErr": 1.3642420526593924e-12,
+      "meanErr": 5.854872142663226e-13,
+      "liveErr": 1.1368683772161603e-13,
+      "finalScale": 8.072999939190733
+    },
+    {
+      "name": "anchor_20x_near_br",
+      "ok": true,
+      "maxErr": 1.3642420526593924e-12,
+      "meanErr": 5.570655048359186e-13,
+      "liveErr": 0,
+      "finalScale": 8.072999939190733
+    },
+    {
+      "name": "anchor_20x_off_origin_target",
+      "ok": true,
+      "maxErr": 5.084229945850415e-13,
+      "meanErr": 1.8691886940607876e-13,
+      "liveErr": 8.526512829121202e-14,
+      "finalScale": 8.072999939190733
+    },
+    {
+      "name": "reciprocal_restore",
+      "ok": true,
+      "scale": 2.5000000000000004,
+      "ox": 500,
+      "oy": 350
+    },
+    {
+      "name": "deltaY0_and_bad_factor",
+      "ok": true
+    },
+    {
+      "name": "clamp_limits",
+      "ok": true,
+      "max": 200,
+      "min": 0.0001
+    },
+    {
+      "name": "css_dpr_event_xy",
+      "ok": true,
+      "err": 0,
+      "cssW": 744,
+      "bufW": 1100,
+      "dpr": 1
+    },
+    {
+      "name": "legacy_bug_repro_baseline",
+      "ok": true,
+      "afterScreen": [
+        1435.4496338831314,
+        -226.5872254123484
+      ]
+    }
+  ],
+  "pass": true,
+  "failCount": 0
+}

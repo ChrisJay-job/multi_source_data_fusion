@@ -1,0 +1,10 @@
+FROM python:3.11-slim
+WORKDIR /work
+COPY requirements.txt .
+RUN pip install --default-timeout=180 -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+COPY src ./src
+COPY config ./config
+COPY demo ./demo
+ENV PYTHONPATH=/work/src
+EXPOSE 18089
+CMD ["uvicorn", "fusion_mvp.api:app", "--host", "0.0.0.0", "--port", "18089"]

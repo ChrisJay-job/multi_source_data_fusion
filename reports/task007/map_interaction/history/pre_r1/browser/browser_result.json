@@ -1,0 +1,252 @@
+{
+  "base": "http://127.0.0.1:18089",
+  "sample": {
+    "path": "D:\\zwyl\\02_algo_project\\multi_source_data_fusion_wt_task006\\samples\\task007\\5_rid_pp5_leida1_simp.csv",
+    "sha256": "32772531c62f4643503892fd31ce1e9e477eff86e482b17eb75b40f107d2d34b",
+    "bytes": 998478,
+    "expectedSha256": "32772531c62f4643503892fd31ce1e9e477eff86e482b17eb75b40f107d2d34b"
+  },
+  "sampleShaMatch": true,
+  "viewports": [
+    {
+      "width": 1920,
+      "height": 1080,
+      "tag": "1920x1080",
+      "steps": {
+        "static": {
+          "/workbench-static/canvas.js": {
+            "bytes": 41951,
+            "hasZoomAt": true,
+            "hasPointer": true,
+            "hasLocate": true,
+            "hash32": "4f12c781"
+          },
+          "/workbench-static/app.js": {
+            "bytes": 94018,
+            "hasZoomAt": true,
+            "hasPointer": true,
+            "hasLocate": true,
+            "hash32": "364b238"
+          },
+          "/workbench-static/index.html": {
+            "bytes": 12354,
+            "hasZoomAt": false,
+            "hasPointer": true,
+            "hasLocate": true,
+            "hash32": "33c5147c"
+          }
+        },
+        "preview": "文件：d883d7c406764e5586fdee580bd53909_5_rid_pp5_leida1_simp.csv\n容器：表格/文本\n结果：已读入\n扫描=474 有效=472 拒绝=2\n来源：rid=461，spectrum=10，radar=1\n时间：2026-06-24T18:42:01.691000+08:00 .. 2026-06-24T18:47:01.181000+08:00\n拒绝原因：position_placeholder_0_0\n\n{\n  \"file_read_ok\": true,\n  \"ok\": true,\n  \"n_observations\": 472,\n  \"scanned_rows\": 474,\n  \"n_errors\": 2,\n  \"by_source\": {\n    \"rid\": 461,\n    \"spectrum\": 10,\n    \"radar\": 1\n  },\n  \"time_range\": [\n    \"2026-06-24T18:42:01.691000+08:00\",\n    \"2026-06-24T18:47:01.181000+08:00\"\n  ],\n  \"json_container\": null,\n  \"empty_record_set\": false,\n  \"preview_sample_drawn\": 200,\n  \"preview_mode\": \"static_sample_cover_end\",\n  \"preview_label\": \"原始观测预览，未执行融合\",\n  \"raw_columns\": [\n    \"id\",\n    \"longitude\",\n    \"latitude\",\n    \"altitude\",\n    \"speed\",\n    \"heading\",\n    \"created_at\",",
+        "tracks": {
+          "nTracks": 4,
+          "nSnap": 473,
+          "offCenter": {
+            "fusionId": "ms-4da32358-0009",
+            "sx": 234.1812180795513,
+            "sy": 253.90794930504978,
+            "d": 333.16216206882774,
+            "aircraftId": null
+          },
+          "otherFid": "ms-4da32358-0008",
+          "scale": 0.0021610714407215396,
+          "ox": 301.11276584465236,
+          "oy": -321.5528449797298,
+          "banner": "当前文件：d883d7c406764e5586fdee580bd53909_5_rid_pp5_leida1_simp.csv · runId=import-d883d7c406764e5586fdee580bd53909_5_rid_pp5_leida1_simp · 融合输出 · profile=multisensor-v1 · mvp-0.1.0"
+        },
+        "anchorZoom": {
+          "ok": true,
+          "maxErr": 1.2962293852742026e-12,
+          "meanErr": 4.820698771293163e-13,
+          "screenBefore": [
+            234.1812180795513,
+            253.90794930504978
+          ],
+          "screenAfter": [
+            234.18121807955163,
+            253.90794930504853
+          ],
+          "fusionId": "ms-4da32358-0009",
+          "scale": 0.012015378518961308,
+          "inView": true
+        },
+        "focus": {
+          "fid": "ms-4da32358-0008",
+          "locR": {
+            "ok": true,
+            "hasCurrent": true,
+            "message": "已定位到当前时刻位置"
+          },
+          "histR": {
+            "ok": true,
+            "n": 479,
+            "hasCurrent": true,
+            "message": "已适配 479 个历史点"
+          },
+          "distToCenter": 0,
+          "futureLeak": false,
+          "mixed": false,
+          "nHist": 479,
+          "hasCurrent": true,
+          "statusText": "已定位到当前时刻位置",
+          "selected": "ms-4da32358-0008"
+        },
+        "postFocusZoom": {
+          "ok": true,
+          "maxErr": 9.946529457016767e-10
+        },
+        "drag": {
+          "sticky": false,
+          "moved": true,
+          "blockedClickAfterDrag": true,
+          "ox": -2430315.939055719,
+          "oy": -10796030.87431458
+        },
+        "viewLock": {
+          "unchangedAfterSeek": true,
+          "stillCheckedAfterFitVisible": true,
+          "clearedAfterShowAll": true,
+          "nCheckboxes": 4,
+          "afterSeek": {
+            "scale": 24.34478461644075,
+            "ox": -2430315.939055719,
+            "oy": -10796030.87431458
+          },
+          "snap": {
+            "scale": 24.34478461644075,
+            "ox": -2430315.939055719,
+            "oy": -10796030.87431458
+          }
+        },
+        "sim": {
+          "banner": "当前文件：d883d7c406764e5586fdee580bd53909_5_rid_pp5_leida1_simp.csv · runId=import-d883d7c406764e5586fdee580bd53909_5_rid_pp5_leida1_simp · 融合输出 · profile=multisensor-v1 · mvp-0.1.0",
+          "nSnap": 473,
+          "hasFocus": true,
+          "routeEditBtn": false,
+          "scale": 0.002160954196125637
+        }
+      },
+      "pass": true
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "tag": "1280x800",
+      "steps": {
+        "static": {
+          "/workbench-static/canvas.js": {
+            "bytes": 41951,
+            "hasZoomAt": true,
+            "hasPointer": true,
+            "hasLocate": true,
+            "hash32": "4f12c781"
+          },
+          "/workbench-static/app.js": {
+            "bytes": 94018,
+            "hasZoomAt": true,
+            "hasPointer": true,
+            "hasLocate": true,
+            "hash32": "364b238"
+          },
+          "/workbench-static/index.html": {
+            "bytes": 12354,
+            "hasZoomAt": false,
+            "hasPointer": true,
+            "hasLocate": true,
+            "hash32": "33c5147c"
+          }
+        },
+        "preview": "文件：5915fe3ae6174f6a88ce819c59e2fd27_5_rid_pp5_leida1_simp.csv\n容器：表格/文本\n结果：已读入\n扫描=474 有效=472 拒绝=2\n来源：rid=461，spectrum=10，radar=1\n时间：2026-06-24T18:42:01.691000+08:00 .. 2026-06-24T18:47:01.181000+08:00\n拒绝原因：position_placeholder_0_0\n\n{\n  \"file_read_ok\": true,\n  \"ok\": true,\n  \"n_observations\": 472,\n  \"scanned_rows\": 474,\n  \"n_errors\": 2,\n  \"by_source\": {\n    \"rid\": 461,\n    \"spectrum\": 10,\n    \"radar\": 1\n  },\n  \"time_range\": [\n    \"2026-06-24T18:42:01.691000+08:00\",\n    \"2026-06-24T18:47:01.181000+08:00\"\n  ],\n  \"json_container\": null,\n  \"empty_record_set\": false,\n  \"preview_sample_drawn\": 200,\n  \"preview_mode\": \"static_sample_cover_end\",\n  \"preview_label\": \"原始观测预览，未执行融合\",\n  \"raw_columns\": [\n    \"id\",\n    \"longitude\",\n    \"latitude\",\n    \"altitude\",\n    \"speed\",\n    \"heading\",\n    \"created_at\",",
+        "tracks": {
+          "nTracks": 4,
+          "nSnap": 473,
+          "offCenter": {
+            "fusionId": "ms-e75355ed-0009",
+            "sx": 234.1812180795513,
+            "sy": 253.90794930504978,
+            "d": 333.16216206882774,
+            "aircraftId": null
+          },
+          "otherFid": "ms-e75355ed-0008",
+          "scale": 0.0021610714407215396,
+          "ox": 301.11276584465236,
+          "oy": -321.5528449797298,
+          "banner": "当前文件：5915fe3ae6174f6a88ce819c59e2fd27_5_rid_pp5_leida1_simp.csv · runId=import-5915fe3ae6174f6a88ce819c59e2fd27_5_rid_pp5_leida1_simp · 融合输出 · profile=multisensor-v1 · mvp-0.1.0"
+        },
+        "anchorZoom": {
+          "ok": true,
+          "maxErr": 1.2962293852742026e-12,
+          "meanErr": 4.820698771293163e-13,
+          "screenBefore": [
+            234.1812180795513,
+            253.90794930504978
+          ],
+          "screenAfter": [
+            234.18121807955163,
+            253.90794930504853
+          ],
+          "fusionId": "ms-e75355ed-0009",
+          "scale": 0.012015378518961308,
+          "inView": true
+        },
+        "focus": {
+          "fid": "ms-e75355ed-0008",
+          "locR": {
+            "ok": true,
+            "hasCurrent": true,
+            "message": "已定位到当前时刻位置"
+          },
+          "histR": {
+            "ok": true,
+            "n": 479,
+            "hasCurrent": true,
+            "message": "已适配 479 个历史点"
+          },
+          "distToCenter": 0,
+          "futureLeak": false,
+          "mixed": false,
+          "nHist": 479,
+          "hasCurrent": true,
+          "statusText": "已定位到当前时刻位置",
+          "selected": "ms-e75355ed-0008"
+        },
+        "postFocusZoom": {
+          "ok": true,
+          "maxErr": 9.946529457016767e-10
+        },
+        "drag": {
+          "sticky": false,
+          "moved": true,
+          "blockedClickAfterDrag": true,
+          "ox": -2430160.496116434,
+          "oy": -10796004.592323964
+        },
+        "viewLock": {
+          "unchangedAfterSeek": true,
+          "stillCheckedAfterFitVisible": true,
+          "clearedAfterShowAll": true,
+          "nCheckboxes": 4,
+          "afterSeek": {
+            "scale": 24.34478461644075,
+            "ox": -2430160.496116434,
+            "oy": -10796004.592323964
+          },
+          "snap": {
+            "scale": 24.34478461644075,
+            "ox": -2430160.496116434,
+            "oy": -10796004.592323964
+          }
+        },
+        "sim": {
+          "banner": "当前文件：5915fe3ae6174f6a88ce819c59e2fd27_5_rid_pp5_leida1_simp.csv · runId=import-5915fe3ae6174f6a88ce819c59e2fd27_5_rid_pp5_leida1_simp · 融合输出 · profile=multisensor-v1 · mvp-0.1.0",
+          "nSnap": 473,
+          "hasFocus": true,
+          "routeEditBtn": false,
+          "scale": 0.002160954196125637
+        }
+      },
+      "pass": true
+    }
+  ],
+  "consoleErrors": [],
+  "pass": true
+}

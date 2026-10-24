@@ -1,0 +1,25 @@
+{
+  "extractDir": "D:/zwyl/02_algo_project/_mi_r2_extract",
+  "port": 18122,
+  "composeProject": "task007-mi-r2",
+  "baseUrl": "http://127.0.0.1:18122",
+  "canvasSha256": "bc1c9f397271f664b9a23c319c59068ab5a819ff47e4ca22b90d47f72deaa2b2",
+  "staticMatchesExtract": true,
+  "drawProbeFromExtract": "PASS 81/81 and 400/400",
+  "browserIsolatedPass": true,
+  "pytestExtract": {
+    "command": "docker run python:3.11-slim + pip install -r requirements.txt + pytest tests/ -q",
+    "result": "277 passed, 2 skipped, 1 warning",
+    "exitCode": 0,
+    "skips": [
+      "tests/test_task006_xls_import.py: full XLS not linked in this environment (external/large — allowed BLOCKED/SKIPPED)"
+    ],
+    "log": "reports/task007/map_interaction/r2/pytest_extract.log"
+  },
+  "algorithmSha256": {
+    "multisensor.py": "f5d919551c5ebc921d617a314d8a6be86f818ffe1c6a5a95400097ffa662d6e2",
+    "fusion.yaml": "ab2d9b4f7f7ab893fad8a07e7e8ba4da30b4b1f70a9b43153202a6f74cca7342"
+  },
+  "host18089Preserved": true,
+  "cleanup": "docker compose project task007-mi-r2 down"
+}
