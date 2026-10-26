@@ -15,8 +15,8 @@
 | 业务提交线 | `task-008-mqtt-realtime-and-point-inspection` |
 | 业务 commit | `73182f5d8846c209b5d2a0eb888863deefa5edf7`（已审 TASK-008/009 + TASK-010 文档/部署） |
 | 测试对齐 commit | `665613e3e152620e1c0eb1853638d19fab9d7cbd`（TASK-007 回归适配；**代码/指纹锁定点**） |
-| 本发布记录 commit | （见推送后 tip；仅文档，算法指纹仍同 665613e） |
-| **最终 remote `origin/main`** | 以 `git ls-remote origin refs/heads/main` 回读为准（本轮已成功创建并推送 `main`） |
+| 本发布记录 tip | `14e8f85c139530034075af1b6640ee20a6cf620d`（仅文档迭代；算法指纹仍同 665613e） |
+| **最终 remote `origin/main`** | `14e8f85c139530034075af1b6640ee20a6cf620d`（`git ls-remote` 回读一致；本轮新建并推送 `main`） |
 | 远程 | `https://github.com/ChrisJay-job/multi_source_data_fusion.git`（此前无 heads；本次**新建**并推送 `main`） |
 | 推送 | 普通 push；**未** `--force` |
 | 基线 tag | `task-007-multisensor-v1-map-r2-reviewed` → `badcaf8…` 保留；本轮**未**新建冻结 tag |
