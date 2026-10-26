@@ -532,6 +532,8 @@ def test_r5_memory_bounds_drop_old_state_and_report_it():
     assert any(ev.type == "track_ended" for ev in ended.events)
     store = MultisensorStore(load_config())
     store.get("old")
+    # TASK-008: idle TTL (last_active), not create-age alone, recycles sessions.
+    store.last_active["old"] = datetime.now(timezone.utc) - timedelta(hours=2)
     store.created["old"] = datetime.now(timezone.utc) - timedelta(hours=2)
     store.get("new")
     assert "old" not in store.sessions
@@ -664,7 +666,7 @@ def test_r3_same_sn_ambiguity_emits_reason():
 
 def test_r3_default_offline_replay_accepts_4097_rows():
     cfg = load_config()
-    assert cfg["multisensor_v1"]["max_idempotency_ids"] == 4096
+    assert cfg["multisensor_v1"]["max_idempotency_ids"] >= 20000
     assert cfg["multisensor_v1"]["max_replay_observations"] >= 4097
     rows = [
         row(f"o{i}", "radar", "radar-01", 120.30, 36.0, T0 + timedelta(milliseconds=100 * i), local="A", scan=f"sc{i}", speed=0)
@@ -693,7 +695,7 @@ def test_r3_default_offline_replay_accepts_4097_rows():
         "distinct_fusion_ids": out.summary["distinct_fusion_ids"],
         "error": out.error,
         "note": out.summary["note"],
-        "max_idempotency_ids": 4096,
+        "max_idempotency_ids": cfg["multisensor_v1"]["max_idempotency_ids"],
         "includes_final_flush": True,
     }
     path = ROOT / "reports" / "task007" / "r3" / "default_replay_4097.json"
