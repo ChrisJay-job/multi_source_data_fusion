@@ -2,7 +2,7 @@
 
 日期：2026-10-26。读者：算法、后端、前端、部署同事。
 
-本目录为 TASK-010 联调交接权威入口（由交接包落入仓库）。发布状态、commit、镜像指纹以同目录 `RELEASE_RECORD.md` 为准。
+本目录为 TASK-010 联调交接权威入口（由交接包落入仓库）。发布状态、运行代码锁、镜像指纹以同目录 `RELEASE_RECORD.md` 与 `RELEASE_VERIFICATION.json` 为准；最新 `origin/main` tip 以包外 `REMOTE_HEAD.txt` 为准（避免文档自引用提交循环）。`VALIDATION.json` 仅为输入材料历史参考。
 
 **推荐：按完整 release commit 与镜像指纹部署到 Linux 隔离联调实例。保留 HTTP，MQTT 作为适配通道。**
 

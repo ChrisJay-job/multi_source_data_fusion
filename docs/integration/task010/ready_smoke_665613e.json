@@ -1,0 +1,20 @@
+{
+  "note": "Captured during TASK-010 attempt-001 HTTP smoke against fusion-integration:665613e on 127.0.0.1:18199. R1 re-read of 18199 was STOPPED_OR_UNAVAILABLE; this record is cited, not re-probed live.",
+  "runtimeCodeCommit": "665613e3e152620e1c0eb1853638d19fab9d7cbd",
+  "url": "http://127.0.0.1:18199/ready",
+  "response": {
+    "status": "ready",
+    "sessions": 0,
+    "algorithmVersion": "mvp-0.1.0+task008-3d",
+    "configVersion": "mvp-0.1.0+task008-3d",
+    "stateOwner": "single-process-SessionStore",
+    "supportedProfiles": ["legacy", "multisensor-v1", "multisensor-3d-v1"],
+    "reorderWindowSeconds": 2.0,
+    "configSha256": "e25f3560d59935763f21370055fe8cd4f764da2a39b2ad001fe58e70477df518",
+    "multisensorModuleSha256": "f4dfbc6379a5c58d0fd75b73e476e0bc07e6a7587c0cff9346527eb10ebcfa66"
+  },
+  "staticFingerprints_worktree_bytes": {
+    "app.js": "67c11ee3f5a8d9d345cab111504f34dcdeb2ba9b5465d809de560e29fb98733f",
+    "note": "Matches SOURCE_LOCK working-tree digest used in TASK-009/010 review."
+  }
+}

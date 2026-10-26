@@ -1,4 +1,6 @@
 {
+  "kind": "INPUT_MATERIAL_VALIDATION_HISTORICAL",
+  "note": "Prepared with the handoff package before Cursor execution. Do not treat as release execution results. See RELEASE_VERIFICATION.json.",
   "date": "2026-10-26",
   "verifiedSourceBundle": "82d5536a0e9104def9ba2194c1bf8d5adebc31c93a388ab5041b433aa4bc80c7",
   "modelFieldsDocumented": 100,

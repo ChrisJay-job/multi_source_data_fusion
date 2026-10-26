@@ -1,0 +1,32 @@
+{
+  "kind": "TASK-010_attempt-001_release_execution_verification",
+  "date": "2026-10-26",
+  "runtimeCodeCommit": "665613e3e152620e1c0eb1853638d19fab9d7cbd",
+  "note": "VALIDATION.json remains historical input-material check; this file records what was executed for the release.",
+  "pytest": {
+    "result": "312_passed_2_skipped",
+    "environment": "docker_python_3.11-slim",
+    "log": "reports/task010/evidence/pytest_full.log",
+    "rerun_in_r1": false
+  },
+  "dockerBuild": {
+    "result": "PASS",
+    "imageTag": "fusion-integration:665613e",
+    "imageId": "sha256:b8ee13d44f0c2fd2e5b83c688e7ad05d1887e7abd86da093a98e3e0069a3cc44",
+    "exportSha256": "5d4e812396df973914396f6a76be3aa4ead8b2d648302f01d4e9bf4b625fec7a",
+    "exportBytes": 130314919,
+    "rebuild_in_r1": false
+  },
+  "httpSmoke": {
+    "result": "PASS",
+    "bind": "127.0.0.1:18199",
+    "did_not_touch_18099": true,
+    "process_flush_replay": "HTTP_200",
+    "r1_ready_reread": "STOPPED_OR_UNAVAILABLE",
+    "ready_response_source": "original_smoke_transcript_and_RELEASE_notes",
+    "staticAppJsSha256_worktree": "67c11ee3f5a8d9d345cab111504f34dcdeb2ba9b5465d809de560e29fb98733f"
+  },
+  "mqttProductSmoke": "NOT_TESTED",
+  "companyLinuxDeploy": "NOT_EXECUTED",
+  "inputMaterialValidationRef": "docs/integration/task010/VALIDATION.json"
+}

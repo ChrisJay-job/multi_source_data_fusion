@@ -1,6 +1,8 @@
 # Linux 联调部署、升级和回滚
 
-**本包deploy目录是按源码准备的模板，尚不是在你公司Linux实跑的镜像。Cursor须按执行文件实建验证、填写发布commit/镜像ID后交付；用户负责在目标Linux执行部署。** 只启动隔离联调实例，不替换正在服务客户的生产实例。
+**部署模板已在 Docker Linux 环境完成构建与环回冒烟（见 `RELEASE_VERIFICATION.json`，代码锁 `665613e`）。公司 Linux 仍未部署；用户负责在目标机执行。** 只启动隔离联调实例，不替换正在服务客户的生产实例。
+
+**两条路径：**（A）`docker load` 已验镜像 `fusion-integration:665613e` 后**不要**再 build 覆盖；（B）清洁源码 `compose build` 自建。联调优先 A。从 `env.integration.example` 复制为 `.env.integration`（勿提交真实值）。
 
 ## 1. 部署形态
 

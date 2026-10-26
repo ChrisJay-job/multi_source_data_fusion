@@ -1,80 +1,106 @@
-﻿# TASK-010 attempt-001 发布与交接记录
+﻿# TASK-010 attempt-001 发布与交接记录（R1 修订）
 
 日期：2026-10-26（Asia/Shanghai）  
-**状态：`MAIN_INTEGRATED_REMOTE_VERIFIED_HANDOFF_READY`**
+**状态：`RELEASE_HANDOFF_R1_AWAITING_REVIEW`**（代码已整合、镜像已构建、公司未部署）
 
-本记录为联调部署权威入口。公司 Linux / Broker / TLS / 前端 topic 参数仍为待填写；**未**宣称公司生产已上线。
+权威字段命名（避免 tip 自引用循环）：
+
+| 字段 | 含义 | 本轮值 |
+|---|---|---|
+| `runtimeCodeCommit` | 运行代码/镜像锁定点 | `665613e3e152620e1c0eb1853638d19fab9d7cbd` |
+| `documentationCommit` | 文档修正提交（推送后写入包外核对文件） | 见包外/审查包 `REMOTE_HEAD.txt`；**勿**在正文内嵌「必须等于本文件自身 SHA」 |
+| `remoteMainAtVerification` | 核对时刻的 `origin/main` | 见同次 `REMOTE_HEAD.txt`（只读 `git ls-remote`） |
+
+**部署镜像标签固定为 `fusion-integration:665613e`（对应 runtimeCodeCommit）。** 更晚的文档 tip **没有**对应新镜像；不要寻找 `523ac31`/`14e8f85` 等文档 tip 的镜像标签。
+
+历史 tip 备注：曾短暂写过「最终远程=14e8f85…」——那是文档迭代中的中间 tip，**不是**运行代码锁。以本表字段 + 包外远程核对为准。
 
 ---
 
-## 1. Git 操作结果
+## 1. Git（脱敏）
 
 | 项 | 值 |
 |---|---|
-| 工作整合树 | `D:\zwyl\02_algo_project\multi_source_data_fusion_wt_task010_integ`（隔离 worktree，未动 TASK-004/005/006 dirty） |
-| 业务提交线 | `task-008-mqtt-realtime-and-point-inspection` |
-| 业务 commit | `73182f5d8846c209b5d2a0eb888863deefa5edf7`（已审 TASK-008/009 + TASK-010 文档/部署） |
-| 测试对齐 commit | `665613e3e152620e1c0eb1853638d19fab9d7cbd`（TASK-007 回归适配；**代码/指纹锁定点**） |
-| 本发布记录 tip | `14e8f85c139530034075af1b6640ee20a6cf620d`（仅文档迭代；算法指纹仍同 665613e） |
-| **最终 remote `origin/main`** | `14e8f85c139530034075af1b6640ee20a6cf620d`（`git ls-remote` 回读一致；本轮新建并推送 `main`） |
-| 远程 | `https://github.com/ChrisJay-job/multi_source_data_fusion.git`（此前无 heads；本次**新建**并推送 `main`） |
-| 推送 | 普通 push；**未** `--force` |
-| 基线 tag | `task-007-multisensor-v1-map-r2-reviewed` → `badcaf8…` 保留；本轮**未**新建冻结 tag |
+| 整合 worktree | `multi_source_data_fusion_wt_task010_integ` |
+| 远程 | `github.com/ChrisJay-job/multi_source_data_fusion`（本轮首次创建并推送 `main`） |
+| 推送 | 普通 push；未 force |
+| 基线 tag | `task-007-multisensor-v1-map-r2-reviewed` → `badcaf8…` 保留 |
+| `runtimeCodeCommit` 为 main 祖先 | 是（`git merge-base --is-ancestor`） |
+| 锁之后仅文档变更 | `docs/integration/task010/RELEASE_RECORD.md`（及本 R1 发布说明类文件） |
 
-保护：主仓 task-004 dirty、TASK-005/006 worktree 未切换/未清理；未提交 passwd、客户数据、真实 `.env`、审查大 ZIP。
+运行指纹证据：`reports/task010/r1/evidence/runtime_fingerprint_check.json`（工作树字节=SOURCE_LOCK；Git blob 在 665613e↔HEAD 对 13 锁文件 + 27 个 `src/**/*.py` **无变更**）。Windows 检出 CRLF 时工作树 SHA 与 Git blob SHA 可能不同，属换行符，非算法改动。
 
 ---
 
-## 2. 业务指纹（与 TASK-009 锁一致）
+## 2. 镜像（复用，不重建）
 
-锁定 commit `665613e` 上 13 文件 SHA 与 `SOURCE_LOCK.json` 一致（`fp13=true`）。全文见该 JSON。
-
----
-
-## 3. 验证结果（合并后一次收敛）
-
-| 项 | 结果 |
+| 项 | 值 |
 |---|---|
-| Python 3.11 全量 pytest（Linux 容器） | **312 passed, 2 skipped**；`reports/task010/evidence/pytest_full.log` |
-| Compose `config --quiet` | 通过 |
-| Docker Linux 镜像 | `fusion-integration:665613e`；Id `sha256:b8ee13d44f0c2fd2e5b83c688e7ad05d1887e7abd86da093a98e3e0069a3cc44`；**linux/amd64** |
-| HTTP 冒烟（环回 **18199**，未动 18099） | `/ready` 指纹匹配；process/flush/replay HTTP 200；海拔样例 `MSL`；静态 app.js SHA 匹配 |
-| OpenAPI | `reports/task010/evidence/openapi.json` |
-| MQTT 制品级短测 | **NOT_TESTED**（1883 TCP 可达，未在隔离 tenant 跑适配器以免碰现有联调 Broker） |
-| 公司 Linux 部署 | **未执行** |
+| 标签 | `fusion-integration:665613e` |
+| Image ID | `sha256:b8ee13d44f0c2fd2e5b83c688e7ad05d1887e7abd86da093a98e3e0069a3cc44` |
+| 导出 gzip SHA-256 | `5d4e812396df973914396f6a76be3aa4ead8b2d648302f01d4e9bf4b625fec7a` |
+| 字节 | 130314919 |
+| 架构 | linux/amd64 |
+
+R1 **未**重建、**未**重新导出镜像。
+
+---
+
+## 3. 已执行验证（见 RELEASE_VERIFICATION；非改写 VALIDATION.json）
+
+| 项 | 结果 | 对应代码锁 |
+|---|---|---|
+| pytest Linux 3.11 | 312 passed / 2 skipped | 665613e |
+| Docker 构建 + 18199 HTTP 冒烟 | ready/process/flush/replay；静态 app.js=SOURCE_LOCK | 665613e |
+| MQTT 制品短测 | **NOT_TESTED** | — |
+| 公司 Linux | **未部署** | — |
+| 18199 R1 只读复取 | **STOPPED_OR_UNAVAILABLE**（沿用原冒烟记录，不新起服务） | — |
+
+`VALIDATION.json` 保留为**输入材料准备验证/历史参考**（dockerBuild=NOT_TESTED_IN_THIS_WORKSPACE 等），勿当作本发布执行结果。
 
 ---
 
 ## 4. 交付制品
 
-| 制品 | 路径 | SHA-256 | 字节 |
+| 制品 | 说明 |
+|---|---|
+| 清洁源码 tar（R1） | `reports/task010/artifacts/TASK-010-attempt-001-linux-source-665613e-r1.tar.gz`（运行代码锁 665613e + 更新交接文档；**不含** `.env.integration` / 本机 data）。**SHA/字节见包外** `TASK-010-attempt-001-linux-source-665613e-r1.sha256.txt` / `.bytes.txt` 与 `reports/task010/r1/evidence/clean_source_tar_meta.json`（避免把 tar 哈希写进会被打进 tar 的正文造成循环） |
+| 原源码 tar | 保留不覆盖：`…-665613e.tar.gz` / `c24768d2…` / 1092966（含本机测试 `.env.integration`，勿当公司配置） |
+| 镜像 gzip | 复用上表 hash（不重建） |
+| 审查包 R1 | `review_zip/TASK-010-attempt-001-release-handoff-r1-review-bundle.zip`（包外 SHA/字节） |
+
+---
+
+## 5. 权威入口与两条部署路径
+
+1. 文档入口：本目录 `00_README.md` / `01_LINUX_DEPLOY.md`  
+2. 字段：`02_API_FIELD_DICTIONARY.md`  
+3. 流程：`03_REALTIME_INTEGRATION.md`  
+4. 工作台：服务 `/` 或 `/demo/workbench`（workers=1）
+
+**路径 A（推荐联调）：** 核对镜像 gzip SHA → `docker load` → `.env` 中 `FUSION_IMAGE=fusion-integration:665613e` → **不要**再 `compose build` 覆盖。  
+**路径 B：** 清洁源码 + `compose build`（结果应自证；本轮交付以已验 665613e 镜像为准）。
+
+`cp deploy/integration/env.integration.example deploy/integration/.env.integration` 后编辑；chmod 600。公司参数待填写。
+
+飞行后断点补齐接口**未实现**。见 `05_POSTFLIGHT_AND_GAPS.md`。
+
+---
+
+## 6. 真实样本（Git 远程只读结论）
+
+| 路径 | 远程 main 树 | 首次进入 | 说明 |
 |---|---|---|---|
-| Linux 源码包 | `reports/task010/artifacts/TASK-010-attempt-001-linux-source-665613e.tar.gz` | `c24768d2d2728eb7733a25efa7849d83aa4b728d0aab819df7eb56ed38ebf4fe` | 1092966 |
-| 验证镜像 gzip | `reports/task010/artifacts/fusion-integration-665613e.tar.gz` | `5d4e812396df973914396f6a76be3aa4ead8b2d648302f01d4e9bf4b625fec7a` | 130314919 |
-| 审查交接 ZIP | `review_zip/TASK-010-attempt-001-integration-release-review-bundle.zip` | 见包外 `.sha256.txt` / `.bytes.txt` | — |
+| `samples/task007/5_rid_pp5_leida1_simp.csv` | **包含**（跟踪） | `badcaf8…`（2026-10-24，TASK-006/007 基线整合，**早于**本轮 TASK-010） | 历史真实导出样本；本轮**未新增** |
+| `samples/task007/5_leida_rid_pp.csv` | **包含** | 同上 | 同上 |
 
-源码包 `COMMIT.txt` 指向代码锁定 `665613e3e152620e1c0eb1853638d19fab9d7cbd`。镜像无 registry RepoDigest（本地构建）；`docker load` 使用导出 tar.gz。
+清洁 Linux 源码交付包：**排除**上述样本。  
+仓库可见性（GitHub API 无授权会话）：**NOT_VERIFIED**（HTTP 403）。未自动改权限/filter-repo/强推。
 
----
-
-## 5. 权威入口与 5 分钟冒烟
-
-1. 部署：`01_LINUX_DEPLOY.md` + `deploy/integration/`  
-2. 字段/API：`02_API_FIELD_DICTIONARY.md`  
-3. 三方流程：`03_REALTIME_INTEGRATION.md`  
-4. 前端工作台：服务 `/` 或 `/demo/workbench`（workers=1）  
-5. 指纹：本文件 + `SOURCE_LOCK.json`
-
-顺序：`docker load` 或 compose build → 填 `.env.integration`(600) → `config --quiet` → `up fusion-core` → `GET /ready` → 合成 examples → process/flush/replay → 可选 mqtt profile。
-
-**飞行后补齐接口未实现。** `run.end` 仅排空；`replay` 临时重放。分段归档 + 按可信 SN 展示缺口。见 `05_POSTFLIGHT_AND_GAPS.md`。
+文案口径：勿再说笼统「未提交客户数据」；精确为「本轮未新增真实样本；远程 main 已含早于本轮的历史 samples/task007 两文件；源码 tar 排除」。
 
 ---
-
-## 6. 待环境确认
-
-公司 Linux 主机/架构/端口、Broker、TLS 终止、tenant/site、前端 topic、网关鉴权、数据目录责任人。
 
 ## 7. 未做
 
-未公司生产部署、未强推、未改已审算法指纹、未新增断点补齐算法、未开其他阶段、未建冻结 tag。
+未改算法、未重跑全量/MQTT/长稳、未重建镜像、未公司生产部署、未开其他阶段、未 force。
