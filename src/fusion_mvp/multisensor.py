@@ -20,7 +20,7 @@ from typing import Any, Optional
 from scipy.optimize import linear_sum_assignment
 
 from .geo import LocalENU
-from .kalman import ConstantVelocityKF
+from .kalman import ConstantVelocity1D, ConstantVelocityKF
 from .mapping import SOURCE_MAP
 from .models import (
     FusionEvent,
@@ -32,6 +32,9 @@ from .models import (
 )
 
 PROFILE = "multisensor-v1"
+PROFILE_3D = "multisensor-3d-v1"
+SUPPORTED_PROFILES = {PROFILE, PROFILE_3D}
+_MSL_DATUMS = {"MSL", "msl", "mean_sea_level"}
 _INF = 1.0e6
 _GENERIC_DETECTORS = {"radar", "spectrum", "rid", "pp", "leida", "雷达", "频谱"}
 _CLASSES = {"unknown", "drone", "bird", "other"}
@@ -79,13 +82,20 @@ def _ang_diff(a: float, b: float) -> float:
     return min(d, 360.0 - d)
 
 
-def _fingerprint(batch_id: str, processing_time: str, mode: str, observations: list[dict]) -> str:
+def _fingerprint(
+    batch_id: str,
+    processing_time: str,
+    mode: str,
+    observations: list[dict],
+    *,
+    fusion_profile: str = PROFILE,
+) -> str:
     blob = json.dumps(
         {
             "batchId": batch_id,
             "processingTime": processing_time,
             "mode": mode,
-            "fusionProfile": PROFILE,
+            "fusionProfile": fusion_profile,
             "observations": observations,
         },
         sort_keys=True,
@@ -93,6 +103,12 @@ def _fingerprint(batch_id: str, processing_time: str, mode: str, observations: l
         default=str,
     )
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+def _datum_ok_for_3d(datum: Optional[str]) -> bool:
+    if datum is None:
+        return False
+    return datum.strip() in _MSL_DATUMS or datum.strip().upper() == "MSL"
 
 
 def _content_hash(raw: dict) -> str:
@@ -166,13 +182,28 @@ class _Track:
     updated_this_batch: bool = False
     contrib_time: dict[str, datetime] = field(default_factory=dict)
     active_primary: Optional[str] = None
+    # Vertical state (multisensor-3d-v1 only)
+    vkf: Optional[ConstantVelocity1D] = None
+    altitude_state_time: Optional[datetime] = None
+    last_altitude_observed_at: Optional[datetime] = None
+    altitude_mode: str = "unknown"  # measured_filtered | predicted | unknown | expired
+    altitude_observation_ids: list[str] = field(default_factory=list)
+    # Raw altitude that must NOT become fused output (unsupported datum / rejected).
+    raw_altitude_evidence: list[dict] = field(default_factory=list)
+    altitude_sigma_m: Optional[float] = None
 
 
 class MultisensorSession:
-    def __init__(self, session_id: str, cfg: dict):
+    def __init__(self, session_id: str, cfg: dict, *, profile: str = PROFILE, clock=None):
+        if profile not in SUPPORTED_PROFILES:
+            raise ValueError(f"unsupported_profile:{profile}")
         self.session_id = session_id
         self.cfg = cfg
+        self.profile = profile
+        self.enable_vertical = profile == PROFILE_3D
         self.ms = cfg.get("multisensor_v1") or {}
+        self.ms3 = cfg.get("multisensor_3d_v1") or {}
+        self._clock = clock or (lambda: datetime.now(timezone.utc))
         origin = cfg.get("origin") or {}
         self.enu = LocalENU(float(origin.get("latitude", 0.0)), float(origin.get("longitude", 0.0)))
         self.epoch = uuid.uuid4().hex
@@ -188,15 +219,19 @@ class MultisensorSession:
         self.seq = 0
         self._ids = 0
         self._gen = 0
+        self._alt_ids = 0
         self.watermark: Optional[datetime] = None
         self.last_pt: Optional[datetime] = None
         self._event_buf: list[FusionEvent] = []
         self._update_buf: list[dict] = []
+        self._alt_update_buf: list[dict] = []
         self._reject_buf: list[Rejected] = []
         self.lock = threading.RLock()
         self.reorder_s = float(cfg.get("reorder_window_s", 2.0))
         self.q_pos = float((cfg.get("kalman") or {}).get("q_pos", 2.0))
         self.q_vel = float((cfg.get("kalman") or {}).get("q_vel", 1.5))
+        self.q_alt = float(self.ms3.get("q_alt", 1.0))
+        self.q_vspeed = float(self.ms3.get("q_vspeed", 0.5))
 
     def process(
         self,
@@ -214,22 +249,27 @@ class MultisensorSession:
             limit = int(self.ms.get("max_observations_per_request", 5000))
             if len(observations) > limit:
                 return self._respond(batch_id, _iso(pt), error="too_many_observations")
-            fp = _fingerprint(batch_id, processing_time, mode, observations)
+            fp = _fingerprint(batch_id, processing_time, mode, observations, fusion_profile=self.profile)
             # Public /v1/fusion/process keeps idempotency for realtime and replay.
             # Only the internal temporary replay_job path opts out.
             use_idem = retain_idempotency
+            if use_idem:
+                # TTL expire before capacity so a full table of elapsed ids can admit new work.
+                # Do not apply max_cache eviction here — that must stay inside the transactional section.
+                self._expire_idempotency()
             if use_idem and batch_id in self.evicted_batches:
                 return self._respond(batch_id, _iso(pt), error="idempotency_expired")
             cached = self.cache.get(batch_id) if use_idem else None
             if cached is not None:
                 old_fp, stored_at, resp = cached
                 ttl = float(self.cfg.get("idempotency_ttl_s", 1800))
-                if (datetime.now(timezone.utc) - stored_at).total_seconds() > ttl:
+                if (self._clock() - stored_at).total_seconds() > ttl:
                     return self._respond(batch_id, _iso(pt), error="idempotency_expired")
                 if old_fp != fp:
                     return self._respond(batch_id, _iso(pt), error="batch_id_conflict")
                 return resp
-            if self.mode is not None and mode != self.mode:
+            force_flush = mode == "flush"
+            if not force_flush and self.mode is not None and mode != self.mode:
                 return self._respond(batch_id, _iso(pt), error="session_mode_conflict")
             if self.last_pt is not None and pt < self.last_pt:
                 return self._respond(batch_id, _iso(pt), error="processing_time_not_monotonic")
@@ -242,22 +282,29 @@ class MultisensorSession:
                 if conflict:
                     self._restore(backup)
                     return self._respond(batch_id, _iso(pt), error="observation_id_conflict", rejected=rejected)
-                self.mode = mode
+                if force_flush:
+                    if self.mode is None:
+                        self.mode = "realtime"
+                else:
+                    self.mode = mode
                 self.last_pt = pt
                 accepted, rejected = self._admit_buffer(accepted, rejected)
                 for obs in accepted:
                     self.seen[obs.observation_id] = _content_hash(obs.raw)
                     self.buffer.append(obs)
                 self._trim_seen(pt)
-                self._release(pt)
+                self._release(pt, force_all=force_flush)
                 self._lifecycle(pt)
                 if use_idem:
                     self._trim_cache(pt)
                 self.seq += 1
                 updates = self._take_updates()
-                resp = self._respond(batch_id, _iso(pt), rejected=rejected, updates=updates)
+                alt_updates = self._take_alt_updates()
+                resp = self._respond(
+                    batch_id, _iso(pt), rejected=rejected, updates=updates, altitude_updates=alt_updates
+                )
                 if use_idem:
-                    self.cache[batch_id] = (fp, datetime.now(timezone.utc), resp)
+                    self.cache[batch_id] = (fp, self._clock(), resp)
                 return resp
             except Exception:
                 self._restore(backup)
@@ -278,6 +325,7 @@ class MultisensorSession:
             "cache": dict(self.cache),
             "closed_scans": {key: (when, set(locals_)) for key, (when, locals_) in self.closed_scans.items()},
             "open_slots": copy.deepcopy(self.open_slots),
+            "alt_ids": self._alt_ids,
         }
 
     def _restore(self, snap: dict) -> None:
@@ -294,8 +342,10 @@ class MultisensorSession:
         self.cache = snap.get("cache", self.cache)
         self.closed_scans = snap.get("closed_scans", {})
         self.open_slots = snap.get("open_slots", {})
+        self._alt_ids = snap.get("alt_ids", 0)
         self._event_buf = []
         self._update_buf = []
+        self._alt_update_buf = []
         self._reject_buf = []
 
     def _admit_buffer(self, accepted: list[_Obs], rejected: list[Rejected]) -> tuple[list[_Obs], list[Rejected]]:
@@ -317,10 +367,9 @@ class MultisensorSession:
             self.seen.pop(key, None)
         self._event_buf.append(self._event("memory_bounded", pt, None, {"reason": "seen_cap", "dropped": drop}))
 
-    def _trim_cache(self, pt: datetime) -> None:
-        max_cache = int(self.cfg.get("max_cache", 200))
+    def _expire_idempotency(self) -> None:
         ttl = float(self.cfg.get("idempotency_ttl_s", 1800))
-        now = datetime.now(timezone.utc)
+        now = self._clock()
         for key, (_fp, stored_at, _resp) in list(self.cache.items()):
             if (now - stored_at).total_seconds() > ttl:
                 self.evicted_batches[key] = stored_at
@@ -328,6 +377,11 @@ class MultisensorSession:
         for key, stored_at in list(self.evicted_batches.items()):
             if (now - stored_at).total_seconds() > ttl:
                 self.evicted_batches.pop(key, None)
+
+    def _trim_cache(self, pt: datetime) -> None:
+        max_cache = int(self.cfg.get("max_cache", 200))
+        now = self._clock()
+        self._expire_idempotency()
         while len(self.cache) >= max_cache:
             oldest = min(self.cache, key=lambda key: self.cache[key][1])
             self.evicted_batches[oldest] = now
@@ -517,10 +571,16 @@ class MultisensorSession:
                 spans.append((min(o.mt for o in members), max(o.mt for o in members)))
         return held_scans, spans
 
-    def _release(self, pt: datetime) -> None:
-        horizon = pt - timedelta(seconds=self.reorder_s)
-        future = [o for o in self.buffer if o.mt > horizon]
-        ready = [o for o in self.buffer if o.mt <= horizon]
+    def _release(self, pt: datetime, *, force_all: bool = False) -> None:
+        if force_all:
+            # Terminal / control flush: release entire reorder buffer at current PT.
+            horizon = pt
+            future: list[_Obs] = []
+            ready = list(self.buffer)
+        else:
+            horizon = pt - timedelta(seconds=self.reorder_s)
+            future = [o for o in self.buffer if o.mt > horizon]
+            ready = [o for o in self.buffer if o.mt <= horizon]
         # Named scans stay whole. Overlapping held spans pull related scans in
         # until the wait/release partition is stable.
         held_scans, held_spans = self._held_scan_partition(ready, future)
@@ -848,6 +908,16 @@ class MultisensorSession:
         variance = obs.std_m ** 2
         kf = ConstantVelocityKF(obs.x, obs.y, self.q_pos, self.q_vel, variance)
         self._seed_velocity(kf, obs)
+        init_alt = None
+        init_datum = None
+        init_vspeed = None if self.enable_vertical else obs.vertical_speed
+        if self.enable_vertical:
+            if obs.altitude is not None and _datum_ok_for_3d(obs.altitude_datum):
+                init_alt = obs.altitude
+                init_datum = "MSL"
+        elif obs.altitude is not None:
+            init_alt = obs.altitude
+            init_datum = obs.altitude_datum
         tr = _Track(
             fusion_id=fid,
             created=obs.mt,
@@ -856,9 +926,9 @@ class MultisensorSession:
             last_observed=obs.mt,
             last_speed=obs.speed,
             last_heading=obs.heading,
-            last_altitude=obs.altitude,
-            last_datum=obs.altitude_datum,
-            vertical_speed=obs.vertical_speed,
+            last_altitude=init_alt,
+            last_datum=init_datum,
+            vertical_speed=init_vspeed,
         )
         tr.contributing.add(obs.source)
         tr.contrib_time[obs.source] = obs.mt
@@ -890,10 +960,25 @@ class MultisensorSession:
             self._touch_contrib(tr, obs.source, obs.mt)
             tr.state_time = obs.mt
             tr.updated_this_batch = True
+            # Bind metadata + this-obs altitude must land before the committed point
+            # so 2D pass-through does not copy the previous altitude onto a new point.
+            self._touch_bind_and_kinematics(tr, obs, filtered_horizontal=True)
             self._record_point(tr, obs)
             filtered = True
         else:
             filtered = False
+            self._touch_bind_and_kinematics(tr, obs, filtered_horizontal=False)
+        if filtered:
+            confirm_n = int(self.ms.get("confirm_distinct_times", 3))
+            if tr.status in {"lost", "coasting"}:
+                previous = tr.status
+                tr.status = "tracked" if len(tr.distinct_times) >= confirm_n else "tentative"
+                self._event_buf.append(self._event("track_reacquired", obs.mt, tr.fusion_id, {"from": previous}))
+            xy = tr.kf.pos
+            tr.recent_xy.append((float(xy[0]), float(xy[1])))
+            tr.recent_xy = tr.recent_xy[-6:]
+
+    def _touch_bind_and_kinematics(self, tr: _Track, obs: _Obs, *, filtered_horizontal: bool) -> None:
         if obs.origin == "generated":
             key = (obs.source, obs.detector_id, "")
         else:
@@ -928,9 +1013,15 @@ class MultisensorSession:
             tr.last_speed = obs.speed
         if obs.heading is not None:
             tr.last_heading = obs.heading
-        if obs.vertical_speed is not None:
+        # 2D may pass through raw verticalSpeed; 3D keeps filtered estimate only.
+        if (not self.enable_vertical) and obs.vertical_speed is not None:
             tr.vertical_speed = obs.vertical_speed
-        if obs.altitude is not None:
+        # 2D: pass-through this observation's altitude onto the track before point record.
+        # 3D: vertical KF consumes unique associated altitude; secondary may contribute
+        # without advancing horizontal KF / status (filtered_horizontal=False).
+        if self.enable_vertical:
+            self._update_vertical(tr, obs, bind_confirmed=bind.confirmed, horizontal_commit=filtered_horizontal)
+        elif obs.altitude is not None:
             tr.last_altitude = obs.altitude
             tr.last_datum = obs.altitude_datum
         if obs.object_class != "unknown":
@@ -940,14 +1031,6 @@ class MultisensorSession:
                 tr.object_class = "unknown"
                 tr.flags.add("class_conflict")
         self._apply_identity(tr, obs)
-        confirm_n = int(self.ms.get("confirm_distinct_times", 3))
-        if filtered and tr.status in {"lost", "coasting"}:
-            previous = tr.status
-            tr.status = "tracked" if len(tr.distinct_times) >= confirm_n else "tentative"
-            self._event_buf.append(self._event("track_reacquired", obs.mt, tr.fusion_id, {"from": previous}))
-        xy = tr.kf.pos
-        tr.recent_xy.append((float(xy[0]), float(xy[1])))
-        tr.recent_xy = tr.recent_xy[-6:]
 
     def _note_time(self, holder: set[str], when: datetime, cap: int) -> None:
         key = when.astimezone(timezone.utc).isoformat(timespec="microseconds")
@@ -1065,11 +1148,74 @@ class MultisensorSession:
                 self._event("identity_conflict", obs.mt, tr.fusion_id, {"aircraftId": obs.aircraft_id})
             )
 
+    def _altitude_at(
+        self, tr: _Track, when: datetime, *, direct_oid: Optional[str] = None
+    ) -> tuple[Optional[float], Optional[str], str, list[str], Optional[float]]:
+        """Query fused altitude at event time without advancing the vertical KF clock.
+
+        Returns (altitude, datum, mode, direct_altitude_observation_ids, sigma_m).
+        """
+        if not self.enable_vertical:
+            return None, None, "unknown", [], None
+        if tr.vkf is None or tr.altitude_state_time is None or tr.last_altitude_observed_at is None:
+            return None, None, "unknown", [], None
+        dt_state = (when - tr.altitude_state_time).total_seconds()
+        if dt_state < -1e-6:
+            # Do not read a future filter state for a past query time.
+            return None, None, "unknown", [], None
+        horizon = float(self.ms3.get("altitude_predict_horizon_s", 4.0))
+        age_obs = (when - tr.last_altitude_observed_at).total_seconds()
+        if age_obs > horizon + 1e-9:
+            return None, None, "expired", [], None
+        alt = float(tr.vkf.alt) + float(tr.vkf.vspeed) * dt_state
+        if abs(age_obs) <= 1e-6 and direct_oid:
+            mode = "measured_filtered"
+            oids = [direct_oid]
+        elif abs(dt_state) <= 1e-6 and direct_oid and direct_oid in tr.altitude_observation_ids[-1:]:
+            mode = "measured_filtered"
+            oids = [direct_oid]
+        else:
+            mode = "predicted"
+            oids = []  # prediction: no new direct altitude observation for this point
+        try:
+            import numpy as np
+
+            P = np.array(tr.vkf.P, dtype=float, copy=True)
+            if dt_state > 1e-9:
+                F = np.array([[1.0, dt_state], [0.0, 1.0]], dtype=float)
+                Q = np.diag([float(tr.vkf.q_pos) * dt_state, float(tr.vkf.q_vel) * dt_state])
+                P = F @ P @ F.T + Q
+            sigma = float(P[0, 0]) ** 0.5
+        except Exception:  # noqa: BLE001
+            sigma = tr.altitude_sigma_m
+        return alt, "MSL", mode, oids, sigma
+
+    def _point_altitude_for_obs(
+        self, tr: _Track, obs: _Obs
+    ) -> tuple[Optional[float], Optional[str], str, list[str], Optional[float]]:
+        """Altitude attached to a newly committed horizontal point at obs.mt."""
+        if self.enable_vertical:
+            direct = None
+            if (
+                obs.altitude is not None
+                and _datum_ok_for_3d(obs.altitude_datum)
+                and tr.last_altitude_observed_at is not None
+                and abs((obs.mt - tr.last_altitude_observed_at).total_seconds()) <= 1e-6
+                and tr.altitude_observation_ids
+                and tr.altitude_observation_ids[-1] == obs.observation_id
+            ):
+                direct = obs.observation_id
+            return self._altitude_at(tr, obs.mt, direct_oid=direct)
+        if obs.altitude is not None and obs.altitude_datum not in (None, "unknown"):
+            return obs.altitude, obs.altitude_datum, "passthrough", [obs.observation_id], None
+        return None, None, "unknown", [], None
+
     def _record_point(self, tr: _Track, obs: _Obs) -> None:
         lat, lon = self.enu.to_ll(*tr.kf.pos)
         point_id = hashlib.sha256(
             f"{self.epoch}|{tr.fusion_id}|{_iso(obs.mt)}|{obs.observation_id}".encode("utf-8")
         ).hexdigest()[:16]
+        alt, datum, alt_mode, alt_oids, sigma = self._point_altitude_for_obs(tr, obs)
         point = {
             "pointId": point_id,
             "fusionId": tr.fusion_id,
@@ -1077,10 +1223,17 @@ class MultisensorSession:
             "stateTime": _iso(obs.mt),
             "longitude": lon,
             "latitude": lat,
-            "altitude": tr.last_altitude if tr.last_datum not in (None, "unknown") else None,
+            "altitude": alt,
+            "altitudeDatum": datum,
+            "altitudeMode": alt_mode,
+            "altitudeSigmaM": sigma,
             "positionMode": "measured_assisted",
             "contributingSources": sorted(tr.contributing or {obs.source}),
             "observationIds": [obs.observation_id],
+            "altitudeObservationIds": alt_oids,
+            "altitudePriorNote": "filter_state_may_include_earlier_measurements"
+            if self.enable_vertical and alt is not None
+            else None,
             "source": obs.source,
         }
         cap = int(self.ms.get("committed_history_cap", 80))
@@ -1089,6 +1242,158 @@ class MultisensorSession:
             tr.history = tr.history[-cap:]
             tr.flags.add("history_capped")
         self._update_buf.append(point)
+
+    def _alt_r(self, source: str) -> float:
+        std = (self.ms3.get("altitude_std_m") or {}).get(source)
+        if std is None:
+            std = {"rid": 5.0, "spectrum": 15.0, "radar": 25.0}.get(source, 20.0)
+        return float(std) ** 2
+
+    def _update_vertical(
+        self,
+        tr: _Track,
+        obs: _Obs,
+        *,
+        bind_confirmed: bool,
+        horizontal_commit: bool,
+    ) -> None:
+        if not self.enable_vertical:
+            return
+        if obs.altitude is None:
+            return
+        if not _datum_ok_for_3d(obs.altitude_datum):
+            tr.raw_altitude_evidence.append(
+                {
+                    "observationId": obs.observation_id,
+                    "altitude": obs.altitude,
+                    "altitudeDatum": obs.altitude_datum,
+                    "reason": "unsupported_datum",
+                    "measurementTime": _iso(obs.mt),
+                }
+            )
+            if len(tr.raw_altitude_evidence) > 32:
+                tr.raw_altitude_evidence = tr.raw_altitude_evidence[-32:]
+            self._event_buf.append(
+                self._event(
+                    "altitude_datum_unsupported",
+                    obs.mt,
+                    tr.fusion_id,
+                    {"observationId": obs.observation_id, "altitudeDatum": obs.altitude_datum},
+                )
+            )
+            # Never promote unsupported raw altitude into fused last_altitude / snapshot.
+            return
+        # Ambiguous / unconfirmed bind must not update vertical state.
+        # Exception: same confirmed SN on an already-bound track may contribute altitude
+        # from a newly seen detector on the first hit (secondary vertical-only path).
+        if not bind_confirmed and len(tr.binds) > 1:
+            same_sn = bool(tr.aircraft_id and obs.aircraft_id and tr.aircraft_id == obs.aircraft_id)
+            has_confirmed_peer = any(b.confirmed for b in tr.binds.values())
+            if not (same_sn and has_confirmed_peer):
+                return
+        innov_gate = float(self.ms3.get("altitude_innov_m", 80.0))
+        horizon = float(self.ms3.get("altitude_predict_horizon_s", 4.0))
+        expired = (
+            tr.last_altitude_observed_at is not None
+            and (obs.mt - tr.last_altitude_observed_at).total_seconds() > horizon + 1e-9
+        )
+        if tr.vkf is None or expired:
+            # Fresh init, or re-init after altitude expiry so stale velocity cannot lock out recovery.
+            tr.vkf = ConstantVelocity1D(obs.altitude, self.q_alt, self.q_vspeed, self._alt_r(obs.source))
+            tr.altitude_state_time = obs.mt
+            tr.last_altitude_observed_at = obs.mt
+            tr.last_altitude = float(tr.vkf.alt)
+            tr.last_datum = "MSL"
+            tr.altitude_mode = "measured_filtered"
+            tr.vertical_speed = float(tr.vkf.vspeed)
+            tr.altitude_sigma_m = float(tr.vkf.P[0, 0]) ** 0.5
+            tr.altitude_observation_ids = [obs.observation_id]
+            if expired:
+                self._event_buf.append(
+                    self._event(
+                        "altitude_reinitialized",
+                        obs.mt,
+                        tr.fusion_id,
+                        {"observationId": obs.observation_id, "reason": "expired_gap"},
+                    )
+                )
+            if not horizontal_commit:
+                self._emit_altitude_update(tr, obs, role="init" if not expired else "reinit_after_expiry")
+            return
+        assert tr.altitude_state_time is not None
+        dt = (obs.mt - tr.altitude_state_time).total_seconds()
+        if dt < -1e-6:
+            self._event_buf.append(
+                self._event("altitude_negative_dt", obs.mt, tr.fusion_id, {"observationId": obs.observation_id})
+            )
+            return
+        # Gate on predicted residual before mutating the filter.
+        pred_alt = float(tr.vkf.alt)
+        if dt > 1e-6:
+            pred_alt = pred_alt + float(tr.vkf.vspeed) * dt
+        innov = abs(float(obs.altitude) - pred_alt)
+        if innov > innov_gate:
+            tr.raw_altitude_evidence.append(
+                {
+                    "observationId": obs.observation_id,
+                    "altitude": obs.altitude,
+                    "altitudeDatum": obs.altitude_datum,
+                    "reason": "innovation_rejected",
+                    "innovM": innov,
+                    "measurementTime": _iso(obs.mt),
+                }
+            )
+            if len(tr.raw_altitude_evidence) > 32:
+                tr.raw_altitude_evidence = tr.raw_altitude_evidence[-32:]
+            self._event_buf.append(
+                self._event(
+                    "altitude_innovation_rejected",
+                    obs.mt,
+                    tr.fusion_id,
+                    {"observationId": obs.observation_id, "innovM": innov},
+                )
+            )
+            return
+        if dt > 1e-6:
+            tr.vkf.predict(max(dt, 1e-3))
+        tr.vkf.update(obs.altitude, self._alt_r(obs.source))
+        tr.altitude_state_time = obs.mt
+        tr.last_altitude_observed_at = obs.mt
+        tr.last_altitude = float(tr.vkf.alt)
+        tr.last_datum = "MSL"
+        tr.vertical_speed = float(tr.vkf.vspeed)
+        tr.altitude_sigma_m = float(tr.vkf.P[0, 0]) ** 0.5
+        tr.altitude_mode = "measured_filtered"
+        tr.altitude_observation_ids.append(obs.observation_id)
+        if len(tr.altitude_observation_ids) > 32:
+            tr.altitude_observation_ids = tr.altitude_observation_ids[-32:]
+        if not horizontal_commit:
+            self._emit_altitude_update(tr, obs, role="secondary_or_vertical_only")
+
+    def _emit_altitude_update(self, tr: _Track, obs: _Obs, *, role: str) -> None:
+        self._alt_ids += 1
+        upd = {
+            "altitudeUpdateId": f"alt-{self.epoch[:8]}-{self._alt_ids:06d}",
+            "fusionId": tr.fusion_id,
+            "trackSegmentId": tr.fusion_id,
+            "epoch": self.epoch,
+            "stateTime": _iso(obs.mt),
+            "altitude": tr.last_altitude,
+            "altitudeDatum": "MSL",
+            "altitudeMode": tr.altitude_mode,
+            "verticalSpeed": tr.vertical_speed,
+            "altitudeStateTime": _iso(tr.altitude_state_time) if tr.altitude_state_time else None,
+            "lastAltitudeObservedAt": _iso(tr.last_altitude_observed_at) if tr.last_altitude_observed_at else None,
+            "altitudeObservationIds": [obs.observation_id],
+            "role": role,
+            "source": obs.source,
+        }
+        self._alt_update_buf.append(upd)
+
+    def _take_alt_updates(self) -> list[dict]:
+        updates = list(self._alt_update_buf)
+        self._alt_update_buf = []
+        return updates
 
     def _try_merge(self) -> None:
         gate = float(self.ms.get("merge_gate_m", 30.0))
@@ -1184,6 +1489,7 @@ class MultisensorSession:
         *,
         rejected: Optional[list[Rejected]] = None,
         updates: Optional[list[dict]] = None,
+        altitude_updates: Optional[list[dict]] = None,
         error: Optional[str] = None,
     ) -> ProcessResponse:
         if not hasattr(self, "_event_buf"):
@@ -1210,8 +1516,9 @@ class MultisensorSession:
             rejected=list(rejected or []) + extra_rejected,
             events=events,
             error=error,
-            fusionProfile=PROFILE,
+            fusionProfile=self.profile,
             trajectoryUpdates=list(updates or []),
+            altitudeUpdates=list(altitude_updates or []),
         )
 
     def _snapshots(self) -> list[TargetSnapshot]:
@@ -1242,6 +1549,21 @@ class MultisensorSession:
             flags = sorted(tr.flags)
             if mode == "predicted":
                 flags = sorted(set(flags) | {"predicted_display"})
+            query_t = now or tr.state_time
+            if self.enable_vertical:
+                snap_alt, snap_datum, snap_amode, _oids, snap_sigma = self._altitude_at(tr, query_t)
+                if snap_alt is None:
+                    snap_datum = None
+                if snap_sigma is not None:
+                    flags = sorted(set(flags) | {f"altitude_sigma_m:{snap_sigma:.3f}"})
+                elif tr.vkf is None:
+                    flags = sorted(set(flags) | {"altitude_uncertainty_not_available"})
+                if tr.raw_altitude_evidence:
+                    flags = sorted(set(flags) | {"raw_altitude_evidence_present_not_fused"})
+            else:
+                snap_alt = tr.last_altitude if tr.last_datum not in (None, "unknown") else None
+                snap_datum = tr.last_datum if tr.last_datum not in (None, "unknown") else None
+                snap_amode = None
             refs = []
             for bind in sorted(tr.binds.values(), key=lambda b: (b.detector_id, b.source_track_id)):
                 refs.append(
@@ -1262,8 +1584,12 @@ class MultisensorSession:
                     aircraftId=tr.aircraft_id,
                     longitude=lon,
                     latitude=lat,
-                    altitude=tr.last_altitude if tr.last_datum not in (None, "unknown") else None,
-                    altitudeDatum=tr.last_datum,
+                    altitude=snap_alt,
+                    altitudeDatum=snap_datum,
+                    altitudeMode=snap_amode,
+                    altitudeStateTime=_iso(tr.altitude_state_time) if tr.altitude_state_time else None,
+                    lastAltitudeObservedAt=_iso(tr.last_altitude_observed_at) if tr.last_altitude_observed_at else None,
+                    altitudeObservationIds=list(tr.altitude_observation_ids[-8:]) if self.enable_vertical else [],
                     speed=spd,
                     heading=hdg,
                     verticalSpeed=tr.vertical_speed,
@@ -1301,34 +1627,60 @@ class MultisensorSession:
 
 
 class MultisensorStore:
-    def __init__(self, cfg: dict):
+    def __init__(self, cfg: dict, *, clock=None):
         self.cfg = cfg
         self.sessions: dict[str, MultisensorSession] = {}
+        self.profiles: dict[str, str] = {}
         self.created: dict[str, datetime] = {}
+        self.last_active: dict[str, datetime] = {}
         self.lock = threading.RLock()
+        self._clock = clock or (lambda: datetime.now(timezone.utc))
 
-    def get(self, session_id: str) -> MultisensorSession:
+    def get(self, session_id: str, *, profile: str = PROFILE) -> MultisensorSession:
         with self.lock:
             self._evict()
             sess = self.sessions.get(session_id)
             if sess is None:
-                sess = MultisensorSession(session_id, self.cfg)
+                sess = MultisensorSession(session_id, self.cfg, profile=profile, clock=self._clock)
                 self.sessions[session_id] = sess
-                self.created[session_id] = datetime.now(timezone.utc)
+                self.profiles[session_id] = profile
+                now = self._clock()
+                self.created[session_id] = now
+                self.last_active[session_id] = now
+            else:
+                existing = self.profiles.get(session_id, PROFILE)
+                if existing != profile:
+                    # Caller maps this to HTTP 409 session_profile_conflict.
+                    raise ValueError("session_profile_conflict")
+                self.last_active[session_id] = self._clock()
             return sess
 
     def drop(self, session_id: str) -> None:
         with self.lock:
             self.sessions.pop(session_id, None)
+            self.profiles.pop(session_id, None)
             self.created.pop(session_id, None)
+            self.last_active.pop(session_id, None)
 
     def _evict(self) -> None:
-        ttl = float(self.cfg.get("session_ttl_s", 3600))
-        now = datetime.now(timezone.utc)
-        dead = [sid for sid, t0 in self.created.items() if (now - t0).total_seconds() > ttl]
+        # Idle TTL: recycle only sessions that have not been touched recently.
+        idle_ttl = float(self.cfg.get("session_idle_ttl_s", self.cfg.get("session_ttl_s", 3600)))
+        max_life = self.cfg.get("session_max_lifetime_s")
+        now = self._clock()
+        dead: list[str] = []
+        for sid, last in list(self.last_active.items()):
+            if (now - last).total_seconds() > idle_ttl:
+                dead.append(sid)
+                continue
+            if max_life is not None:
+                created = self.created.get(sid, last)
+                if (now - created).total_seconds() > float(max_life):
+                    dead.append(sid)
         for sid in dead:
             self.sessions.pop(sid, None)
+            self.profiles.pop(sid, None)
             self.created.pop(sid, None)
+            self.last_active.pop(sid, None)
 
 
 def _chunks_keeping_scans(ordered: list[dict]) -> list[list[dict]]:
@@ -1367,7 +1719,27 @@ def _max_instant(rows: list[dict]) -> Optional[datetime]:
     return max(times) if times else None
 
 
-def replay_job(cfg: dict, job_id: str, observations: list[dict], max_snapshots: int) -> ReplayResponse:
+def replay_job(
+    cfg: dict,
+    job_id: str,
+    observations: list[dict],
+    max_snapshots: int,
+    *,
+    fusion_profile: str = PROFILE,
+) -> ReplayResponse:
+    if fusion_profile not in SUPPORTED_PROFILES:
+        return ReplayResponse(
+            jobId=job_id,
+            fusionProfile=fusion_profile,
+            algorithmVersion=str(cfg.get("algorithmVersion")),
+            configVersion=str(cfg.get("configVersion")),
+            summary={"input": len(observations), "error": "unsupported_profile"},
+            snapshots=[],
+            trajectory=[],
+            events=[],
+            rejected=[],
+            error="unsupported_profile",
+        )
     ms = cfg.get("multisensor_v1") or {}
     limit = int(ms.get("max_replay_observations", 20000))
     version = str(cfg.get("algorithmVersion"))
@@ -1375,7 +1747,7 @@ def replay_job(cfg: dict, job_id: str, observations: list[dict], max_snapshots: 
     if len(observations) > limit:
         return ReplayResponse(
             jobId=job_id,
-            fusionProfile=PROFILE,
+            fusionProfile=fusion_profile,
             algorithmVersion=version,
             configVersion=config_version,
             summary={"input": len(observations), "error": "too_many_observations"},
@@ -1385,7 +1757,7 @@ def replay_job(cfg: dict, job_id: str, observations: list[dict], max_snapshots: 
             rejected=[],
             error="too_many_observations",
         )
-    sess = MultisensorSession(job_id, cfg)
+    sess = MultisensorSession(job_id, cfg, profile=fusion_profile)
     ordered = sorted(
         observations,
         key=lambda r: (
@@ -1396,9 +1768,11 @@ def replay_job(cfg: dict, job_id: str, observations: list[dict], max_snapshots: 
     groups = _chunks_keeping_scans(ordered)
     snapshots: list[dict] = []
     trajectory: list[dict] = []
+    altitude_updates: list[dict] = []
     rejected: list[dict] = []
     events: list[dict] = []
     seen_points: set[str] = set()
+    seen_alt: set[str] = set()
 
     def _collect(resp: ProcessResponse, pt: str) -> None:
         if resp.error:
@@ -1409,12 +1783,18 @@ def replay_job(cfg: dict, job_id: str, observations: list[dict], max_snapshots: 
                 "processingTime": pt,
                 "watermark": resp.watermark,
                 "tracks": [t.model_dump() for t in resp.tracks],
+                "altitudeUpdates": list(resp.altitudeUpdates or []),
             }
         )
         for point in resp.trajectoryUpdates:
             if point["pointId"] not in seen_points:
                 seen_points.add(point["pointId"])
                 trajectory.append(point)
+        for upd in resp.altitudeUpdates or []:
+            uid = upd.get("altitudeUpdateId")
+            if uid and uid not in seen_alt:
+                seen_alt.add(uid)
+                altitude_updates.append(upd)
         rejected.extend(item.model_dump() for item in resp.rejected)
         events.extend(item.model_dump() for item in resp.events)
 
@@ -1477,17 +1857,19 @@ def replay_job(cfg: dict, job_id: str, observations: list[dict], max_snapshots: 
         "distinct_fusion_ids": len(distinct_ids),
         "last_snapshot_track_count_is_not_total_targets": True,
         "trajectory_points": len(trajectory),
+        "altitude_updates": len(altitude_updates),
         "note": note or "sorted_replay_not_rts_smoother",
         "offline_vs_realtime": "offline sorts by measurementTime and flushes; realtime rejects observations behind the committed frontier",
     }
     return ReplayResponse(
         jobId=job_id,
-        fusionProfile=PROFILE,
+        fusionProfile=fusion_profile,
         algorithmVersion=version,
         configVersion=config_version,
         summary=summary,
         snapshots=snapshots,
         trajectory=trajectory,
+        altitudeUpdates=altitude_updates,
         events=events,
         rejected=rejected,
         error=error,

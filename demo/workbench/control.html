@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>TASK-008 轻量推流控制</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 24px; max-width: 720px; background: #0f1419; color: #e7ecf3; }
+    h1 { font-size: 1.25rem; }
+    button { margin-right: 8px; margin-top: 8px; padding: 8px 12px; cursor: pointer; }
+    pre { background: #1a2332; padding: 12px; overflow: auto; white-space: pre-wrap; border-radius: 6px; }
+    .hint { color: #9aa7b8; font-size: 0.9rem; }
+    a { color: #7db4ff; }
+  </style>
+</head>
+<body>
+  <h1>轻量推流控制（无大地图 / 不加载主 app）</h1>
+  <p class="hint">用于主页面卡死时精确停止当前 MQTT 作业并查看进度。关闭主标签页不会自动停止后台推流。终态作业仍可通过存储的 runId / recent 查看，不重发输入。</p>
+  <p>正式工作台：<a href="/">http://127.0.0.1:18099/</a></p>
+  <div>
+    <button id="btnRefresh" type="button">刷新状态</button>
+    <button id="btnStop" type="button">停止当前/存储作业</button>
+  </div>
+  <pre id="out">加载中…</pre>
+  <script>
+    const api = "";
+    const out = document.getElementById("out");
+    function storedRunId() {
+      try { return sessionStorage.getItem("task008_mqtt_runId"); } catch (_) { return null; }
+    }
+    async function resolveJob() {
+      const active = await fetch(api + "/v1/workbench/mqtt-stream/active").then((r) => r.json());
+      if (active.job?.runId) return { source: "active", job: active.job, expired: false };
+      const sid = storedRunId();
+      if (sid) {
+        const sr = await fetch(api + "/v1/workbench/mqtt-stream/" + encodeURIComponent(sid) + "/status");
+        if (sr.status === 404 || sr.status === 410) {
+          return { source: "stored", job: null, expired: true, storedId: sid, http: sr.status };
+        }
+        if (sr.ok) return { source: "stored", job: await sr.json(), expired: false, storedId: sid };
+      }
+      const recent = await fetch(api + "/v1/workbench/mqtt-stream/recent?limit=5").then((r) => r.json());
+      const job = (recent.jobs || [])[0] || null;
+      return { source: "recent", job, expired: false, recent: recent.jobs || [] };
+    }
+    async function refresh() {
+      const t0 = performance.now();
+      try {
+        const [ready, resolved] = await Promise.all([
+          fetch(api + "/ready").then((r) => r.json()),
+          resolveJob(),
+        ]);
+        const ms = Math.round(performance.now() - t0);
+        const job = resolved.job;
+        out.textContent = JSON.stringify(
+          {
+            controlLatencyMs: ms,
+            resolveSource: resolved.source,
+            storedRunId: storedRunId(),
+            expired: resolved.expired || false,
+            ready: {
+              status: ready.status,
+              algorithmVersion: ready.algorithmVersion,
+              configSha256: ready.configSha256,
+              multisensorModuleSha256: ready.multisensorModuleSha256,
+            },
+            job: job
+              ? {
+                  runId: job.runId,
+                  sessionId: job.sessionId,
+                  status: job.status,
+                  error: job.error,
+                  publishedObservations: job.publishedObservations,
+                  totalPlannedObservations: job.totalPlannedObservations,
+                  ackStored: job.ackStored,
+                  ackProcessed: job.ackProcessed,
+                  ackRejected: job.ackRejected,
+                  resultsReceived: job.resultsReceived,
+                  trajectoryPointIds: job.trajectoryPointIds,
+                  altitudePointIds: job.altitudePointIds,
+                  pendingDataMessages: job.pendingDataMessages,
+                  awaitingResultMessages: job.awaitingResultMessages,
+                  runEndDrained: job.runEndDrained,
+                  mqttConnected: job.mqttConnected,
+                  resultSubscribed: job.resultSubscribed,
+                  note: job.note,
+                }
+              : null,
+            recent: resolved.recent || undefined,
+            mqttRateNote: "StreamJob 发送固定 1× 墙钟（原始时刻差）；不是播放倍速 / Z×10。",
+          },
+          null,
+          2
+        );
+        return job;
+      } catch (e) {
+        out.textContent = "刷新失败：" + (e && e.message ? e.message : e);
+        return null;
+      }
+    }
+    document.getElementById("btnRefresh").onclick = () => refresh();
+    document.getElementById("btnStop").onclick = async () => {
+      const job = await refresh();
+      if (!job?.runId) {
+        out.textContent += "\n无活动/可恢复作业可停（若已过期请重新开局）。";
+        return;
+      }
+      if (["completed", "stopped", "failed"].includes(job.status)) {
+        out.textContent += "\n作业已终态，停止为幂等查看。";
+      }
+      const t0 = performance.now();
+      const r = await fetch(api + "/v1/workbench/mqtt-stream/" + encodeURIComponent(job.runId) + "/stop", {
+        method: "POST",
+      });
+      const j = await r.json();
+      const ms = Math.round(performance.now() - t0);
+      out.textContent =
+        "stopAcceptedMs=" + ms + " HTTP " + r.status + "\n" + JSON.stringify(j, null, 2);
+      setTimeout(refresh, 500);
+    };
+    refresh();
+    setInterval(refresh, 2000);
+  </script>
+</body>
+</html>

@@ -4,17 +4,17 @@ import json
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional  # noqa: F401 — Optional used by path helpers
+from typing import Any, Optional
 from uuid import uuid4
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .engine import SessionStore, load_config
 from .models import ProcessRequest, ProcessResponse, ReplayRequest, ReplayResponse
-from .multisensor import PROFILE, MultisensorStore, replay_job
+from .multisensor import PROFILE, PROFILE_3D, SUPPORTED_PROFILES, MultisensorStore, replay_job
 from .workbench.importer import MappingTemplate, ObsFilter, import_sql_stream, import_tabular, page_observations
 from .workbench.runner import WorkbenchRunner
 from .workbench.scenario import (
@@ -129,7 +129,7 @@ def ready():
         "algorithmVersion": CFG["algorithmVersion"],
         "configVersion": CFG["configVersion"],
         "stateOwner": "single-process-SessionStore",
-        "supportedProfiles": ["legacy", PROFILE],
+        "supportedProfiles": ["legacy", PROFILE, PROFILE_3D],
         "reorderWindowSeconds": float(CFG["reorder_window_s"]),
         "configSha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
         "multisensorModuleSha256": hashlib.sha256(module_path.read_bytes()).hexdigest(),
@@ -155,15 +155,87 @@ def _raise_for_process(resp: ProcessResponse) -> None:
         raise HTTPException(status_code=413, detail=resp.model_dump())
 
 
+class WriteOwnerTransferRequest(BaseModel):
+    owner: str
+    fromOwner: Optional[str] = None
+    expectedGeneration: Optional[int] = None
+    reason: Optional[str] = None
+
+
+@app.get("/v1/fusion/session/{session_id}/write-owner")
+def get_write_owner(session_id: str):
+    from .integration.write_fence import core_get_state
+
+    st = core_get_state(session_id)
+    return {"sessionId": session_id, **st}
+
+
+@app.post("/v1/fusion/session/{session_id}/write-owner")
+@app.post("/v1/fusion/session/{session_id}/handover")
+def transfer_write_owner(session_id: str, body: WriteOwnerTransferRequest):
+    """Formal MQTT↔HTTP write-owner transfer (bumps generation; old generation invalid)."""
+    from .integration.write_fence import transfer_owner
+
+    try:
+        st = transfer_owner(
+            session_id,
+            new_owner=body.owner,
+            expected_generation=body.expectedGeneration,
+            from_owner=body.fromOwner,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"error": str(exc), "sessionId": session_id}) from exc
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": str(exc), "sessionId": session_id},
+        ) from exc
+    return {**st, "reason": body.reason}
+
+
 @app.post("/v1/fusion/process", response_model=ProcessResponse)
-def process(req: ProcessRequest):
+def process(
+    req: ProcessRequest,
+    x_fusion_channel: Optional[str] = Header(default=None, alias="X-Fusion-Channel"),
+    x_fusion_write_generation: Optional[str] = Header(
+        default=None, alias="X-Fusion-Write-Generation"
+    ),
+):
+    # Core-owned session fence (works across uvicorn + adapter processes via channel header).
+    try:
+        from .integration.write_fence import check_and_claim, resolve_channel
+
+        channel = resolve_channel(req.sessionId, x_fusion_channel)
+        gen = None
+        if x_fusion_write_generation is not None and str(x_fusion_write_generation).strip() != "":
+            try:
+                gen = int(x_fusion_write_generation)
+            except ValueError as exc:
+                raise HTTPException(
+                    status_code=400,
+                    detail={"error": "invalid_write_generation", "sessionId": req.sessionId},
+                ) from exc
+        denied = check_and_claim(req.sessionId, channel=channel, generation=gen)
+        if denied is not None:
+            raise HTTPException(status_code=409, detail=denied)
+    except ImportError:
+        pass
     profile = req.fusionProfile or "legacy"
-    if profile not in {"legacy", PROFILE}:
+    if profile not in {"legacy", *SUPPORTED_PROFILES}:
         raise HTTPException(status_code=422, detail={"error": "unsupported_profile", "fusionProfile": profile})
-    if profile == PROFILE:
+    if profile in SUPPORTED_PROFILES:
         if req.sessionId in STORE.sessions:
             raise HTTPException(status_code=409, detail={"error": "session_profile_conflict", "sessionId": req.sessionId})
-        resp = MS_STORE.get(req.sessionId).process(req.batchId, req.processingTime, req.observations, req.mode)
+        try:
+            sess = MS_STORE.get(req.sessionId, profile=profile)
+        except ValueError as exc:
+            if str(exc) == "session_profile_conflict":
+                raise HTTPException(
+                    status_code=409,
+                    detail={"error": "session_profile_conflict", "sessionId": req.sessionId},
+                ) from exc
+            raise
+        resp = sess.process(req.batchId, req.processingTime, req.observations, req.mode)
         _raise_for_process(resp)
         return resp
     if req.sessionId in MS_STORE.sessions:
@@ -176,11 +248,13 @@ def process(req: ProcessRequest):
 
 @app.post("/v1/fusion/replay", response_model=ReplayResponse)
 def fusion_replay(req: ReplayRequest):
-    if req.fusionProfile != PROFILE:
+    if req.fusionProfile not in SUPPORTED_PROFILES:
         raise HTTPException(status_code=422, detail={"error": "unsupported_profile", "fusionProfile": req.fusionProfile})
     if req.maxSnapshots < 1:
         raise HTTPException(status_code=400, detail={"error": "invalid_max_snapshots"})
-    resp = replay_job(CFG, req.jobId, req.observations, req.maxSnapshots)
+    resp = replay_job(
+        CFG, req.jobId, req.observations, req.maxSnapshots, fusion_profile=req.fusionProfile
+    )
     if resp.error == "too_many_observations":
         raise HTTPException(status_code=413, detail=resp.model_dump())
     if resp.error in {"invalid_processing_time", "processing_time_not_monotonic"}:
@@ -358,6 +432,9 @@ def _default_mapping(raw_map: dict) -> MappingTemplate:
     }
     fm = dict(base)
     fm.update((raw_map or {}).get("field_map") or {})
+    sn_ver = str((raw_map or {}).get("sn_mapping_version") or "").strip()
+    if not sn_ver:
+        sn_ver = "company_source_id_sn_v1"
     return MappingTemplate(
         field_map=fm,
         assume_utc_naive=bool((raw_map or {}).get("assume_utc_naive")),
@@ -365,6 +442,8 @@ def _default_mapping(raw_map: dict) -> MappingTemplate:
         treat_raw_id_as_aircraftId=bool((raw_map or {}).get("treat_raw_id_as_aircraftId")),
         detectorId=(raw_map or {}).get("detectorId"),
         time_unit=(raw_map or {}).get("time_unit") or "auto",
+        altitude_mapping_version=str((raw_map or {}).get("altitude_mapping_version") or ""),
+        sn_mapping_version=sn_ver,
     )
 
 
@@ -555,6 +634,10 @@ def run_import(req: ImportRunRequest):
     """Formal replay: re-parse original file with request maxRows + mapping (ignore preview cache)."""
     path = _resolve_data_path(req.path)
     tmpl = _default_mapping(req.mapping or {})
+    profile = req.fusionProfile or "legacy"
+    # Auto-enable versioned DB altitude→MSL for 3d profile unless mapping opts out.
+    if profile == PROFILE_3D and not (tmpl.altitude_mapping_version or "").strip():
+        tmpl.altitude_mapping_version = "database_altitude_msl_v1"
     filt = _filt_from_args(
         time_from=req.timeFrom,
         time_to=req.timeTo,
@@ -571,8 +654,10 @@ def run_import(req: ImportRunRequest):
     observations = summary.get("observations") or []
     if not observations:
         raise HTTPException(400, detail={"error": "no_valid_observations", "summary": summary})
-    if (req.fusionProfile or "legacy") == PROFILE:
-        replayed = replay_job(CFG, f"import-{path.stem}", observations, max_snapshots=2000)
+    if profile in SUPPORTED_PROFILES:
+        replayed = replay_job(
+            CFG, f"import-{path.stem}", observations, max_snapshots=2000, fusion_profile=profile
+        )
         if replayed.error:
             raise HTTPException(400, detail=replayed.model_dump())
         snaps = [
@@ -581,6 +666,7 @@ def run_import(req: ImportRunRequest):
                 "processingTime": s.get("processingTime"),
                 "watermark": s.get("watermark"),
                 "tracks": s.get("tracks") or [],
+                "altitudeUpdates": s.get("altitudeUpdates") or [],
                 "error": None,
                 "counts_at": {},
             }
@@ -591,19 +677,21 @@ def run_import(req: ImportRunRequest):
             "runId": replayed.jobId,
             "epoch": None,
             "mode": req.mode,
-            "fusionProfile": PROFILE,
+            "fusionProfile": profile,
             "algorithmVersion": replayed.algorithmVersion,
             "configVersion": replayed.configVersion,
             "snapshots": snaps,
             "rejected": replayed.rejected,
             "events": replayed.events,
+            "altitudeUpdates": replayed.altitudeUpdates,
             "final_tracks": snaps[-1]["tracks"] if snaps else [],
             "counts": replayed.summary,
             "evaluation": None,
             "truth_leaked_to_algorithm": False,
+            "altitudeMappingVersion": tmpl.altitude_mapping_version or None,
         }
-    elif req.fusionProfile not in (None, "", "legacy"):
-        raise HTTPException(422, detail={"error": "unsupported_profile", "fusionProfile": req.fusionProfile})
+    elif profile not in (None, "", "legacy"):
+        raise HTTPException(422, detail={"error": "unsupported_profile", "fusionProfile": profile})
     else:
         result = RUNNER.run_batch_replay(observations, mode=req.mode, batch_size=25)
     result["n_observations"] = len(observations)
@@ -613,6 +701,7 @@ def run_import(req: ImportRunRequest):
         "n_errors": summary.get("n_errors"),
         "errors_sample": summary.get("errors_sample"),
         "mapping_fp": tmpl.fingerprint(),
+        "altitude_mapping_version": tmpl.altitude_mapping_version or None,
         "preview_only": False,
         "maxRows": req.maxRows,
         "filters": filt.to_dict(),
@@ -717,7 +806,10 @@ def mapping_default():
         "altitude": ["altitude"],
         "aircraftId": ["aircraftId"],
         "receivedAt": ["receivedAt"],
-    }, "note": "候选≠厂家已确认；aerial_sn/tcp 不作 SN"}
+    }, "note": (
+        "公司默认 company_source_id_sn_v1：RID/频谱 id=SN，雷达 id=局部目标ID；"
+        "confirmed_sn_v1 仍可选。海拔 database_altitude_msl_v1=USER_ASSUMED（设备基准未核实）。"
+    )}
 
 
 @app.post("/v1/workbench/mapping/save")
@@ -851,6 +943,222 @@ def run_local(req: ImportRunRequest):
     return run_import(req)
 
 
+class MqttStreamStartRequest(BaseModel):
+    path: str
+    fusionProfile: str = "multisensor-3d-v1"
+    altitudeMappingVersion: str = "database_altitude_msl_v1"
+    snMappingVersion: str = "company_source_id_sn_v1"
+    sourceTimezone: str = "Asia/Shanghai"
+    maxObservations: int = 0  # 0 = all; short verify may pass ~120+
+    sessionId: Optional[str] = None
+
+
+@app.post("/v1/workbench/mqtt-stream/start")
+def mqtt_stream_start(req: MqttStreamStartRequest):
+    """Start 1× real MQTT stream job from uploaded/local CSV (server-side)."""
+    from fusion_mvp.workbench.mqtt_stream_job import MANAGER
+
+    path = _resolve_data_path(req.path)
+    try:
+        job = MANAGER.start(
+            csv_path=path,
+            fusion_profile=req.fusionProfile or "multisensor-3d-v1",
+            altitude_mapping=req.altitudeMappingVersion or "database_altitude_msl_v1",
+            sn_mapping=req.snMappingVersion or "company_source_id_sn_v1",
+            source_timezone=req.sourceTimezone or "Asia/Shanghai",
+            max_observations=int(req.maxObservations or 0),
+            session_id=req.sessionId,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(409, detail={"error": str(exc)}) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(404, detail={"error": "file_not_found", "path": str(exc)}) from exc
+    return {"ok": True, "job": job.snapshot(), "buildLabel": "联调候选开发版"}
+
+
+@app.post("/v1/workbench/mqtt-stream/{run_id}/stop")
+def mqtt_stream_stop(run_id: str):
+    from fusion_mvp.workbench.mqtt_stream_job import MANAGER
+
+    try:
+        job = MANAGER.stop(run_id)
+    except KeyError as exc:
+        raise HTTPException(404, detail={"error": "run_not_found"}) from exc
+    return {"ok": True, "job": job.snapshot()}
+
+
+@app.post("/v1/workbench/mqtt-stream/{run_id}/restart")
+def mqtt_stream_restart(run_id: str):
+    from fusion_mvp.workbench.mqtt_stream_job import MANAGER
+
+    try:
+        job = MANAGER.restart(run_id)
+    except KeyError as exc:
+        raise HTTPException(404, detail={"error": "run_not_found"}) from exc
+    except RuntimeError as exc:
+        raise HTTPException(409, detail={"error": str(exc)}) from exc
+    return {"ok": True, "job": job.snapshot()}
+
+
+@app.get("/v1/workbench/mqtt-stream/{run_id}/status")
+def mqtt_stream_status(run_id: str):
+    from fusion_mvp.workbench.mqtt_stream_job import MANAGER
+
+    job = MANAGER.get(run_id)
+    if not job:
+        raise HTTPException(404, detail={"error": "run_not_found"})
+    return job.snapshot()
+
+
+@app.get("/v1/workbench/mqtt-stream/{run_id}/ledger")
+def mqtt_stream_ledger(run_id: str):
+    """Slim durable per-observation destinations (survives event-buffer trim)."""
+    from fusion_mvp.workbench.mqtt_stream_job import MANAGER
+
+    job = MANAGER.get(run_id)
+    if not job:
+        raise HTTPException(404, detail={"error": "run_not_found"})
+    return job.slim_ledger()
+
+
+@app.get("/v1/workbench/mqtt-stream/active")
+def mqtt_stream_active():
+    from fusion_mvp.workbench.mqtt_stream_job import MANAGER
+
+    job = MANAGER.active()
+    return {"job": job.snapshot() if job else None}
+
+
+@app.get("/v1/workbench/mqtt-stream/recent")
+def mqtt_stream_recent(limit: int = 8):
+    """List recent jobs including terminal ones for reopen / light control."""
+    from fusion_mvp.workbench.mqtt_stream_job import MANAGER
+
+    jobs = MANAGER.recent(limit)
+    return {"jobs": [j.snapshot() for j in jobs]}
+
+
+@app.get("/v1/workbench/mqtt-stream/{run_id}/events")
+def mqtt_stream_events(run_id: str, afterSeq: int = 0, shardOffset: int = 0):
+    """Poll incremental MQTT events with count+UTF-8 byte budget and result shards.
+
+    Large result bodies are slimmed (tracks without committedHistory) and, if still
+    over budget, returned as shards of trajectory/altitude updates. Consumers must
+    finish shards (payload.shard.complete) before advancing past that seq — never a
+    body-less oversized stub that drops points/evidence.
+    """
+    import json as _json
+
+    from fusion_mvp.workbench.mqtt_stream_job import (
+        MANAGER,
+        _EVENT_PAGE_MAX_BYTES,
+        _EVENT_PAGE_MAX_COUNT,
+        _EVENT_SINGLE_MAX_BYTES,
+        project_result_event_shard,
+        _utf8_json_bytes,
+    )
+
+    job = MANAGER.get(run_id)
+    if not job:
+        raise HTTPException(404, detail={"error": "run_not_found"})
+    page = job.events_page(int(afterSeq or 0))
+    raw_evs = page["events"]
+    evs: list = []
+    used = 2  # []
+    truncated = False
+    shard_incomplete = False
+    next_shard_offset = 0
+    shard_seq: int | None = None
+    for idx, ev in enumerate(raw_evs):
+        so = int(shardOffset or 0) if idx == 0 else 0
+        # Leave headroom for envelope fields around the event list.
+        page_room = max(1024, _EVENT_PAGE_MAX_BYTES - used - 512)
+        single_cap = min(_EVENT_SINGLE_MAX_BYTES, page_room)
+        projected, complete, next_off = project_result_event_shard(
+            ev, shard_offset=so, max_bytes=single_cap
+        )
+        nbytes = _utf8_json_bytes(projected)
+        if len(evs) >= _EVENT_PAGE_MAX_COUNT or used + nbytes > _EVENT_PAGE_MAX_BYTES:
+            if not evs:
+                # Empty page + still over budget: re-project under hard page room (never pass-through).
+                hard_cap = max(2048, _EVENT_PAGE_MAX_BYTES - 1024)
+                projected, complete, next_off = project_result_event_shard(
+                    ev, shard_offset=so, max_bytes=hard_cap
+                )
+                nbytes = _utf8_json_bytes(projected)
+                if nbytes > _EVENT_PAGE_MAX_BYTES:
+                    # Explicit constrained error — do not advance cursor as if complete.
+                    return {
+                        "runId": run_id,
+                        "events": [],
+                        "oldestSeq": page["oldestSeq"],
+                        "latestSeq": page["latestSeq"],
+                        "nextSeq": int(afterSeq or 0),
+                        "hasMore": True,
+                        "gap": page["gap"],
+                        "gapRecovery": page.get("gapRecovery"),
+                        "completePrefix": page.get("completePrefix"),
+                        "truncated": True,
+                        "shardIncomplete": True,
+                        "nextShardOffset": int(so),
+                        "shardSeq": int(ev.get("seq") or 0),
+                        "byteBudget": _EVENT_PAGE_MAX_BYTES,
+                        "countBudget": _EVENT_PAGE_MAX_COUNT,
+                        "singleEventByteBudget": _EVENT_SINGLE_MAX_BYTES,
+                        "responseApproxBytes": 0,
+                        "transportError": "single_event_exceeds_page_byte_budget",
+                        "oversizedEvents": [
+                            {
+                                "seq": int(ev.get("seq") or 0),
+                                "approxBytes": nbytes,
+                                "hint": "evidence_or_body_exceeds_budget_after_bound",
+                            }
+                        ],
+                        "job": job.snapshot(),
+                    }
+            else:
+                truncated = True
+                break
+        evs.append(projected)
+        used += nbytes
+        if not complete:
+            shard_incomplete = True
+            next_shard_offset = next_off
+            shard_seq = int(projected.get("seq") or 0)
+            # Do not include further events until this seq's shards finish.
+            truncated = True
+            break
+    # nextSeq advances only for fully consumed events (shard complete).
+    if shard_incomplete and shard_seq is not None:
+        # Stay on current seq for next shard fetch (afterSeq stays previous).
+        next_seq = int(afterSeq or 0)
+    else:
+        next_seq = int(evs[-1]["seq"]) if evs else int(afterSeq or 0)
+    return {
+        "runId": run_id,
+        "events": evs,
+        "oldestSeq": page["oldestSeq"],
+        "latestSeq": page["latestSeq"],
+        "nextSeq": next_seq,
+        "hasMore": truncated
+        or shard_incomplete
+        or (next_seq < int(page["latestSeq"] or 0)),
+        "gap": page["gap"],
+        "gapRecovery": page.get("gapRecovery"),
+        "completePrefix": page.get("completePrefix"),
+        "truncated": truncated or shard_incomplete,
+        "shardIncomplete": shard_incomplete,
+        "nextShardOffset": next_shard_offset if shard_incomplete else 0,
+        "shardSeq": shard_seq,
+        "byteBudget": _EVENT_PAGE_MAX_BYTES,
+        "countBudget": _EVENT_PAGE_MAX_COUNT,
+        "singleEventByteBudget": _EVENT_SINGLE_MAX_BYTES,
+        "responseApproxBytes": used,
+        "oversizedEvents": [],
+        "job": job.snapshot(),
+    }
+
+
 @app.get("/")
 def index():
     page = ROOT / "demo" / "workbench" / "index.html"
@@ -860,6 +1168,23 @@ def index():
     if legacy.exists():
         return FileResponse(legacy)
     return JSONResponse({"service": "fusion-mvp"})
+
+
+@app.get("/demo/workbench")
+@app.get("/demo/workbench/")
+def workbench_entry():
+    """Canonical product entry alias (browsers historically used /demo/workbench/)."""
+    return index()
+
+
+@app.get("/demo/workbench/control.html")
+@app.get("/control")
+def workbench_control_light():
+    """Lightweight MQTT stop/status page (no map / no main app.js)."""
+    page = ROOT / "demo" / "workbench" / "control.html"
+    if page.exists():
+        return FileResponse(page)
+    raise HTTPException(404, detail={"error": "control_page_missing"})
 
 
 @app.get("/demo")

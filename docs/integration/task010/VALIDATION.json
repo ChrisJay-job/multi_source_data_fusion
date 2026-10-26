@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-26",
+  "verifiedSourceBundle": "82d5536a0e9104def9ba2194c1bf8d5adebc31c93a388ab5041b433aa4bc80c7",
+  "modelFieldsDocumented": 100,
+  "modelCoverage": "PASS",
+  "composeYamlSyntax": "PASS",
+  "examplePythonSyntax": "PASS",
+  "generatedRequestValidation": [
+    "mqtt-run-start.json",
+    "mqtt-run-end.json",
+    "http-replay.json",
+    "http-flush.json",
+    "http-process.json",
+    "mqtt-input.json"
+  ],
+  "networkSent": false,
+  "dockerBuild": "NOT_TESTED_IN_THIS_WORKSPACE",
+  "companyLinuxDeploy": "NOT_EXECUTED",
+  "gitMergePush": "DELEGATED_TO_AUTHORIZED_CURSOR_EXECUTION",
+  "postflightStitchEndpoint": "NOT_IMPLEMENTED"
+}

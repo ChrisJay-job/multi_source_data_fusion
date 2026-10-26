@@ -6,8 +6,15 @@
 # local runtime / bulky data / secrets
 data/*.sql
 data/*.dump
+data/*.csv
+data/*.xls
+data/*.xlsx
+data/*.jsonl
+data/*.sqlite3
+data/*.db
 data/uploads/*
 !data/uploads/.gitkeep
+data/task008/
 __pycache__/
 .pytest_cache/
 .venv/
@@ -19,13 +26,27 @@ docker/pgdata/
 .env
 .env.*
 !.env.example
+!deploy/integration/env.integration.example
+!config/task008.env.example
 *.pem
 *.key
 credentials*.json
+config/passwd*
+**/passwd_task008
+deploy/integration/.env.integration
+deploy/integration/data/
+
+# docker image exports / large artifacts
+*.tar
+*.tar.gz
+!docs/**/*.tar.gz
+reports/task010/artifacts/*.tar
+reports/task010/artifacts/*.tar.gz
 
 # historical review archives stay local (do not commit 2GB / large zips)
 *.zip
 !docs/**/*.zip
+review_zip/
 
 # IDE / OS
 .idea/

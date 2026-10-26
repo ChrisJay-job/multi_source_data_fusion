@@ -1,9 +1,29 @@
 import { MapView, computeZoomAt, MAP_ZOOM_FACTOR, MAP_MIN_SCALE, MAP_MAX_SCALE } from "./canvas.js";
+import { Track3DView } from "./track3d.js";
+import {
+  buildTargetGroups,
+  filterTargetGroups,
+  pageSlice,
+  renderTargetListPage,
+  compactResultSummaryHtml,
+  trackCardHtml,
+  PAGE_DEFAULT,
+  escapeHtml,
+  shortFid,
+} from "./ux_panel.js";
+import {
+  queryDisplayPoints,
+  summarizeTrackDisplay,
+  isUsableMslAltitude,
+  parseTimeMs,
+} from "./ux_query.js";
 
 const api = "";
 const DEFAULT_SCENARIO = "seven_aircraft_combinations";
 const SRC_LABEL = { rid: "RID", spectrum: "频谱", radar: "雷达" };
 const map = new MapView(document.getElementById("cv"));
+const track3d = document.getElementById("cv3d") ? new Track3DView(document.getElementById("cv3d")) : null;
+let viewMode = "2d";
 let runState = null;
 let playTimer = null;
 let importMeta = null;
@@ -13,8 +33,63 @@ let pinnedDetail = null;
 let dirtyDraft = false;
 let runReqSeq = 0;
 let staleRunKeep = null; // previous run kept visibly as "旧运行"
+/** @type {string|null} UI selection (run-scoped full fusionId) */
+let uxSelectedFusionId = null;
+/** Checked target keys preserved across pages (not only current DOM). */
+let uxCheckedTargetIds = new Set();
+let uxTargetGroups = [];
+let uxTargetPage = 1;
+let uxTargetPageSize = PAGE_DEFAULT;
+let uxTargetSearch = "";
+let uxTargetStatus = "";
+let uxTargetSource = "";
+let uxOnlySelected = false;
+let uxShowUnlinkedRaw = false;
+let uxPointPage = 1;
+const UX_POINT_PAGE_SIZE = 50;
+/** When true, ptFilterFid is user-locked and not overwritten by selection. */
+let uxPointFilterLocked = false;
+/** Show full saved history in point table / alt chart (explicit; default = cursor-bounded). */
+let uxFullHistoryView = false;
 
 map.onPick = (obj, kind) => {
+  if (kind === "fusion_point") {
+    // Historical committed point: pin by pointId; do not overwrite with current track on clock tick.
+    pinnedDetail = { ...obj, _pinKind: "fusion_point", pointId: obj.pointId };
+    map.setSelectedFusionId(obj.fusionId || null);
+    renderInspector(obj, kind);
+    document.getElementById("detail").textContent = JSON.stringify(
+      {
+        kind: "fusion_point",
+        pointId: obj.pointId,
+        fusionId: obj.fusionId,
+        stateTime: obj.stateTime,
+        longitude: obj.longitude,
+        latitude: obj.latitude,
+        altitude: obj.altitude,
+        altitudeDatum: obj.altitudeDatum,
+        altitudeMode: obj.altitudeMode,
+        altitudeObservationIds: obj.altitudeObservationIds,
+        observationIds: obj.observationIds,
+        positionMode: obj.positionMode,
+        linkedObservations: obj._linkedObservations || [],
+      },
+      null,
+      2
+    );
+    const links = (obj._linkedObservations || [])
+      .map(
+        (o) =>
+          `<div>输入 ${o.source}/${o.detectorId}/${o.sourceTrackId} alt=${o.altitude ?? "null"} datum=${o.altitudeDatum || "?"} @ ${o.measurementTime}</div>`
+      )
+      .join("");
+    document.getElementById("assoc").innerHTML =
+      links ||
+      `<div>observationIds=${(obj.observationIds || []).join(",") || "—"}（原始观测未在当前页缓存）</div>`;
+    drawAltitudeChart(obj.fusionId);
+    if (typeof syncTrack3dSelection === "function") syncTrack3dSelection(obj);
+    return;
+  }
   if (kind === "track" || obj.fusionId) {
     pinnedDetail = obj;
     map.setSelectedFusionId(obj.fusionId || null);
@@ -32,6 +107,34 @@ map.onPick = (obj, kind) => {
   } else {
     document.getElementById("assoc").innerHTML = rows.join("") || "无";
   }
+};
+
+map._pendingCandidates = null;
+map.onPickCandidates = (candidates, best) => {
+  map._pendingCandidates = candidates;
+  const box = document.getElementById("pickCandidates");
+  if (box) {
+    box.innerHTML =
+      `<div class="hint">重叠候选（点击切换；未自动覆盖）</div>` +
+      candidates
+        .map(
+          (c, i) =>
+            `<button type="button" class="cand" data-i="${i}">[${c.kind}] ${c.label} · ${c.d.toFixed(1)}px</button>`
+        )
+        .join("");
+    box.querySelectorAll("button.cand").forEach((btn) => {
+      btn.onclick = () => {
+        const c = map._pendingCandidates?.[Number(btn.dataset.i)];
+        if (!c) return;
+        map.onPick(c.obj, c.kind);
+      };
+    });
+  }
+  document.getElementById("detail").textContent =
+    `重叠候选 ${candidates.length} 个 — 请在候选列表中选择\n` +
+    candidates.map((c, i) => `${i + 1}. [${c.kind}] ${c.label}`).join("\n") +
+    `\n\n最近项预览:\n` +
+    JSON.stringify({ kind: best.kind, pointId: best.obj?.pointId, observationId: best.obj?.observationId }, null, 2);
 };
 
 function setFocusStatus(msg, ok = true) {
@@ -63,6 +166,11 @@ function resolveFusionId(explicit) {
   };
   if (explicit) return tryMap(explicit);
   if (pinnedDetail?.fusionId) return String(pinnedDetail.fusionId);
+  const mapSel =
+    (typeof map?.selectedFusionId === "string" && map.selectedFusionId) ||
+    (typeof map?.getSelectedFusionId === "function" && map.getSelectedFusionId()) ||
+    null;
+  if (mapSel) return tryMap(mapSel);
   const checked = [...document.querySelectorAll(".tfilt:checked")].map((c) => c.dataset.id).filter(Boolean);
   if (checked.length === 1) return tryMap(checked[0]);
   return null;
@@ -75,6 +183,15 @@ function locateSelectedTrack(explicitFid) {
     return;
   }
   map.setSelectedFusionId(fid);
+  if (viewMode === "3d" && track3d) {
+    const rs = typeof runState !== "undefined" ? runState : null;
+    const r =
+      typeof track3d.centerOnFusionId === "function"
+        ? track3d.centerOnFusionId(fid, rs)
+        : { ok: false, message: "三维定位未就绪" };
+    setFocusStatus(r.message || (r.ok ? "三维定位完成" : "三维定位失败"), !!r.ok);
+    return;
+  }
   const r = map.centerOnFusionId(fid);
   setFocusStatus(r.message || (r.ok ? "定位完成" : "定位失败"), !!r.ok);
 }
@@ -86,6 +203,15 @@ function viewSelectedTrackHistory(explicitFid) {
     return;
   }
   map.setSelectedFusionId(fid);
+  if (viewMode === "3d" && track3d) {
+    const rs = typeof runState !== "undefined" ? runState : null;
+    const r =
+      typeof track3d.fitFusionTrackHistory === "function"
+        ? track3d.fitFusionTrackHistory(fid, rs)
+        : { ok: false, message: "三维航迹聚焦未就绪" };
+    setFocusStatus(r.message || (r.ok ? "三维航迹聚焦完成" : "三维航迹聚焦失败"), !!r.ok);
+    return;
+  }
   const r = map.fitFusionTrackHistory(fid);
   setFocusStatus(r.message || (r.ok ? "航迹聚焦完成" : "航迹聚焦失败"), !!r.ok);
 }
@@ -132,29 +258,75 @@ function renderInspector(obj, kind) {
   }
   if (kind === "obs") {
     // Never substitute aircraft motion speed for device-reported speed
+    const src = String(obj.source || "").toLowerCase();
+    const snLabel = src === "radar" ? "雷达目标ID(非SN)" : "SN（原始id）";
+    const idLabel = src === "radar" ? "雷达局部ID" : "源跟踪ID(=SN时与左同)";
     const rows = [
       ["source", obj.source],
-      ["sourceTrackId", obj.sourceTrackId],
+      [idLabel, obj.sourceTrackId],
+      [snLabel, src === "radar" ? (obj.sourceTrackId || null) : (emptyField(obj.aircraftId) ? null : obj.aircraftId)],
       ["aircraftId", emptyField(obj.aircraftId) ? null : obj.aircraftId],
       ["observationId", obj.observationId],
       ["measurementTime", obj.measurementTime],
+      ["原始时间(rawRef)", obj.rawRef?.originalMeasurementTime],
       ["longitude", obj.longitude],
       ["latitude", obj.latitude],
-      ["altitude", obj.altitude],
+      ["altitude(约定MSL)", obj.altitude],
+      ["altitudeDatum", obj.altitudeDatum],
+      ["rawAltitude", obj.rawAltitude ?? obj.rawRef?.dbAltitude],
+      ["dbHeight", obj.rawRef?.dbHeight],
       ["speed", obj.speed],
       ["heading", obj.heading],
       ["verticalSpeed", obj.verticalSpeed],
       ["detectorId", obj.detectorId],
       ["receivedAt", obj.receivedAt],
     ];
-    box.innerHTML = `<div><b>观测检查器</b> <span class="tag">${SRC_LABEL[obj.source] || obj.source}</span></div>` +
+    box.innerHTML = `<div><b>观测检查器</b> <span class="tag">${SRC_LABEL[obj.source] || obj.source}</span> <span class="tag">按数据库约定，设备基准未核实</span></div>` +
       rows.map(([k, v]) => {
-        const isMotion = k === "altitude" || k === "speed" || k === "heading" || k === "verticalSpeed";
+        const isMotion = String(k).startsWith("altitude") || k === "speed" || k === "heading" || k === "verticalSpeed" || k === "rawAltitude" || k === "dbHeight";
         if (isMotion) return `<div><span class="k">${k}</span>：${fmtObsField(v)}</div>`;
         if (emptyField(v)) return `<div><span class="k">${k}</span>：${fmtObsField(null)}</div>`;
         return `<div><span class="k">${k}</span>：${v}</div>`;
       }).join("");
     // Always refresh/clear explain when clicking a new observation (R1-04).
+    renderExplainAssoc(obj, kind);
+    return;
+  }
+  if (kind === "fusion_point") {
+    const evidence = Array.isArray(obj.evidence) ? obj.evidence : [];
+    const ev0 = evidence[0] || {};
+    const snFromEv = evidence.map((e) => e?.aircraftId).find((x) => x != null && x !== "") || null;
+    const sn = !emptyField(obj.aircraftId) ? obj.aircraftId : snFromEv;
+    const origT = ev0.rawRef?.originalMeasurementTime || obj.rawRef?.originalMeasurementTime || null;
+    const simT = ev0.rawRef?.simulatedMeasurementTime || obj.stateTime || null;
+    const evRows = evidence
+      .map(
+        (e) =>
+          `<div>· ${SRC_LABEL[e.source] || e.source}/${e.sourceTrackId || "—"} SN=${e.aircraftId || "(无)"} oid=${e.observationId || "—"} ` +
+          `lon=${e.longitude ?? "—"} lat=${e.latitude ?? "—"} alt=${e.altitude ?? "—"} ` +
+          `原时=${e.rawRef?.originalMeasurementTime || "—"} 模拟=${e.rawRef?.simulatedMeasurementTime || e.measurementTime || "—"}</div>`
+      )
+      .join("");
+    box.innerHTML = [
+      `<div><b>融合点</b> pointId=<span class="k">${obj.pointId || "—"}</span> · fusionId=<span class="k">${obj.fusionId || ""}</span></div>`,
+      `<div>SN=${sn || "(无)"} <span class="tag">按数据库约定，设备基准未核实</span></div>`,
+      `<div class="row tight track-focus-actions">` +
+        `<button type="button" id="btnLocateTrack" data-fid="${obj.fusionId || ""}">定位</button>` +
+        `<button type="button" id="btnViewTrackHist" data-fid="${obj.fusionId || ""}">查看航迹</button>` +
+      `</div>`,
+      `<div>stateTime=${obj.stateTime || "—"} · 原时=${origT || "—"} · 模拟=${simT || "—"}</div>`,
+      `<div>lon=${obj.longitude ?? "—"} lat=${obj.latitude ?? "—"} altitude=${obj.altitude ?? "—"} datum=${obj.altitudeDatum || "?"}</div>`,
+      `<div><b>本点贡献证据</b>（${evidence.length}）</div>`,
+      evRows || "<div class='muted'>无 evidence</div>",
+    ].join("");
+    document.getElementById("btnLocateTrack")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      locateSelectedTrack(ev.currentTarget.dataset.fid);
+    });
+    document.getElementById("btnViewTrackHist")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      viewSelectedTrackHistory(ev.currentTarget.dataset.fid);
+    });
     renderExplainAssoc(obj, kind);
     return;
   }
@@ -287,16 +459,244 @@ document.querySelectorAll(".tab").forEach((btn) => {
   };
 });
 
+function twoDCanvasVisible() {
+  const w2 = document.getElementById("wrap2d");
+  return !w2 || !w2.hidden;
+}
+
 function syncLayersFromUi() {
   const layers = {};
-  document.querySelectorAll(".layer").forEach((c) => { layers[c.dataset.layer] = c.checked; });
-  map.setLayers(layers);
+  document.querySelectorAll(".layer").forEach((c) => {
+    layers[c.dataset.layer] = c.checked;
+  });
+  const unlinked = document.getElementById("chkShowUnlinkedRaw");
+  uxShowUnlinkedRaw = !!(unlinked && unlinked.checked);
+  // Controllable 2D draw: hidden 2D must not paint via setLayers.
+  map.setLayers(layers, { draw: twoDCanvasVisible() && viewMode === "2d" });
   maybeWarnRawLayersHidden();
+  // Immediate 2D+3D refresh — do not wait for seek/MQTT.
+  if (viewMode === "3d") refreshTrack3d();
+  else if (twoDCanvasVisible()) map.draw();
+  updateLayerEmptyHint();
+  if (uxSelectedFusionId) drawAltitudeChart(uxSelectedFusionId);
 }
 document.querySelectorAll(".layer").forEach((cb) => {
   cb.onchange = syncLayersFromUi;
 });
+document.getElementById("chkShowUnlinkedRaw")?.addEventListener("change", syncLayersFromUi);
 syncLayersFromUi();
+
+function updateLayerEmptyHint() {
+  const el = document.getElementById("layerEmptyHint");
+  if (!el || !map) return;
+  const L = map.layers || {};
+  const any =
+    L.fused || L.current || L.pred || L.rid || L.spectrum || L.radar || L.truth || L.plan;
+  el.hidden = !!any;
+  el.textContent = any ? "" : "图层已全部关闭：画布无数据图元（坐标轴可保留）。";
+}
+
+function currentUntilTimeMs() {
+  const snaps = runState?.snapshots || [];
+  const idx = Number.isFinite(map?.tIndex) ? map.tIndex : 0;
+  return parseTimeMs(snaps[idx]?.processingTime);
+}
+
+function trackAtCursor(fid) {
+  if (!fid) return null;
+  const snaps = runState?.snapshots || [];
+  const idx = Number.isFinite(map?.tIndex) ? map.tIndex : 0;
+  const at = (snaps[idx]?.tracks || []).find((t) => t.fusionId === fid);
+  if (at) return { ...at, _fromCursor: true };
+  // No current point at cursor — identity from final/index without pretending position is current.
+  const fin = (runState?.final_tracks || []).find((t) => t.fusionId === fid);
+  if (fin) {
+    return {
+      fusionId: fid,
+      aircraftId: fin.aircraftId,
+      trackStatus: fin.trackStatus,
+      sourceTracks: fin.sourceTracks,
+      positionMode: fin.positionMode,
+      longitude: null,
+      latitude: null,
+      altitude: null,
+      _fromCursor: false,
+      _noCurrentAtCursor: true,
+    };
+  }
+  return { fusionId: fid, _noCurrentAtCursor: true };
+}
+
+/**
+ * Unified selection. pinPoint: keep/open point detail; trackOnly: inspector=track without wiping an active pin unless clearPin.
+ */
+function selectUxFusionId(
+  fid,
+  { only = false, skipCamera = true, pinPoint = null, trackOnly = false, clearPin = false } = {}
+) {
+  const id = fid || null;
+  const prev = uxSelectedFusionId;
+  uxSelectedFusionId = id;
+  if (id !== prev) {
+    uxPointPage = 1;
+    uxPointFilterLocked = false;
+  }
+  if (track3d) {
+    track3d.selectFusionId(id);
+    if (pinPoint?.pointId) track3d.selectPointId(pinPoint.pointId);
+    else if (trackOnly || clearPin) track3d.selectPointId(null);
+  }
+  if (map && typeof map.setSelectedFusionId === "function") {
+    map.setSelectedFusionId(id, { draw: twoDCanvasVisible() && viewMode === "2d" });
+  }
+  if (only && id) {
+    uxCheckedTargetIds = new Set([id]);
+    map.setTargetFilter(new Set([id]), { draw: twoDCanvasVisible() && viewMode === "2d" });
+    setFocusStatus(`只看此航迹：${shortFid(id)}`, true);
+  }
+  // Sync point-table filter to selection unless user locked a manual filter.
+  const fidEl = document.getElementById("ptFilterFid");
+  if (fidEl && !uxPointFilterLocked) {
+    fidEl.value = id || "";
+  } else if (fidEl && uxPointFilterLocked && id && fidEl.value.trim() && fidEl.value.trim() !== id) {
+    setFocusStatus(`点表手动筛选=${fidEl.value}（选中=${shortFid(id)}）；点「随选中」对齐`, false);
+  }
+
+  const tr = trackAtCursor(id);
+  if (pinPoint) {
+    pinnedDetail = { ...pinPoint, _pinKind: pinPoint._verticalOnly ? "altitude_update" : "fusion_point" };
+    if (!pinPoint._verticalOnly) {
+      renderInspector(pinPoint, "fusion_point");
+    } else {
+      renderInspector(pinPoint, "altitude_update");
+    }
+  } else if (clearPin || trackOnly || !pinnedDetail?.pointId || pinnedDetail?.fusionId !== id) {
+    if (tr) {
+      pinnedDetail = tr;
+      renderInspector(tr, "track");
+    }
+  }
+  renderTrackCard(tr);
+  refreshPointTable({ highlightPointId: pinPoint?.pointId || pinPoint?.altitudeUpdateId || null });
+  drawAltitudeChart(id);
+  renderTargetFiltersPage();
+  if (viewMode === "3d") refreshTrack3d();
+  else if (twoDCanvasVisible()) map.draw();
+  if (!skipCamera && id) locateSelectedTrack(id);
+}
+
+function renderTrackCard(tr) {
+  const el = document.getElementById("trackCard");
+  if (!el) return;
+  const gap = !!(runState?.historyGap || runState?.mqttStream?.historyGap);
+  const until = uxFullHistoryView ? null : currentUntilTimeMs();
+  const summary = tr?.fusionId
+    ? summarizeTrackDisplay(runState, tr.fusionId, {
+        untilTimeMs: until,
+        fullHistory: uxFullHistoryView,
+      })
+    : null;
+  const rangeNote = uxFullHistoryView
+    ? "范围：本次已加载历史（全程开关开启；未改播放游标）"
+    : "范围：当前游标已发生（非终态全量累加）";
+  const cursorNote = tr?._noCurrentAtCursor
+    ? "当前位置（游标时刻无此目标）"
+    : "当前位置（游标时刻）";
+  el.innerHTML = trackCardHtml(tr, { historyGap: gap, rangeNote, summary, cursorNote });
+  el.querySelectorAll("[data-copy]").forEach((node) => {
+    node.onclick = () => {
+      const v = node.getAttribute("data-copy") || "";
+      if (v && navigator.clipboard?.writeText) navigator.clipboard.writeText(v).catch(() => {});
+      setFocusStatus("已复制 fusionId", true);
+    };
+  });
+}
+
+function resolveTrackLabel(fid) {
+  const tr =
+    (runState?.final_tracks || []).find((t) => t.fusionId === fid) ||
+    (runState?.snapshots?.[map?.tIndex]?.tracks || []).find((t) => t.fusionId === fid);
+  if (tr?.aircraftId) return `SN ${tr.aircraftId}`;
+  return `未识别 SN`;
+}
+
+function dispatchTrack3dPick(p) {
+  if (!p) return;
+  if (p.scatter || String(p.fusionId || "").startsWith("raw:")) {
+    const obs = (runState?.observations || []).find((o) => o.observationId === p.pointId);
+    if (obs) {
+      pinnedDetail = { ...obs, _pinKind: "obs" };
+      map.onPick?.(obs, "obs");
+      // Do NOT select raw:rid as a fusion track card.
+      return;
+    }
+    setFocusStatus("原始观测未在缓存，仅有 observationId=" + (p.pointId || "—"), false);
+    return;
+  }
+  if (p._verticalOnly || (p.altitudeUpdateId && !p.pointId)) {
+    selectUxFusionId(p.fusionId, {
+      skipCamera: true,
+      pinPoint: { ...p, _verticalOnly: true, altitudeUpdateId: p.altitudeUpdateId || p.pointId },
+    });
+    return;
+  }
+  if (p.pointId) {
+    const full =
+      queryDisplayPoints(runState, {
+        fusionId: p.fusionId,
+        untilTimeMs: uxFullHistoryView ? null : currentUntilTimeMs(),
+        fullHistory: uxFullHistoryView,
+      }).all.find((x) => x.pointId === p.pointId) || p;
+    const idSet = new Set([...(full.observationIds || []), ...(full.altitudeObservationIds || [])]);
+    full._linkedObservations = (runState?.observations || []).filter((o) => idSet.has(o.observationId));
+    selectUxFusionId(full.fusionId, { skipCamera: true, pinPoint: full });
+    if (!full._verticalOnly) {
+      map.onPick?.(full, "fusion_point");
+      seekMapToCommittedPoint(full);
+    }
+    syncTrack3dSelection?.(full);
+    refreshCompareLabel?.();
+    return;
+  }
+  selectUxFusionId(p.fusionId, { skipCamera: true, trackOnly: true, clearPin: true });
+}
+
+if (track3d) {
+  track3d.onPick = (p) => dispatchTrack3dPick(p);
+  track3d.onPickTrack = (fid) => {
+    selectUxFusionId(fid, { skipCamera: true, trackOnly: true, clearPin: true });
+  };
+  track3d.onPickCandidates = (cands) => {
+    const box = document.getElementById("pickCandidates");
+    if (!box) return;
+    box.innerHTML =
+      `<div class="hint">三维重叠候选（点优先；线无虚构 pointId）</div>` +
+      cands
+        .map((c, i) => {
+          const kind = c._pickKind || (c.pointId ? "point" : "track");
+          const who = `${resolveTrackLabel(c.fusionId)} · ${shortFid(c.fusionId)}`;
+          const lab =
+            kind === "track"
+              ? `航迹 ${who}`
+              : kind === "raw"
+                ? `原始 ${c.pointId || "?"}`
+                : `点 ${c.pointId || "?"} · ${who}`;
+          return `<button type="button" class="cand3d" data-i="${i}">${escapeHtml(lab)}</button>`;
+        })
+        .join("");
+    box.querySelectorAll("button.cand3d").forEach((btn) => {
+      btn.onclick = () => {
+        const c = cands[Number(btn.dataset.i)];
+        if (!c) return;
+        if (c._pickKind === "track" || (!c.pointId && c.fusionId)) {
+          selectUxFusionId(c.fusionId, { skipCamera: true, trackOnly: true, clearPin: true });
+        } else {
+          dispatchTrack3dPick(c);
+        }
+      };
+    });
+  };
+}
 
 function maybeWarnRawLayersHidden() {
   const hint = document.getElementById("layerHint");
@@ -342,6 +742,12 @@ function seekToFrame(i) {
 
 document.getElementById("btnResetView").onclick = () => {
   // 适配可见：尊重当前勾选目标与图层，不改播放时刻、不清空过滤。
+  if (viewMode === "3d" && track3d) {
+    track3d.fit();
+    track3d.draw();
+    setFocusStatus("三维已适配当前可见范围（未改勾选／图层）", true);
+    return;
+  }
   map.fitToData({ respectFilter: true });
   map._viewManual = false;
   map.draw();
@@ -412,6 +818,12 @@ function focusChallengeGroup() {
 document.getElementById("btnFocusGroup")?.addEventListener("click", focusChallengeGroup);
 document.getElementById("btnFitAll")?.addEventListener("click", () => {
   // 适配可见范围：不暗中清空目标勾选。
+  if (viewMode === "3d" && track3d) {
+    track3d.fit();
+    track3d.draw();
+    setFocusStatus("三维已适配当前勾选／图层可见范围", true);
+    return;
+  }
   map.fitToData({ respectFilter: true });
   map._viewManual = false;
   map.draw();
@@ -419,9 +831,18 @@ document.getElementById("btnFitAll")?.addEventListener("click", () => {
 });
 document.getElementById("btnShowAllFit")?.addEventListener("click", () => {
   // 显示全部并适配：显式清空勾选后再总览。
+  uxCheckedTargetIds = new Set();
   const box = document.getElementById("targetFilters");
   if (box) box.querySelectorAll(".tfilt").forEach((c) => { c.checked = false; });
   map.setTargetFilter(null);
+  renderTargetFiltersPage();
+  if (viewMode === "3d" && track3d) {
+    refreshTrack3d();
+    track3d.fit();
+    track3d.draw();
+    setFocusStatus("三维已显示全部目标并适配总览", true);
+    return;
+  }
   map.fitToData({ respectFilter: false });
   map._viewManual = false;
   map.draw();
@@ -569,96 +990,92 @@ function updateNearDist(geo, labels, pairGeo) {
 }
 
 function rebuildTargetFilters(result) {
-  const box = document.getElementById("targetFilters");
-  const groups = [];
-  for (const a of result.scenario?.aircraft || []) {
-    const tr = (result.final_tracks || []).find((t) =>
-      (result.evaluation?.fusion_to_truth || {})[t.fusionId] === a.truth_id ||
-      (a.rid_sn && t.aircraftId === a.rid_sn)
-    );
-    const srcIds = (tr?.sourceTracks || []).map((s) => `${s.source}:${s.sourceTrackId}`).join(", ") || "—";
-    groups.push({
-      key: a.label,
-      title: `飞机 ${a.label}`,
-      detail: `SN=${a.rid_sn || "(无)"} · fusionId=${tr?.fusionId || "—"} · 局部源=${srcIds}`,
-    });
-  }
-  // Real-data style: fusion targets without aircraft mapping
-  const mapped = new Set(groups.map((g) => {
-    const tr = (result.final_tracks || []).find((t) => (result.evaluation?.fusion_to_truth || {})[t.fusionId]);
-    return tr?.fusionId;
-  }).filter(Boolean));
-  for (const tr of result.final_tracks || []) {
-    if (mapped.has(tr.fusionId)) continue;
-    const hasAc = (result.scenario?.aircraft || []).some((a) =>
-      (result.evaluation?.fusion_to_truth || {})[tr.fusionId] === a.truth_id ||
-      (a.rid_sn && tr.aircraftId === a.rid_sn)
-    );
-    if (hasAc) continue;
-    groups.push({
-      key: tr.fusionId,
-      title: `融合目标 ${String(tr.fusionId || "").slice(-8)}`,
-      detail: `SN=${tr.aircraftId || "(无)"} · 局部源=${(tr.sourceTracks || []).map((s) => s.sourceTrackId).join(",") || "—"}`,
-    });
-  }
-  // Real-file fallback: if final_tracks empty/omitted, list last-snapshot fusionIds for locate/history.
-  if (!groups.length) {
-    const last = (result.snapshots || [])[(result.snapshots || []).length - 1];
-    const seen = new Set();
-    for (const tr of last?.tracks || []) {
-      if (!tr.fusionId || seen.has(tr.fusionId)) continue;
-      seen.add(tr.fusionId);
-      groups.push({
-        key: tr.fusionId,
-        title: `融合目标 ${String(tr.fusionId).slice(-8)}`,
-        detail: `SN=${tr.aircraftId || "(无)"} · 局部源=${(tr.sourceTracks || []).map((s) => s.sourceTrackId).join(",") || "—"}`,
-      });
+  uxTargetGroups = buildTargetGroups(result || {});
+  // Preserve prior checks when IDs still exist.
+  const valid = new Set(uxTargetGroups.map((g) => g.key));
+  uxCheckedTargetIds = new Set([...uxCheckedTargetIds].filter((id) => valid.has(id)));
+  renderTargetFiltersPage();
+}
+
+function applyTargetChecksToMap() {
+  const hint = document.getElementById("targetFilterHint");
+  if (uxCheckedTargetIds.size) {
+    map.setTargetFilter(new Set(uxCheckedTargetIds));
+    if (hint) {
+      hint.textContent = `目标过滤：已勾选 ${uxCheckedTargetIds.size}（与源图层叠加）`;
+      hint.hidden = false;
+    }
+  } else {
+    map.setTargetFilter(null);
+    if (hint) {
+      hint.textContent = "目标过滤：空选＝显示全部目标（可见提示）";
+      hint.hidden = false;
     }
   }
-  box.innerHTML = groups.map((g) =>
-    `<details class="tfilt-group"><summary><label><input type="checkbox" class="tfilt" data-id="${g.key}" /> ${g.title}</label></summary>` +
-    `<div class="hint">${g.detail}</div>` +
-    (g.key && String(g.key).length > 2
-      ? `<div class="row tight"><button type="button" class="btnLocTfilt" data-fid="${g.key}">定位</button>` +
-        `<button type="button" class="btnHistTfilt" data-fid="${g.key}">查看航迹</button></div>`
-      : "") +
-    `</details>`
-  ).join("") || "<span class='hint'>运行后出现目标</span>";
-  box.querySelectorAll(".tfilt").forEach((cb) => {
-    cb.onchange = () => {
-      const checked = [...box.querySelectorAll(".tfilt:checked")].map((c) => c.dataset.id);
-      map.setTargetFilter(checked.length ? new Set(checked) : null);
-    };
+  if (viewMode === "3d") refreshTrack3d();
+  else map.draw();
+}
+
+function renderTargetFiltersPage() {
+  const box = document.getElementById("targetFilters");
+  if (!box) return;
+  const filtered = filterTargetGroups(uxTargetGroups, {
+    q: uxTargetSearch || document.getElementById("targetSearch")?.value,
+    status: uxTargetStatus || document.getElementById("targetStatusFilter")?.value,
+    source: uxTargetSource || document.getElementById("targetSourceFilter")?.value,
+    onlySelected: uxOnlySelected || document.getElementById("chkOnlySelected")?.checked,
+    selectedIds: uxCheckedTargetIds,
   });
-  box.querySelectorAll(".btnLocTfilt").forEach((btn) => {
-    btn.onclick = (ev) => {
-      ev.preventDefault();
-      const key = btn.dataset.fid;
-      const fid = resolveFusionId(key) || key;
-      // Select matching track for inspector
-      const tr = (runState?.final_tracks || []).find((t) => t.fusionId === fid)
-        || (runState?.snapshots?.[map.tIndex]?.tracks || []).find((t) => t.fusionId === fid);
-      if (tr) {
-        pinnedDetail = tr;
-        renderInspector(tr, "track");
-      }
-      locateSelectedTrack(fid);
-    };
+  const size = Math.min(
+    50,
+    Math.max(1, Number(document.getElementById("targetPageSize")?.value) || uxTargetPageSize || PAGE_DEFAULT)
+  );
+  uxTargetPageSize = size;
+  const pageInfo = pageSlice(filtered, uxTargetPage, size);
+  uxTargetPage = pageInfo.page;
+  const pager = document.getElementById("targetPager");
+  if (pager) {
+    pager.innerHTML = `<button type="button" id="btnTargetPrev">上一页</button>` +
+      `<span class="hint"> ${pageInfo.page}/${pageInfo.pages} · ${pageInfo.total} </span>` +
+      `<button type="button" id="btnTargetNext">下一页</button>`;
+    document.getElementById("btnTargetPrev")?.addEventListener("click", () => {
+      uxTargetPage = Math.max(1, uxTargetPage - 1);
+      renderTargetFiltersPage();
+    });
+    document.getElementById("btnTargetNext")?.addEventListener("click", () => {
+      uxTargetPage = uxTargetPage + 1;
+      renderTargetFiltersPage();
+    });
+  }
+  renderTargetListPage(box, pageInfo, {
+    checkedIds: uxCheckedTargetIds,
+    selectedFusionId: uxSelectedFusionId,
+    onCheck: () => {
+      // Merge current page checkbox state into uxCheckedTargetIds
+      box.querySelectorAll(".tfilt").forEach((cb) => {
+        const id = cb.dataset.id;
+        if (!id) return;
+        if (cb.checked) uxCheckedTargetIds.add(id);
+        else uxCheckedTargetIds.delete(id);
+      });
+      applyTargetChecksToMap();
+    },
+    onSelect: (fid, opts) => {
+      const resolved = resolveFusionId(fid) || fid;
+      selectUxFusionId(resolved, { only: !!opts?.only, skipCamera: true });
+    },
+    onLocate: (fid) => {
+      const resolved = resolveFusionId(fid) || fid;
+      selectUxFusionId(resolved, { skipCamera: true });
+      locateSelectedTrack(resolved);
+    },
+    onHist: (fid) => {
+      const resolved = resolveFusionId(fid) || fid;
+      selectUxFusionId(resolved, { skipCamera: true });
+      viewSelectedTrackHistory(resolved);
+    },
   });
-  box.querySelectorAll(".btnHistTfilt").forEach((btn) => {
-    btn.onclick = (ev) => {
-      ev.preventDefault();
-      const key = btn.dataset.fid;
-      const fid = resolveFusionId(key) || key;
-      const tr = (runState?.final_tracks || []).find((t) => t.fusionId === fid)
-        || (runState?.snapshots?.[map.tIndex]?.tracks || []).find((t) => t.fusionId === fid);
-      if (tr) {
-        pinnedDetail = tr;
-        renderInspector(tr, "track");
-      }
-      viewSelectedTrackHistory(fid);
-    };
-  });
+  applyTargetChecksToMap();
 }
 
 function applySelectedAircraftFilter() {
@@ -813,46 +1230,71 @@ function renderResultPanels() {
   const algoN = tracks.length;
   const sum = document.getElementById("resultSummary");
   const pt = snap?.processingTime;
-  const targetLines = tracks.map((tr) => {
-    const srcs = activeSourcesOnTrack(tr, pt).map((s) => SRC_LABEL[s] || s).join("+") || "—";
-    const hist = historicalSourceRows(tr, pt);
-    const histTxt = hist.length
-      ? ` · 历史/候选=${hist.map((s) => `${SRC_LABEL[s.source] || s.source}:${s.bindingStatus || "?"}`).join(",")}`
-      : "";
-    const prim = SRC_LABEL[primaryPositionSource(tr)] || primaryPositionSource(tr);
-    const name = tr.aircraftId || map._readableName?.(tr) || "(匿名)";
-    const short = String(tr.fusionId || "").split(/[-_]/).pop()?.slice(-6) || "";
-    return `<div>${name}${short ? " · " + short : ""}：活跃源=${srcs} · 主位置=${prim}${histTxt}</div>`;
-  }).join("");
+  const statusCounts = {};
+  const snSet = new Set();
+  for (const tr of tracks) {
+    const st = tr.trackStatus || tr.positionMode || "unknown";
+    statusCounts[st] = (statusCounts[st] || 0) + 1;
+    if (tr.aircraftId) snSet.add(tr.aircraftId);
+  }
+  // Historical total fusionIds (bounded count only — do not render per-target lines).
+  let histTotal = uxTargetGroups.length || 0;
+  if (!histTotal && runState?.final_tracks?.length) histTotal = runState.final_tracks.length;
   const ev = runState?.evaluation;
   const verdict = evalVerdict(ev);
-  sum.innerHTML = [
-    `<div>当前时刻：预期可见 <b>${exp}</b> · 算法目标 <b>${algoN}</b></div>`,
-    `<div class="muted">整次评估（仿真，非现场准确率）：<b>${verdict}</b>${ev?.entity_check?.ok === false ? " · ok=false" : ""}</div>`,
-    targetLines || `<div class="muted">无目标</div>`,
-  ].join("");
+  const gap = !!(runState?.historyGap || runState?.mqtt?.historyGap);
+  if (sum) {
+    sum.innerHTML =
+      compactResultSummaryHtml({
+        exp,
+        algoN,
+        knownSn: snSet.size,
+        statusCounts: { ...statusCounts, 历史航迹索引: histTotal },
+        historyGap: gap,
+        verdict,
+      }) +
+      `<div class="hint">选中目标详情见「详情」页；不在此逐条展开 ${algoN} 条。</div>`;
+  }
 
   const body = document.getElementById("acResultBody");
-  const acs = scenario?.aircraft || [];
-  body.innerHTML = acs.map((a, i) => {
-    const tr = matchTrackForAircraft(a, tracks, runState);
-    const expSrc = enabledSources(a).map((s) => SRC_LABEL[s] || s).join("+") || "—";
-    const actSrc = tr ? activeSourcesOnTrack(tr, pt).map((s) => SRC_LABEL[s] || s).join("+") : "—";
-    const fid = tr?.fusionId ? String(tr.fusionId).split(/[-_]/).pop()?.slice(-8) : "—";
-    const st = tr ? (tr.positionMode || "active") : "未见";
-    return `<tr class="${i === selectedAcIndex ? "sel" : ""}" data-i="${i}">
+  if (body) {
+    const acs = scenario?.aircraft || [];
+    // Simulation aircraft table only — real-file lists use paginated targetFilters.
+    if (acs.length) {
+      body.innerHTML =
+        acs
+          .map((a, i) => {
+            const tr = matchTrackForAircraft(a, tracks, runState);
+            const expSrc = enabledSources(a).map((s) => SRC_LABEL[s] || s).join("+") || "—";
+            const actSrc = tr
+              ? activeSourcesOnTrack(tr, pt).map((s) => SRC_LABEL[s] || s).join("+")
+              : "—";
+            const fid = tr?.fusionId ? shortFid(tr.fusionId) : "—";
+            const st = tr ? tr.positionMode || "active" : "未见";
+            return `<tr class="${i === selectedAcIndex ? "sel" : ""}" data-i="${i}">
       <td>${a.label}</td><td>${expSrc}</td><td>${actSrc}</td><td title="${tr?.fusionId || ""}">${fid}</td><td>${st}</td></tr>`;
-  }).join("") || `<tr><td colspan="5" class="hint">无飞机</td></tr>`;
-  body.querySelectorAll("tr[data-i]").forEach((tr) => {
-    tr.onclick = () => {
-      selectedAcIndex = Number(tr.dataset.i);
-      renderAircraftList();
-      openDrawerForSelected();
-      applySelectedAircraftFilter();
-    };
-  });
+          })
+          .join("") || `<tr><td colspan="5" class="hint">无飞机</td></tr>`;
+      body.querySelectorAll("tr[data-i]").forEach((tr) => {
+        tr.onclick = () => {
+          selectedAcIndex = Number(tr.dataset.i);
+          renderAircraftList();
+          openDrawerForSelected();
+          applySelectedAircraftFilter();
+        };
+      });
+    } else {
+      body.innerHTML = `<tr><td colspan="5" class="hint">真实文件：请用上方分页目标列表（不在此展开全部 ${algoN} 条）</td></tr>`;
+    }
+  }
 
   renderAnomalies();
+  if (uxSelectedFusionId) {
+    const tr =
+      (runState?.final_tracks || []).find((t) => t.fusionId === uxSelectedFusionId) ||
+      tracks.find((t) => t.fusionId === uxSelectedFusionId);
+    renderTrackCard(tr || { fusionId: uxSelectedFusionId });
+  }
 }
 
 function formatEvalIssue(iss, kind) {
@@ -971,6 +1413,14 @@ function updateTransport() {
     if (counts) counts.textContent = "—";
     const events = document.getElementById("events");
     if (events) events.textContent = "—";
+    // Null/empty run: clear 3D so stale tracks are not left on canvas.
+    if (track3d) {
+      track3d.selectedPointId = null;
+      track3d.compare = [];
+      track3d.setRunState(null);
+      const st = document.getElementById("track3dStatus");
+      if (st) st.textContent = "三维未加载";
+    }
     return;
   }
   const seek = document.getElementById("seek");
@@ -1007,7 +1457,19 @@ function updateTransport() {
     return !t || t <= now + 1;
   }).slice(-40);
   document.getElementById("events").textContent = ev.map((e) => e.type || JSON.stringify(e)).join(", ") || "—";
+  if (viewMode === "3d") refreshTrack3d();
   let tr = null;
+  if (pinnedDetail?._pinKind === "fusion_point" && pinnedDetail?.pointId) {
+    // Keep historical point selection across clock ticks; refresh linked obs only.
+    renderInspector(pinnedDetail, "fusion_point");
+    document.getElementById("detail").textContent = JSON.stringify(
+      { kind: "fusion_point@clock", ...pinnedDetail },
+      null,
+      2
+    );
+    renderResultPanels();
+    return;
+  }
   const pinKind = pinnedDetail?.source && !pinnedDetail?.fusionId ? "obs" : "track";
   if (pinKind === "obs" && pinnedDetail) {
     // Observation pin: keep only if id belongs to this run's observations
@@ -1128,10 +1590,16 @@ function showRun(result, { reqToken = null } = {}) {
   }
   // New run: never keep previous target/obs inspector across runs (R2-04).
   pinnedDetail = null;
+  uxSelectedFusionId = null;
+  uxCheckedTargetIds = new Set();
+  uxTargetPage = 1;
+  uxPointPage = 1;
+  if (track3d) track3d.selectFusionId(null);
   clearInspectorPanels("新运行已加载 · 当前时刻待选择");
   result.runId = result.runId || result.sessionId || `run-${Date.now()}`;
   result.runScenarioName = result.scenario?.name || result.runScenarioName;
   runState = result;
+  updateSimLayerAvailability(result);
   if (result.t0) runState.t0Ms = parseT(result.t0);
   map.setState(result, { fit: true, resetTime: true });
   updateTransport();
@@ -1154,7 +1622,139 @@ function showRun(result, { reqToken = null } = {}) {
   }
   renderAircraftList();
   rebuildTargetFilters(result);
+  try {
+    refreshPointTable();
+    drawAltitudeChart(null);
+    refreshTrack3d();
+  } catch (_) { /* helpers may load later */ }
 }
+
+function refreshTrack3d() {
+  if (!track3d) return;
+  const st = document.getElementById("track3dStatus");
+  const snaps = runState?.snapshots || [];
+  const tIndex = Number.isFinite(map?.tIndex) ? map.tIndex : 0;
+  const untilTime = snaps[tIndex]?.processingTime ?? null;
+  const layers = map?.layers || {};
+  // 3D: fused/current/pred tracks and/or raw observation scatter layers.
+  const showTrackLayers = !!(layers.fused || layers.current || layers.pred);
+  const showRawLayers = !!(layers.rid || layers.spectrum || layers.radar);
+  if (!runState || (!showTrackLayers && !showRawLayers)) {
+    track3d.setRunState(null);
+    if (st) st.textContent = runState ? "三维图层已关闭" : "三维未加载";
+    return;
+  }
+  const textFilter = (document.getElementById("ptFilterFid")?.value || "").trim() || null;
+  // Prefer map target checkbox Set (multi-target); point-table text is additive single override.
+  // Duck-type Set — VM probes pass host-realm Sets where instanceof Set fails.
+  let fusionFilter = textFilter;
+  /** @type {{has:(v:string)=>boolean,size:number}|null} */
+  let fusionIdSet = null;
+  const tf = map?.targetFilter;
+  if (tf && typeof tf.has === "function" && tf.size > 0) {
+    if (textFilter) {
+      fusionFilter = tf.has(textFilter) ? textFilter : "__none__";
+    } else if (tf.size === 1) {
+      fusionFilter = [...tf][0];
+    } else {
+      fusionFilter = null;
+      fusionIdSet = tf;
+    }
+  }
+  // Pass seek frame / untilTime — do not refresh with the full unfiltered run alone.
+  // Do not force fit: preserve user camera across seek/play/refresh.
+  if (track3d.selectedFusionId !== uxSelectedFusionId) {
+    track3d.selectedFusionId = uxSelectedFusionId;
+  }
+  const info = track3d.setRunState(runState, {
+    fusionFilter,
+    fusionIdSet,
+    snapshotIndex: tIndex,
+    untilTime: uxFullHistoryView ? null : untilTime,
+    fullHistory: !!uxFullHistoryView,
+    processingTime: untilTime,
+    showUnlinkedRaw: uxShowUnlinkedRaw,
+    layers: {
+      fused: !!layers.fused,
+      current: !!layers.current,
+      pred: !!layers.pred,
+      rid: !!layers.rid,
+      spectrum: !!layers.spectrum,
+      radar: !!layers.radar,
+    },
+  });
+  if (st) {
+    const scale = Number(track3d.scale) || 0;
+    const overviewDense = info.n3d > 20 && scale > 0 && scale < 0.05;
+    const filt =
+      fusionIdSet || fusionFilter
+        ? ` · 目标过滤中`
+        : ` · 显示全部目标`;
+    st.textContent =
+      `三维有效点 ${info.n3d} · 跳过 ${info.skipped} ${JSON.stringify(info.reasons || {})} · Z×${track3d.zExag} · 帧 ${tIndex} · 原点 ${info.origin ? `${info.origin.lat0.toFixed(5)},${info.origin.lon0.toFixed(5)}` : "—"}` +
+      filt +
+      (overviewDense
+        ? " · 总览跨度过大，线段可能亚像素；请选中目标后点「查看航迹」放大"
+        : "") +
+      (uxSelectedFusionId ? ` · 选中 ${shortFid(uxSelectedFusionId)}` : "");
+  }
+  updateLayerEmptyHint();
+}
+
+function syncTrack3dSelection(p) {
+  if (!track3d || !p) return;
+  track3d.selectPointId(p.pointId);
+  refreshCompareLabel();
+}
+
+function refreshCompareLabel() {
+  const el = document.getElementById("track3dCompare");
+  if (!el || !track3d) return;
+  const d = track3d.compareDelta();
+  if (!d) {
+    el.textContent = `比较：${(track3d.compare || []).join(",") || "—"}`;
+    return;
+  }
+  el.textContent = `比较 ${d.a.pointId}↔${d.b.pointId} Δt=${(d.dtMs / 1000).toFixed(2)}s Δalt=${d.dAltM == null ? "不可比" : d.dAltM.toFixed(2) + "m"} · ${d.note}`;
+}
+
+function setViewMode(mode) {
+  viewMode = mode === "3d" ? "3d" : "2d";
+  const w2 = document.getElementById("wrap2d");
+  const w3 = document.getElementById("wrap3d");
+  if (w2) w2.hidden = viewMode !== "2d";
+  if (w3) w3.hidden = viewMode !== "3d";
+  document.getElementById("btnView2d")?.classList.toggle("primary", viewMode === "2d");
+  document.getElementById("btnView3d")?.classList.toggle("primary", viewMode === "3d");
+  if (viewMode === "3d") refreshTrack3d();
+  else map.draw?.();
+}
+
+document.getElementById("btnView2d")?.addEventListener("click", () => setViewMode("2d"));
+document.getElementById("btnView3d")?.addEventListener("click", () => setViewMode("3d"));
+document.getElementById("btn3dTop")?.addEventListener("click", () => track3d?.setView("top"));
+document.getElementById("btn3dSide")?.addEventListener("click", () => track3d?.setView("side"));
+document.getElementById("btn3dFit")?.addEventListener("click", () => {
+  if (!track3d) return;
+  // Fit current filtered projection (respects layers/target filter already in tracks).
+  track3d.fit();
+  track3d.draw();
+  setFocusStatus("三维已适配当前可见范围", true);
+});
+document.getElementById("btn3dReset")?.addEventListener("click", () => track3d?.setView("reset"));
+document.getElementById("zExag")?.addEventListener("change", (e) => {
+  track3d?.setZExaggerate(e.target.value);
+  refreshTrack3d();
+});
+document.getElementById("btn3dCompare")?.addEventListener("click", () => {
+  if (!track3d) return;
+  const pid = track3d.selectedPointId || pinnedDetail?.pointId;
+  track3d.toggleCompare(pid);
+  refreshCompareLabel();
+});
+window.syncTrack3dSelection = syncTrack3dSelection;
+window.refreshTrack3d = refreshTrack3d;
+window.setViewMode = setViewMode;
 
 /* ---------- scenario load / seven default ---------- */
 
@@ -1649,6 +2249,50 @@ async function initFieldMapForm() {
   ms.innerHTML = (lj.mappings || []).map((m) => `<option value="${m.name}">${m.name}</option>`).join("") || "<option value=''>无模板</option>";
 }
 
+function syncAltitudeMappingHint() {
+  const profile = document.getElementById("fusionProfile")?.value || "legacy";
+  const sel = document.getElementById("altitudeMappingVersion");
+  const hint = document.getElementById("altitudeMappingHint");
+  if (profile === "multisensor-3d-v1" && sel && !sel.value) {
+    sel.value = "database_altitude_msl_v1";
+  }
+  if (hint && sel) {
+    const v = sel.value || "（无）";
+    hint.textContent =
+      `当前海拔映射=${v} · 剖面=${profile}` +
+      (sel.value === "database_altitude_msl_v1"
+        ? " · 按数据库约定 altitude→海拔MSL米（USER_ASSUMED，设备基准未核实）；保留 height/原始值；预览/回放/MQTT同规则"
+        : " · 未启用 MSL 映射时 altitudeDatum 保持 unknown，不进入垂直融合");
+  }
+}
+
+function syncSnMappingUi() {
+  const snSel = document.getElementById("snMappingVersion");
+  const rawCb = document.getElementById("rawIdAsSn");
+  const hint = document.getElementById("companyIdHint");
+  const v = snSel?.value || "company_source_id_sn_v1";
+  if (rawCb) {
+    // Company template uses business id→SN by default; checkbox is legacy confirmed_sn_v1 only.
+    const legacy = v === "confirmed_sn_v1";
+    rawCb.disabled = !legacy;
+    if (!legacy) rawCb.checked = false;
+    const lab = rawCb.closest("label");
+    if (lab) lab.style.opacity = legacy ? "1" : "0.55";
+  }
+  if (hint) {
+    hint.textContent =
+      v === "company_source_id_sn_v1"
+        ? "本公司模板：RID/频谱 id=业务SN；雷达 id=局部目标跟踪ID（自身SN未知）。映射版本 company_source_id_sn_v1。"
+        : "旧模板 confirmed_sn_v1：仅 source_data 确认路径提取 SN；可选「原始 id 当 SN」仅对本模板生效。";
+  }
+}
+
+document.getElementById("fusionProfile")?.addEventListener("change", syncAltitudeMappingHint);
+document.getElementById("altitudeMappingVersion")?.addEventListener("change", syncAltitudeMappingHint);
+document.getElementById("snMappingVersion")?.addEventListener("change", syncSnMappingUi);
+syncAltitudeMappingHint();
+syncSnMappingUi();
+
 function mappingFromForm() {
   const tz = document.getElementById("tzMode").value;
   const named = tz && tz !== "assume_utc" ? tz : null;
@@ -1667,11 +2311,15 @@ function mappingFromForm() {
       altitude: "altitude",
     });
   }
+  const snVer = document.getElementById("snMappingVersion")?.value || "company_source_id_sn_v1";
   return {
     field_map,
     source_timezone: named,
     assume_utc_naive: tz === "assume_utc",
-    treat_raw_id_as_aircraftId: document.getElementById("rawIdAsSn").checked,
+    treat_raw_id_as_aircraftId:
+      snVer === "confirmed_sn_v1" && !!document.getElementById("rawIdAsSn")?.checked,
+    sn_mapping_version: snVer,
+    altitude_mapping_version: document.getElementById("altitudeMappingVersion")?.value || "",
   };
 }
 
@@ -1686,6 +2334,14 @@ function clearImportVisualization(reason) {
     { observations: [], snapshots: [], final_tracks: [], scenario: { name: "empty", aircraft: [] }, preview_sample: false },
     { fit: false, resetTime: true }
   );
+  // Always wipe Track3DView points/lines/selection even if updateTransport early-returns.
+  if (track3d) {
+    track3d.selectedPointId = null;
+    track3d.compare = [];
+    track3d.setRunState(null);
+    const st = document.getElementById("track3dStatus");
+    if (st) st.textContent = "三维未加载";
+  }
   updateTransport();
   maybeWarnRawLayersHidden();
   const banner = document.getElementById("runBanner");
@@ -1970,6 +2626,620 @@ document.getElementById("btnRunImport").onclick = async () => {
   }
 };
 
+/** Live MQTT 1× stream (server job → real Broker → adapter → result poll). */
+let mqttStream = {
+  runId: null,
+  sessionId: null,
+  afterSeq: 0,
+  timer: null,
+  pointIds: new Set(),
+  altitudeIds: new Set(),
+  obsIds: new Set(),
+  eventKeys: new Set(),
+  didFit: false,
+  pollInFlight: false,
+  pollGen: 0,
+};
+
+function mqttStreamStatusEl() {
+  return document.getElementById("mqttStreamStatus");
+}
+
+function stopMqttStreamPoll() {
+  if (mqttStream.timer) {
+    clearInterval(mqttStream.timer);
+    mqttStream.timer = null;
+  }
+  mqttStream.pollGen += 1;
+}
+
+function refreshMqttViews({ fitOnce = false } = {}) {
+  if (!runState) return;
+  // Incremental refresh: never re-init layer defaults / clear user filters (R1-02).
+  const doFit = fitOnce && !mqttStream.didFit;
+  const w2 = document.getElementById("wrap2d");
+  const w3 = document.getElementById("wrap3d");
+  const twoDVisible = !w2 || !w2.hidden;
+  const threeDVisible = !w3 || !w3.hidden;
+  const savedFilter = map.targetFilter;
+  const savedChecks = new Set(uxCheckedTargetIds);
+  const savedSel = uxSelectedFusionId;
+  const savedSearch = uxTargetSearch;
+  const savedPage = uxTargetPage;
+  const savedPin = pinnedDetail;
+  map.setState(runState, { fit: doFit, resetTime: false, draw: twoDVisible });
+  if (doFit) mqttStream.didFit = true;
+  // Keep user seek unless advancing live end is intended — live stream follows latest frame.
+  map.tIndex = Math.max(0, (runState.snapshots?.length || 1) - 1);
+  if (!twoDVisible) mqttStream._mapDrawPending = true;
+  updateTransport();
+  uxCheckedTargetIds = savedChecks;
+  uxSelectedFusionId = savedSel;
+  uxTargetSearch = savedSearch;
+  uxTargetPage = savedPage;
+  pinnedDetail = savedPin;
+  rebuildTargetFilters(runState);
+  if (savedFilter && typeof savedFilter.has === "function" && savedFilter.size > 0) {
+    map.setTargetFilter(savedFilter, { draw: false });
+  }
+  try {
+    refreshPointTable();
+  } catch (_) {}
+  try {
+    if (uxSelectedFusionId) {
+      renderTrackCard(trackAtCursor(uxSelectedFusionId));
+      drawAltitudeChart(uxSelectedFusionId);
+    }
+  } catch (_) {}
+  try {
+    if (threeDVisible) refreshTrack3d();
+    else mqttStream._track3dPending = true;
+  } catch (_) {}
+  // Do NOT call enableRawLayersForPreview here — that is first-load / new-run only.
+  updateRunBanner(runState);
+  if (mqttStream.pendingDisplayCount > 0) {
+    mqttStream.pendingDisplayCount = 0;
+  }
+}
+
+/** Coalesce many result merges into one paint (rAF / microtask). */
+function flushMqttViewRefresh() {
+  if (!mqttStream._viewDirty) return;
+  mqttStream._viewDirty = false;
+  const fit = !!mqttStream._viewFitOnce;
+  mqttStream._viewFitOnce = false;
+  if (typeof refreshMqttViews === "function") {
+    refreshMqttViews({ fitOnce: fit });
+  } else if (map && typeof map.setState === "function" && runState) {
+    const doFit = fit && mqttStream && !mqttStream.didFit;
+    const w2 = document.getElementById("wrap2d");
+    const twoDVisible = !w2 || !w2.hidden;
+    map.setState(runState, { fit: !!doFit, resetTime: false, draw: twoDVisible });
+    if (doFit) mqttStream.didFit = true;
+    map.tIndex = Math.max(0, (runState.snapshots?.length || 1) - 1);
+    if (!twoDVisible) mqttStream._mapDrawPending = true;
+  }
+}
+
+function scheduleMqttViewRefresh({ fitOnce = false } = {}) {
+  if (fitOnce) mqttStream._viewFitOnce = true;
+  mqttStream._viewDirty = true;
+  mqttStream.pendingDisplayCount = (mqttStream.pendingDisplayCount || 0) + 1;
+  if (mqttStream._viewPaintScheduled) return;
+  mqttStream._viewPaintScheduled = true;
+  const kick = () => {
+    mqttStream._viewPaintScheduled = false;
+    flushMqttViewRefresh();
+  };
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(kick);
+  } else if (typeof queueMicrotask === "function") {
+    queueMicrotask(kick);
+  } else {
+    kick();
+  }
+}
+
+function ensureMqttRunShell(job) {
+  if (!job?.runId) return;
+  if (!runState || runState.jobId !== job.runId) {
+    runState = {
+      jobId: job.runId,
+      runId: job.runId,
+      sessionId: job.sessionId,
+      mode: "mqtt_stream_1x",
+      fusionProfile: job.fusionProfile,
+      altitudeMappingVersion: job.altitudeMapping,
+      snMappingVersion: job.snMapping,
+      snapshots: [{ processingTime: new Date().toISOString(), tracks: [], watermark: null }],
+      observations: [],
+      events: [],
+      rejected: [],
+      altitudeUpdates: [],
+      trajectoryPointBag: {},
+      final_tracks: [],
+      accuracy_note: "实时MQTT推流·联调候选开发版·非现场精度验收",
+      buildLabel: "联调候选开发版",
+      real_file: true,
+    };
+    mqttStream.pointIds = new Set();
+    mqttStream.altitudeIds = new Set();
+    mqttStream.obsIds = new Set();
+    mqttStream.eventKeys = new Set();
+    mqttStream.trackByFid = new Map();
+    mqttStream.trackByFidRunId = job.runId;
+    mqttStream.didFit = false;
+    mqttStream.historyGap = false;
+    mqttStream.sessionId = job.sessionId;
+    map.tIndex = 0;
+    // Do not call refreshMqttViews here — live_ui_probe extracts this slice
+    // without the outer helper; mergeMqttResultBody binds/draws next.
+  }
+}
+
+function ingestEvidenceAsObservations(evidenceList) {
+  if (!runState || !Array.isArray(evidenceList)) return;
+  for (const e of evidenceList) {
+    if (!e || typeof e !== "object") continue;
+    const oid = e.observationId;
+    if (!oid || mqttStream.obsIds.has(oid)) continue;
+    mqttStream.obsIds.add(oid);
+    runState.observations.push({
+      observationId: oid,
+      source: e.source,
+      detectorId: e.detectorId,
+      sourceTrackId: e.sourceTrackId,
+      aircraftId: e.aircraftId,
+      measurementTime: e.measurementTime,
+      receivedAt: e.receivedAt,
+      longitude: e.longitude,
+      latitude: e.latitude,
+      altitude: e.altitude,
+      altitudeDatum: e.altitudeDatum,
+      rawRef: e.rawRef || null,
+      qualityFlags: e.qualityFlags || [],
+    });
+  }
+}
+
+function mergeMqttResultBody(body) {
+  if (!runState || !body || typeof body !== "object") return;
+  if (mqttStream.sessionId && body.sessionId && String(body.sessionId) !== String(mqttStream.sessionId)) {
+    return; // stale other session
+  }
+  const snap = runState.snapshots[runState.snapshots.length - 1] || {
+    processingTime: body.watermark || new Date().toISOString(),
+    tracks: [],
+  };
+  // Persistent track index — avoid cloning all committedHistory on every result.
+  if (!mqttStream.trackByFid || mqttStream.trackByFidRunId !== runState.jobId) {
+    mqttStream.trackByFid = new Map();
+    mqttStream.trackByFidRunId = runState.jobId;
+    for (const t of snap.tracks || []) {
+      if (t?.fusionId) mqttStream.trackByFid.set(t.fusionId, t);
+    }
+  }
+  const byFid = mqttStream.trackByFid;
+
+  const commitPoint = (p) => {
+    if (!p || !p.fusionId || !p.pointId) return; // never synthesize pointId from fusionId:stateTime
+    if (mqttStream.pointIds.has(p.pointId)) {
+      // refresh bag for inspector
+      runState.trajectoryPointBag[p.pointId] = {
+        ...(runState.trajectoryPointBag[p.pointId] || {}),
+        ...p,
+      };
+      return;
+    }
+    mqttStream.pointIds.add(p.pointId);
+    let tr = byFid.get(p.fusionId);
+    if (!tr) {
+      tr = { fusionId: p.fusionId, committedHistory: [] };
+      byFid.set(p.fusionId, tr);
+    }
+    tr.committedHistory = tr.committedHistory || [];
+    tr.committedHistory.push({ ...p });
+    runState.trajectoryPointBag[p.pointId] = { ...p };
+    ingestEvidenceAsObservations(p.evidence);
+  };
+
+  for (const u of body.trajectoryUpdates || []) commitPoint(u);
+  for (const t of body.tracks || []) {
+    if (!t?.fusionId) continue;
+    // Update current-summary layer only; do not invent committed history from track blob.
+    let tr = byFid.get(t.fusionId);
+    if (!tr) {
+      tr = { fusionId: t.fusionId, committedHistory: [] };
+      byFid.set(t.fusionId, tr);
+    }
+    const hist = tr.committedHistory || [];
+    Object.assign(tr, t);
+    tr.committedHistory = hist;
+    for (const h of t.committedHistory || []) {
+      if (h && h.pointId) commitPoint({ ...h, fusionId: t.fusionId });
+    }
+  }
+
+  for (const au of body.altitudeUpdates || []) {
+    if (!au || typeof au !== "object") continue;
+    const aid = au.altitudeUpdateId || au.pointId;
+    if (aid && mqttStream.altitudeIds.has(aid)) continue;
+    if (aid) mqttStream.altitudeIds.add(aid);
+    runState.altitudeUpdates.push(au);
+    ingestEvidenceAsObservations(au.evidence);
+  }
+
+  for (const ev of body.events || []) {
+    const key = `${ev?.type || ev?.eventType || ""}:${ev?.time || ev?.eventTime || ""}:${ev?.fusionId || ""}:${ev?.observationId || ""}`;
+    if (mqttStream.eventKeys.has(key)) continue;
+    mqttStream.eventKeys.add(key);
+    runState.events.push(ev);
+  }
+  for (const rj of body.rejected || []) {
+    const key = `rej:${rj?.observationId || ""}:${rj?.reason || ""}`;
+    if (mqttStream.eventKeys.has(key)) continue;
+    mqttStream.eventKeys.add(key);
+    runState.rejected.push(rj);
+  }
+
+  snap.tracks = [...byFid.values()];
+  snap.processingTime = body.watermark || body.processingTime || snap.processingTime;
+  snap.watermark = body.watermark || snap.watermark;
+  runState.snapshots[runState.snapshots.length - 1] = snap;
+  runState.final_tracks = snap.tracks;
+  map.tIndex = runState.snapshots.length - 1;
+  const hadPoints = mqttStream.pointIds.size > 0;
+  // Mark dirty — poll flushes once per page. live_ui_probe slice lacks flush helper.
+  mqttStream._viewDirty = true;
+  if (hadPoints) mqttStream._viewFitOnce = true;
+  mqttStream.pendingDisplayCount = (mqttStream.pendingDisplayCount || 0) + 1;
+  if (typeof flushMqttViewRefresh === "function") {
+    // Product path: caller (poll) or schedule will flush; optional eager schedule.
+    if (typeof scheduleMqttViewRefresh === "function" && !mqttStream._deferPaint) {
+      scheduleMqttViewRefresh({ fitOnce: false });
+    }
+  } else if (map && typeof map.setState === "function") {
+    // Extracted-slice probe path without flushMqttViewRefresh in scope.
+    const doFit = mqttStream._viewFitOnce && !mqttStream.didFit;
+    mqttStream._viewFitOnce = false;
+    mqttStream._viewDirty = false;
+    map.setState(runState, { fit: !!doFit, resetTime: false });
+    if (doFit) mqttStream.didFit = true;
+    map.tIndex = Math.max(0, (runState.snapshots?.length || 1) - 1);
+    map.draw();
+  }
+}
+
+function ingestPublishedObservations(payload) {
+  if (!runState || !payload) return;
+  const obs = payload.observations || payload?.payload?.observations;
+  if (!Array.isArray(obs)) return;
+  for (const o of obs) {
+    if (!o?.observationId || mqttStream.obsIds.has(o.observationId)) continue;
+    mqttStream.obsIds.add(o.observationId);
+    runState.observations.push(o);
+  }
+}
+
+async function pollMqttStreamOnce() {
+  if (!mqttStream.runId || mqttStream.pollInFlight) return;
+  const gen = mqttStream.pollGen;
+  mqttStream.pollInFlight = true;
+  try {
+    const shardOff = Number(mqttStream.shardOffset || 0);
+    const qs =
+      `afterSeq=${mqttStream.afterSeq}` +
+      (shardOff > 0 ? `&shardOffset=${shardOff}` : "");
+    const r = await fetch(
+      `${api}/v1/workbench/mqtt-stream/${encodeURIComponent(mqttStream.runId)}/events?${qs}`
+    );
+    const j = await r.json();
+    if (!r.ok) return;
+    if (gen !== mqttStream.pollGen) return; // superseded
+    const job = j.job || {};
+    if (job.runId && mqttStream.runId && job.runId !== mqttStream.runId) return;
+    const latest = Number(j.latestSeq ?? job.latestEventSeq ?? 0);
+    const el = mqttStreamStatusEl();
+    const terminal = ["completed", "stopped", "failed"].includes(job.status);
+    let mergedPointsThisPoll = 0;
+    ensureMqttRunShell(job);
+    if (j.gap) {
+      mqttStream.historyGap = true;
+    }
+    mqttStream._deferPaint = true;
+    try {
+      for (const ev of j.events || []) {
+        const seq = Number(ev.seq) || 0;
+        const pl = ev.payload || {};
+        // Body-less oversized stub (legacy) or missing merge body → incomplete history.
+        if (ev.kind === "result" && (pl.oversized === true && !pl.body)) {
+          mqttStream.historyGap = true;
+          mqttStream.contentIncomplete = true;
+          // Do not advance afterSeq past undeliverable content.
+          continue;
+        }
+        if (ev.kind === "result" && pl.body) {
+          const before = mqttStream.pointIds.size;
+          mergeMqttResultBody(pl.body);
+          mergedPointsThisPoll += Math.max(0, mqttStream.pointIds.size - before);
+        }
+        if (ev.kind === "published") ingestPublishedObservations(pl);
+
+        const shard = pl.shard;
+        if (shard && shard.complete === false) {
+          // Stay on this seq; request next shard. Do not advance afterSeq yet.
+          mqttStream.shardOffset = Number(shard.nextOffset || j.nextShardOffset || 0);
+          mqttStream.shardSeq = seq;
+          break;
+        }
+        // Shard complete or non-sharded event: advance cursor past this seq.
+        if (seq > mqttStream.afterSeq) mqttStream.afterSeq = seq;
+        mqttStream.shardOffset = 0;
+        mqttStream.shardSeq = null;
+      }
+    } finally {
+      mqttStream._deferPaint = false;
+    }
+    if (typeof flushMqttViewRefresh === "function") flushMqttViewRefresh();
+
+    if (j.shardIncomplete) {
+      mqttStream.shardOffset = Number(j.nextShardOffset || mqttStream.shardOffset || 0);
+    }
+
+    const gapSticky = !!(mqttStream.historyGap || j.gap || mqttStream.contentIncomplete);
+    const displayCaughtUp =
+      !j.truncated &&
+      !j.shardIncomplete &&
+      !(mqttStream.shardOffset > 0) &&
+      mqttStream.afterSeq >= latest &&
+      !mqttStream.contentIncomplete;
+    if (el) {
+      el.textContent = [
+        `状态=${job.status}`,
+        `run=${job.runId}`,
+        `session=${job.sessionId}`,
+        `MQTT=${job.mqttConnected ? "已连接" : "否"}/订阅=${job.resultSubscribed ? "是" : "否"}`,
+        `已发观测=${job.publishedObservations}/${job.totalPlannedObservations}`,
+        `ack stored/processed/rej=${job.ackStored}/${job.ackProcessed}/${job.ackRejected}`,
+        `结果=${job.resultsReceived} 轨迹点=${job.trajectoryPointIds} 高度更新=${job.altitudePointIds}`,
+        `画面点=${mqttStream.pointIds.size} 本批归并点+=${mergedPointsThisPoll}`,
+        `游标 afterSeq=${mqttStream.afterSeq} latest=${latest || "—"} truncated=${!!j.truncated}` +
+          (mqttStream.shardOffset ? ` shardOff=${mqttStream.shardOffset}` : ""),
+        gapSticky
+          ? `历史不完整（缺口/未送达正文）；继续显示不能补齐已丢前缀，可停止或重新开局`
+          : "",
+        `原时刻=${job.currentOriginalTime || "—"}`,
+        `模拟时刻=${job.currentSimTime || "—"}`,
+        job.error ? `错误=${job.error}` : "",
+        terminal && !displayCaughtUp
+          ? "后台已结束，画面正在追赶分页/分片…"
+          : terminal && displayCaughtUp && !gapSticky
+            ? "后台已结束，画面已追平"
+            : terminal && gapSticky
+              ? "后台已结束，画面游标到尾但历史不完整"
+              : "",
+        "· 按数据库约定海拔；设备基准未核实",
+      ].filter(Boolean).join("\n");
+    }
+    // Stop only when cursor+shards done; never treat gap/incomplete as "完整".
+    if (terminal && displayCaughtUp) {
+      stopMqttStreamPoll();
+    }
+  } catch (err) {
+    const el = mqttStreamStatusEl();
+    if (el) el.textContent = `推流轮询失败：${err.message || err}`;
+  } finally {
+    mqttStream.pollInFlight = false;
+  }
+}
+
+// Reopen: light status only — do NOT auto-replay full history into the heavy map.
+(async () => {
+  try {
+    let job = null;
+    const r = await fetch(api + "/v1/workbench/mqtt-stream/active");
+    if (r.ok) {
+      const j = await r.json();
+      job = j.job || null;
+    }
+    // Terminal jobs clear active(); restore via stored runId + status (or recent list).
+    if (!job?.runId) {
+      let stored = null;
+      try {
+        stored = sessionStorage.getItem("task008_mqtt_runId");
+      } catch (_) {}
+      if (stored) {
+        const sr = await fetch(
+          api + "/v1/workbench/mqtt-stream/" + encodeURIComponent(stored) + "/status"
+        );
+        if (sr.status === 404 || sr.status === 410) {
+          const el = mqttStreamStatusEl();
+          if (el) {
+            el.textContent =
+              `已存储 run=${stored} 已过期/释放（HTTP ${sr.status}）；无法恢复历史事件，请重新开局。`;
+          }
+          return;
+        }
+        if (sr.ok) job = await sr.json();
+      }
+      if (!job?.runId) {
+        const rr = await fetch(api + "/v1/workbench/mqtt-stream/recent?limit=3");
+        if (rr.ok) {
+          const rj = await rr.json();
+          job = (rj.jobs || [])[0] || null;
+        }
+      }
+    }
+    if (
+      !job?.runId ||
+      !["running", "stopping", "created", "completed", "stopped", "failed"].includes(job.status)
+    ) {
+      return;
+    }
+    mqttStream.runId = job.runId;
+    mqttStream.sessionId = job.sessionId;
+    try {
+      sessionStorage.setItem("task008_mqtt_runId", job.runId);
+    } catch (_) {}
+    // Resume controls live under the real-data panel — activate it so the bar is visible.
+    try {
+      document.querySelector('.tab[data-mode="real"]')?.click();
+    } catch (_) {}
+    const el = mqttStreamStatusEl();
+    const ctrl = `${location.origin}/demo/workbench/control.html`;
+    if (el) {
+      el.textContent = [
+        `检测到作业 run=${job.runId} status=${job.status}`,
+        `已发=${job.publishedObservations}/${job.totalPlannedObservations} 结果=${job.resultsReceived}` +
+          (job.runEndDrained != null ? ` drained=${job.runEndDrained}` : ""),
+        job.error ? `备注/错误=${job.error}` : "",
+        `关闭页面不会停止后台推流。轻量控制（无大地图）：${ctrl}`,
+        `需要看图时点下方「继续显示」分批挂接已保留尾部；默认不自动灌入全部历史。`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
+    const bar = document.getElementById("mqttResumeBar");
+    if (bar) bar.hidden = false;
+  } catch (_) {}
+})();
+
+document.getElementById("btnMqttContinueView")?.addEventListener("click", () => {
+  if (!mqttStream.runId) {
+    try {
+      const stored = sessionStorage.getItem("task008_mqtt_runId");
+      if (stored) mqttStream.runId = stored;
+    } catch (_) {}
+  }
+  if (!mqttStream.runId) return;
+  mqttStream.afterSeq = Number(mqttStream.afterSeq || 0);
+  ensureMqttRunShell({
+    runId: mqttStream.runId,
+    sessionId: mqttStream.sessionId,
+    fusionProfile: document.getElementById("fusionProfile")?.value,
+    altitudeMapping: document.getElementById("altitudeMappingVersion")?.value,
+    snMapping: document.getElementById("snMappingVersion")?.value,
+  });
+  stopMqttStreamPoll();
+  mqttStream.timer = setInterval(pollMqttStreamOnce, 500);
+  pollMqttStreamOnce();
+  const bar = document.getElementById("mqttResumeBar");
+  if (bar) bar.hidden = true;
+});
+
+document.getElementById("btnMqttOpenControl")?.addEventListener("click", () => {
+  window.open(`${location.origin}/demo/workbench/control.html`, "_blank", "noopener");
+});
+
+document.getElementById("btnMqttStreamStart")?.addEventListener("click", async () => {
+  if (!importMeta?.stored_as) {
+    alert("请先预览（上传或本地），再开始实时MQTT推流");
+    return;
+  }
+  if (mqttStream.runId && mqttStream.timer) {
+    alert("推流进行中：请先停止，或使用重新开始");
+    return;
+  }
+  const path = importMeta.stored_as;
+  const maxObs = Number(document.getElementById("maxRows")?.value || 0);
+  // Prefer a short verify budget when maxRows is large: still allow user override via maxRows.
+  const body = {
+    path,
+    fusionProfile: document.getElementById("fusionProfile")?.value || "multisensor-3d-v1",
+    altitudeMappingVersion: document.getElementById("altitudeMappingVersion")?.value || "database_altitude_msl_v1",
+    snMappingVersion: document.getElementById("snMappingVersion")?.value || "company_source_id_sn_v1",
+    sourceTimezone: mappingFromForm().source_timezone || "Asia/Shanghai",
+    maxObservations: maxObs > 0 && maxObs < 5000 ? maxObs : 0,
+  };
+  clearImportVisualization("实时MQTT推流启动中…");
+  stopMqttStreamPoll();
+  mqttStream = {
+    runId: null,
+    afterSeq: 0,
+    timer: null,
+    pointIds: new Set(),
+    altitudeIds: new Set(),
+    obsIds: new Set(),
+    eventKeys: new Set(),
+    didFit: false,
+    sessionId: null,
+    pollGen: (mqttStream.pollGen || 0) + 1,
+    pollInFlight: false,
+  };
+  try {
+    const r = await fetch(api + "/v1/workbench/mqtt-stream/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      mqttStreamStatusEl().textContent = `启动失败：${JSON.stringify(j)}`;
+      return;
+    }
+    mqttStream.runId = j.job.runId;
+    mqttStream.sessionId = j.job.sessionId;
+    try {
+      sessionStorage.setItem("task008_mqtt_runId", j.job.runId);
+    } catch (_) {}
+    ensureMqttRunShell(j.job);
+    mqttStreamStatusEl().textContent = `已启动 run=${j.job.runId}\n${JSON.stringify(j.job, null, 2)}`;
+    mqttStream.timer = setInterval(pollMqttStreamOnce, 500);
+    pollMqttStreamOnce();
+  } catch (err) {
+    mqttStreamStatusEl().textContent = `启动异常：${err.message || err}`;
+  }
+});
+
+document.getElementById("btnMqttStreamStop")?.addEventListener("click", async () => {
+  if (!mqttStream.runId) {
+    alert("当前无推流作业");
+    return;
+  }
+  try {
+    const r = await fetch(api + `/v1/workbench/mqtt-stream/${encodeURIComponent(mqttStream.runId)}/stop`, {
+      method: "POST",
+    });
+    const j = await r.json();
+    mqttStreamStatusEl().textContent = `停止请求已发\n${JSON.stringify(j.job || j, null, 2)}`;
+    await pollMqttStreamOnce();
+  } catch (err) {
+    mqttStreamStatusEl().textContent = `停止失败：${err.message || err}`;
+  }
+});
+
+document.getElementById("btnMqttStreamRestart")?.addEventListener("click", async () => {
+  if (!mqttStream.runId && !importMeta?.stored_as) {
+    alert("请先预览并至少启动过一次推流，或直接开始推流");
+    return;
+  }
+  const prev = mqttStream.runId;
+  stopMqttStreamPoll();
+  clearImportVisualization("重新开始推流…");
+  try {
+    let j;
+    if (prev) {
+      const r = await fetch(api + `/v1/workbench/mqtt-stream/${encodeURIComponent(prev)}/restart`, {
+        method: "POST",
+      });
+      j = await r.json();
+      if (!r.ok) {
+        mqttStreamStatusEl().textContent = `重新开始失败：${JSON.stringify(j)}`;
+        return;
+      }
+    } else {
+      document.getElementById("btnMqttStreamStart").click();
+      return;
+    }
+    mqttStream = { runId: j.job.runId, afterSeq: 0, timer: null, pointIds: new Set() };
+    ensureMqttRunShell(j.job);
+    mqttStream.timer = setInterval(pollMqttStreamOnce, 500);
+    pollMqttStreamOnce();
+  } catch (err) {
+    mqttStreamStatusEl().textContent = `重新开始异常：${err.message || err}`;
+  }
+});
+
 document.getElementById("btnMsDemo").onclick = async () => {
   const token = ++runReqSeq;
   clearImportVisualization("无SN多设备演示加载中…");
@@ -2074,14 +3344,27 @@ document.getElementById("btnLoadMap").onclick = async () => {
   } else if ("source_timezone" in mapping || "assume_utc_naive" in mapping) {
     tz.value = "";
   }
-  if (typeof mapping.treat_raw_id_as_aircraftId === "boolean") {
-    document.getElementById("rawIdAsSn").checked = mapping.treat_raw_id_as_aircraftId;
+  const snSel = document.getElementById("snMappingVersion");
+  if (snSel && mapping.sn_mapping_version) {
+    snSel.value = mapping.sn_mapping_version;
   }
+  if (typeof mapping.treat_raw_id_as_aircraftId === "boolean") {
+    const rawCb = document.getElementById("rawIdAsSn");
+    if (rawCb) rawCb.checked = mapping.treat_raw_id_as_aircraftId;
+  }
+  if (mapping.altitude_mapping_version != null) {
+    const aSel = document.getElementById("altitudeMappingVersion");
+    if (aSel) aSel.value = mapping.altitude_mapping_version || "";
+  }
+  syncSnMappingUi();
+  syncAltitudeMappingHint();
   document.getElementById("importReport").textContent = JSON.stringify({
     loaded_template: name,
     source_timezone: mapping.source_timezone,
     assume_utc_naive: mapping.assume_utc_naive,
+    sn_mapping_version: mapping.sn_mapping_version,
     treat_raw_id_as_aircraftId: mapping.treat_raw_id_as_aircraftId,
+    altitude_mapping_version: mapping.altitude_mapping_version,
     field_map: fm,
     tzMode: tz.value,
   }, null, 2);
@@ -2248,10 +3531,39 @@ document.getElementById("btnPageNext")?.addEventListener("click", async () => {
   await fetchPage(next);
 });
 
+window.showRun = showRun;
+window.refreshPointTable = refreshPointTable;
+window.drawAltitudeChart = drawAltitudeChart;
+window.collectCommittedPoints = collectCommittedPoints;
 window.__wb = {
   get map() { return map; },
   get runState() { return runState; },
   set runState(v) { runState = v; },
+  get viewMode() { return viewMode; },
+  get mqttStream() { return mqttStream; },
+  get track3d() { return track3d; },
+  get uxSelectedFusionId() { return uxSelectedFusionId; },
+  get uxCheckedTargetIds() { return uxCheckedTargetIds; },
+  get uxTargetGroups() { return uxTargetGroups; },
+  selectUxFusionId,
+  syncLayersFromUi,
+  refreshTrack3d,
+  renderTargetFiltersPage,
+  refreshPointTable,
+  drawAltitudeChart,
+  collectCommittedPoints,
+  refreshMqttViews,
+  enableRawLayersForPreview,
+  get uxFullHistoryView() { return uxFullHistoryView; },
+  set uxFullHistoryView(v) { uxFullHistoryView = !!v; },
+  get uxPointFilterLocked() { return uxPointFilterLocked; },
+  get importMeta() { return importMeta; },
+  queryDisplayPoints: (opts) => queryDisplayPoints(runState, opts),
+  summarizeTrackDisplay: (fid, opts) => summarizeTrackDisplay(runState, fid, opts),
+  pollMqttStreamOnce,
+  stopMqttStreamPoll,
+  showRun,
+  track3d,
   get draftScenario() { return draftScenario; },
   get multiQueue() { return multiQueue; },
   get pageState() { return pageState; },
@@ -2297,3 +3609,478 @@ loadScenarioList()
   });
 initFieldMapForm();
 document.getElementById("btnHealth").click();
+
+function collectCommittedPoints(opts = {}) {
+  const fullHistory =
+    opts.fullHistory != null ? !!opts.fullHistory : uxFullHistoryView;
+  const until =
+    opts.untilTimeMs != null
+      ? opts.untilTimeMs
+      : fullHistory
+        ? null
+        : currentUntilTimeMs();
+  const q = queryDisplayPoints(runState, {
+    fusionId: opts.fusionId || null,
+    untilTimeMs: until,
+    fullHistory,
+    includeVertical: opts.includeVertical !== false,
+  });
+  return q.all;
+}
+
+function refreshPointTable({ highlightPointId = null } = {}) {
+  const body = document.getElementById("pointTableBody");
+  if (!body) return;
+  const fidEl = document.getElementById("ptFilterFid");
+  if (fidEl && !uxPointFilterLocked && uxSelectedFusionId) {
+    fidEl.value = uxSelectedFusionId;
+  }
+  const fid = (fidEl?.value || "").trim() || uxSelectedFusionId || "";
+  const src = (document.getElementById("ptFilterSrc")?.value || "").trim();
+  const rows = collectCommittedPoints({ fusionId: fid || null })
+    .filter((p) => {
+      if (src && String(p.source || "") !== src) return false;
+      return true;
+    })
+    .sort((a, b) => parseTimeMs(a.stateTime) - parseTimeMs(b.stateTime));
+  if (highlightPointId) {
+    const idx = rows.findIndex(
+      (p) => p.pointId === highlightPointId || p.altitudeUpdateId === highlightPointId
+    );
+    if (idx >= 0) uxPointPage = Math.floor(idx / UX_POINT_PAGE_SIZE) + 1;
+  }
+  const pageInfo = pageSlice(rows, uxPointPage, UX_POINT_PAGE_SIZE);
+  uxPointPage = pageInfo.page;
+  const pager = document.getElementById("pointPager");
+  if (pager) {
+    pager.innerHTML =
+      `<button type="button" id="btnPtPrev">上一页</button>` +
+      `<span class="hint"> ${pageInfo.page}/${pageInfo.pages} · ${pageInfo.total} </span>` +
+      `<button type="button" id="btnPtNext">下一页</button>`;
+    document.getElementById("btnPtPrev")?.addEventListener("click", () => {
+      uxPointPage = Math.max(1, uxPointPage - 1);
+      refreshPointTable();
+    });
+    document.getElementById("btnPtNext")?.addEventListener("click", () => {
+      uxPointPage = uxPointPage + 1;
+      refreshPointTable();
+    });
+  }
+  const hi = highlightPointId || pinnedDetail?.pointId || pinnedDetail?.altitudeUpdateId;
+  body.innerHTML = pageInfo.rows
+    .map((p) => {
+      const rowId = p.pointId || p.altitudeUpdateId || "";
+      const sel = hi && rowId === hi ? " sel" : "";
+      return `<tr data-pid="${escapeHtml(rowId)}" data-vert="${p._verticalOnly ? "1" : "0"}" class="pt-row${sel}"><td>${escapeHtml(
+        rowId
+      )}</td><td>${escapeHtml(p.stateTime || "")}</td><td>${
+        p.altitude ?? "null"
+      }</td><td>${escapeHtml(p.altitudeMode || "")}${
+        p._verticalOnly ? " (altΔ)" : ""
+      }</td><td>${escapeHtml((p.observationIds || p.altitudeObservationIds || []).join(","))}</td></tr>`;
+    })
+    .join("");
+  body.querySelectorAll("tr.pt-row").forEach((tr) => {
+    tr.onclick = () => {
+      const pid = tr.dataset.pid;
+      const vert = tr.dataset.vert === "1";
+      const p = collectCommittedPoints({ fusionId: fid || null }).find(
+        (x) => (vert ? x.altitudeUpdateId === pid : x.pointId === pid)
+      );
+      if (!p) return;
+      const idSet = new Set([...(p.observationIds || []), ...(p.altitudeObservationIds || [])]);
+      p._linkedObservations = (runState?.observations || []).filter((o) => idSet.has(o.observationId));
+      selectUxFusionId(p.fusionId, { skipCamera: true, pinPoint: p });
+      if (!p._verticalOnly) {
+        map.onPick(p, "fusion_point");
+        seekMapToCommittedPoint(p);
+        if (typeof syncTrack3dSelection === "function") syncTrack3dSelection(p);
+      }
+    };
+  });
+}
+
+function updateSimLayerAvailability(result) {
+  const hasTruth =
+    !!(result?.scenario?.aircraft?.length) ||
+    !!(result?.truth_tracks?.length) ||
+    !!(result?.evaluation);
+  const realFile = !!(result?.preview_sample || result?.import_summary || result?.real_file);
+  const showSim = hasTruth && !realFile;
+  for (const layer of ["plan", "truth"]) {
+    const el = document.querySelector(`.layer[data-layer="${layer}"]`);
+    if (!el) continue;
+    const lab = el.closest("label");
+    if (!showSim) {
+      el.checked = false;
+      el.disabled = true;
+      if (lab) {
+        lab.title = "真实文件无仿真真值/计划数据：控件已禁用";
+        lab.classList.add("disabled-layer");
+      }
+    } else {
+      el.disabled = false;
+      if (lab) {
+        lab.title = "";
+        lab.classList.remove("disabled-layer");
+      }
+    }
+  }
+  const note = document.querySelector("#advLayers .hint");
+  if (note && !showSim) {
+    /* keep static hint in HTML */
+  }
+  syncLayersFromUi();
+}
+
+function seekMapToCommittedPoint(p) {
+  if (!map || !p) return;
+  // Vertical-only altitude updates have no XYZ point — do not forge seek.
+  if (p._verticalOnly || (!p.pointId && p.altitudeUpdateId)) return;
+  if (typeof map.setTime === "function") {
+    map.setTime(p.stateTime);
+    return;
+  }
+  if (typeof map.setTimeIndex !== "function") return;
+  const snaps = runState?.snapshots || [];
+  const pid = p.pointId;
+  // Prefer the first snapshot whose committed history already contains this pointId
+  // (real MapView has setTimeIndex only — do not use processingTime <= stateTime).
+  let best = -1;
+  for (let i = 0; i < snaps.length; i++) {
+    for (const tr of snaps[i].tracks || []) {
+      const hist = tr.committedHistory || [];
+      if (hist.some((c) => c.pointId === pid)) {
+        best = i;
+        break;
+      }
+    }
+    if (best >= 0) break;
+  }
+  if (best < 0) {
+    const t = parseT(p.stateTime);
+    best = 0;
+    for (let i = 0; i < snaps.length; i++) {
+      const pt = parseT(snaps[i].processingTime);
+      if (Number.isFinite(pt) && Number.isFinite(t) && pt <= t) best = i;
+    }
+  }
+  map.setTimeIndex(best);
+}
+
+function syncAltChartBacking() {
+  const cv = document.getElementById("altChart");
+  const wrap = document.getElementById("altChartWrap");
+  if (!cv) return null;
+  const cssW = Math.max(120, (wrap || cv).clientWidth || 360);
+  const cssH = Math.max(160, Math.min(360, (wrap || cv).clientHeight || 200));
+  const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  const bw = Math.round(cssW * dpr);
+  const bh = Math.round(cssH * dpr);
+  if (cv.width !== bw || cv.height !== bh) {
+    cv.width = bw;
+    cv.height = bh;
+  }
+  cv.style.width = cssW + "px";
+  cv.style.height = cssH + "px";
+  return { cv, cssW, cssH, dpr };
+}
+
+function drawAltitudeChart(fusionId) {
+  const sized = syncAltChartBacking();
+  const cv = sized?.cv || document.getElementById("altChart");
+  if (!cv) return;
+  const ctx = cv.getContext("2d");
+  const title = document.getElementById("altChartTitle");
+  const W = cv.width;
+  const H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#0f1622";
+  ctx.fillRect(0, 0, W, H);
+  const fid = fusionId || uxSelectedFusionId;
+  if (!fid) {
+    if (title) title.textContent = "海拔—时间：请先选中一条航迹";
+    ctx.fillStyle = "#888";
+    ctx.font = `${12 * (sized?.dpr || 1)}px sans-serif`;
+    ctx.fillText("请选中 fusionId 后显示该航迹海拔", 12 * (sized?.dpr || 1), 24 * (sized?.dpr || 1));
+    return;
+  }
+  const tr = trackAtCursor(fid);
+  const snLab = tr?.aircraftId ? `SN ${tr.aircraftId}` : "未识别 SN";
+  const scopeLab = uxFullHistoryView ? "全程已保存" : "游标已发生";
+  if (title) title.textContent = `海拔 · ${snLab} · ${shortFid(fid)} · ${scopeLab}`;
+
+  let pts = collectCommittedPoints({ fusionId: fid });
+  pts = pts.slice().sort((a, b) => parseTimeMs(a.stateTime) - parseTimeMs(b.stateTime));
+  const linkedIds = new Set();
+  for (const p of pts) {
+    for (const id of p.observationIds || []) linkedIds.add(id);
+    for (const id of p.altitudeObservationIds || []) linkedIds.add(id);
+  }
+  const until = uxFullHistoryView ? null : currentUntilTimeMs();
+  const obs = (runState?.observations || []).filter((o) => {
+    if (!linkedIds.has(o.observationId)) return false;
+    if (!isUsableMslAltitude(o)) return false;
+    const t = parseTimeMs(o.measurementTime);
+    if (until != null && Number.isFinite(t) && t > until) return false;
+    return true;
+  });
+  // Axis domain: MSL-usable only (0/neg included; HAE/expired excluded).
+  const mslPts = pts.filter((p) => isUsableMslAltitude(p));
+  const allAlt = [...mslPts, ...obs].map((p) => Number(p.altitude));
+  const padL = 44 * (sized?.dpr || 1);
+  const padR = 10 * (sized?.dpr || 1);
+  const padT = 36 * (sized?.dpr || 1);
+  const padB = 36 * (sized?.dpr || 1);
+  window.__wbAltHit = { fid, pts: mslPts, t0: null, t1: null, xOf: null };
+  if (!allAlt.length) {
+    ctx.fillStyle = "#888";
+    ctx.font = `${11 * (sized?.dpr || 1)}px sans-serif`;
+    ctx.fillText("无有效 MSL 海拔（缺测/过期/非MSL已跳过）", padL, padT + 16);
+    return;
+  }
+  const times = [
+    ...mslPts.map((p) => parseTimeMs(p.stateTime)),
+    ...obs.map((o) => parseTimeMs(o.measurementTime)),
+  ].filter((t) => Number.isFinite(t));
+  const t0 = Math.min(...times);
+  const t1 = Math.max(...times);
+  let amin = Math.min(...allAlt);
+  let amax = Math.max(...allAlt);
+  if (amin === amax) {
+    amin -= 1;
+    amax += 1;
+  }
+  const xOf = (t) => padL + ((t - t0) / Math.max(1, t1 - t0)) * (W - padL - padR);
+  const yOf = (a) => H - padB - ((a - amin) / Math.max(1e-6, amax - amin)) * (H - padT - padB);
+  window.__wbAltHit = { fid, pts: mslPts, t0, t1, xOf, padL, padR, cssW: sized?.cssW };
+  ctx.strokeStyle = "#445";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, H - padB);
+  ctx.lineTo(W - padR, H - padB);
+  ctx.stroke();
+  const dpr = sized?.dpr || 1;
+  ctx.fillStyle = "#9aa";
+  ctx.font = `${10 * dpr}px sans-serif`;
+  ctx.fillText(`MSL(m)`, 4, padT - 4 * dpr);
+  ctx.fillText(`${amin.toFixed(1)}`, 4, H - padB);
+  ctx.fillText(`${amax.toFixed(1)}`, 4, padT + 10 * dpr);
+  // Short time labels to avoid overlap on narrow charts; date/tz in one line.
+  const fmtShort = (ms) => new Date(ms).toISOString().slice(11, 19);
+  const day = new Date(t0).toISOString().slice(0, 10);
+  ctx.fillText(fmtShort(t0), padL, H - 8 * dpr);
+  const t1lab = fmtShort(t1);
+  const t1w = ctx.measureText(t1lab).width;
+  ctx.fillText(t1lab, Math.max(padL + 40 * dpr, W - padR - t1w), H - 8 * dpr);
+  ctx.fillText(`${day} · UTC假设 · ${scopeLab}`, padL, padT - 14 * dpr);
+  // Legend on second line (wrap for narrow)
+  const legY = padT + 12 * dpr;
+  ctx.fillStyle = "#90be6d";
+  ctx.fillText("实测", padL, legY);
+  ctx.fillStyle = "#f9c74f";
+  ctx.fillText("估计", padL + 40 * dpr, legY);
+  ctx.fillStyle = "#4cc9f0";
+  ctx.fillText("关联原始", padL + 80 * dpr, legY);
+
+  const strokeSeries = (arr, { predicted = false, color }) => {
+    ctx.beginPath();
+    ctx.setLineDash(predicted ? [5, 4] : []);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5 * dpr;
+    let started = false;
+    let lastSeg = null;
+    for (const p of arr) {
+      const t = parseTimeMs(p.stateTime || p.measurementTime);
+      const mode = p.altitudeMode;
+      const broken =
+        !Number.isFinite(t) ||
+        !isUsableMslAltitude(p) ||
+        mode === "expired" ||
+        (predicted ? mode !== "predicted" : mode === "predicted") ||
+        (lastSeg != null && p.trackSegmentId && p.trackSegmentId !== lastSeg);
+      if (broken) {
+        started = false;
+        lastSeg = p.trackSegmentId || lastSeg;
+        continue;
+      }
+      lastSeg = p.trackSegmentId || lastSeg;
+      const x = xOf(t);
+      const y = yOf(Number(p.altitude));
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  };
+  strokeSeries(pts, { predicted: false, color: "#90be6d" });
+  strokeSeries(pts, { predicted: true, color: "#f9c74f" });
+  ctx.fillStyle = "#4cc9f0";
+  for (const o of obs.slice(0, 800)) {
+    const t = parseTimeMs(o.measurementTime);
+    if (!Number.isFinite(t)) continue;
+    ctx.beginPath();
+    ctx.arc(xOf(t), yOf(Number(o.altitude)), 2.2 * dpr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+document.getElementById("btnPtRefresh")?.addEventListener("click", () => {
+  uxPointPage = 1;
+  refreshPointTable();
+  drawAltitudeChart(document.getElementById("ptFilterFid")?.value || uxSelectedFusionId || null);
+});
+document.getElementById("btnPtFollowSel")?.addEventListener("click", () => {
+  uxPointFilterLocked = false;
+  const fidEl = document.getElementById("ptFilterFid");
+  if (fidEl) fidEl.value = uxSelectedFusionId || "";
+  const hint = document.getElementById("ptFilterLockHint");
+  if (hint) hint.textContent = "点表已随选中目标";
+  uxPointPage = 1;
+  refreshPointTable();
+});
+document.getElementById("ptFilterFid")?.addEventListener("input", () => {
+  const v = (document.getElementById("ptFilterFid")?.value || "").trim();
+  uxPointFilterLocked = !!(v && v !== uxSelectedFusionId);
+  const hint = document.getElementById("ptFilterLockHint");
+  if (hint) {
+    hint.textContent = uxPointFilterLocked
+      ? `手动筛选中（选中=${shortFid(uxSelectedFusionId || "")}）`
+      : "";
+  }
+});
+document.getElementById("chkFullHistoryView")?.addEventListener("change", (e) => {
+  uxFullHistoryView = !!e.target.checked;
+  if (uxSelectedFusionId) {
+    renderTrackCard(trackAtCursor(uxSelectedFusionId));
+    refreshPointTable();
+    drawAltitudeChart(uxSelectedFusionId);
+  }
+});
+
+/* —— TASK-009 right panel: tabs / search / selection actions / alt expand —— */
+document.querySelectorAll(".rtab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const name = btn.dataset.rtab;
+    document.querySelectorAll(".rtab").forEach((b) => b.classList.toggle("active", b === btn));
+    document.querySelectorAll(".rtab-panel").forEach((p) => {
+      p.classList.toggle("hidden", p.dataset.rtabPanel !== name);
+    });
+    if (name === "altitude") {
+      requestAnimationFrame(() => drawAltitudeChart(uxSelectedFusionId));
+    }
+    if (name === "detail") refreshPointTable();
+  });
+});
+
+function bumpTargetFiltersFromUi() {
+  uxTargetSearch = document.getElementById("targetSearch")?.value || "";
+  uxTargetStatus = document.getElementById("targetStatusFilter")?.value || "";
+  uxTargetSource = document.getElementById("targetSourceFilter")?.value || "";
+  uxOnlySelected = !!document.getElementById("chkOnlySelected")?.checked;
+  uxTargetPageSize = Math.min(
+    50,
+    Math.max(1, Number(document.getElementById("targetPageSize")?.value) || PAGE_DEFAULT)
+  );
+  uxTargetPage = 1;
+  renderTargetFiltersPage();
+}
+document.getElementById("targetSearch")?.addEventListener("input", bumpTargetFiltersFromUi);
+document.getElementById("targetStatusFilter")?.addEventListener("input", bumpTargetFiltersFromUi);
+document.getElementById("targetSourceFilter")?.addEventListener("change", bumpTargetFiltersFromUi);
+document.getElementById("targetPageSize")?.addEventListener("change", bumpTargetFiltersFromUi);
+document.getElementById("chkOnlySelected")?.addEventListener("change", bumpTargetFiltersFromUi);
+document.getElementById("btnClearTargetFilter")?.addEventListener("click", () => {
+  const s = document.getElementById("targetSearch");
+  const st = document.getElementById("targetStatusFilter");
+  const src = document.getElementById("targetSourceFilter");
+  const only = document.getElementById("chkOnlySelected");
+  if (s) s.value = "";
+  if (st) st.value = "";
+  if (src) src.value = "";
+  if (only) only.checked = false;
+  bumpTargetFiltersFromUi();
+});
+document.getElementById("btnShowAllTargets")?.addEventListener("click", () => {
+  uxCheckedTargetIds = new Set();
+  document.getElementById("btnClearTargetFilter")?.click();
+  map.setTargetFilter(null);
+  setFocusStatus("已清除目标勾选与筛选：显示全部目标", true);
+  renderTargetFiltersPage();
+});
+document.getElementById("btnOnlySelectedTrack")?.addEventListener("click", () => {
+  if (!uxSelectedFusionId) return setFocusStatus("请先选中一条航迹", false);
+  selectUxFusionId(uxSelectedFusionId, { only: true, skipCamera: true });
+});
+document.getElementById("btnShowAllTracksView")?.addEventListener("click", () => {
+  uxCheckedTargetIds = new Set();
+  map.setTargetFilter(null);
+  renderTargetFiltersPage();
+  setFocusStatus("已显示全部目标（保留当前选中高亮）", true);
+  if (viewMode === "3d") refreshTrack3d();
+  else map.draw();
+});
+document.getElementById("btnLocateSelected2")?.addEventListener("click", () => locateSelectedTrack());
+document.getElementById("btnViewHistSelected2")?.addEventListener("click", () => viewSelectedTrackHistory());
+document.getElementById("btnAltExpand")?.addEventListener("click", () => {
+  const wrap = document.getElementById("altChartWrap");
+  const btn = document.getElementById("btnAltExpand");
+  if (!wrap) return;
+  wrap.classList.toggle("expanded");
+  if (btn) btn.textContent = wrap.classList.contains("expanded") ? "收起海拔图" : "展开海拔图";
+  requestAnimationFrame(() => drawAltitudeChart(uxSelectedFusionId));
+});
+document.getElementById("btnFoldLeft")?.addEventListener("click", () => {
+  const lay = document.querySelector(".layout");
+  if (!lay) return;
+  lay.classList.toggle("fold-left");
+  const on = lay.classList.contains("fold-left");
+  const b = document.getElementById("btnFoldLeft");
+  if (b) b.textContent = on ? "展开左栏" : "折叠左栏";
+  if (viewMode === "3d") refreshTrack3d();
+  else map.draw();
+});
+document.getElementById("btnFoldRight")?.addEventListener("click", () => {
+  const lay = document.querySelector(".layout");
+  if (!lay) return;
+  lay.classList.toggle("fold-right");
+  const on = lay.classList.contains("fold-right");
+  const b = document.getElementById("btnFoldRight");
+  if (b) b.textContent = on ? "展开右栏" : "折叠右栏";
+  if (viewMode === "3d") refreshTrack3d();
+  else map.draw();
+});
+document.getElementById("altChart")?.addEventListener("click", (ev) => {
+  const hit = window.__wbAltHit;
+  const fid = hit?.fid || uxSelectedFusionId;
+  if (!fid || !hit?.pts?.length) return;
+  const cv = ev.currentTarget;
+  const rect = cv.getBoundingClientRect();
+  const xCss = ev.clientX - rect.left;
+  const padL = (hit.padL || 44) / (window.devicePixelRatio > 1.5 ? window.devicePixelRatio : 1);
+  const padR = (hit.padR || 10) / (window.devicePixelRatio > 1.5 ? window.devicePixelRatio : 1);
+  const frac = (xCss - padL) / Math.max(1, rect.width - padL - padR);
+  const tHit = hit.t0 + Math.max(0, Math.min(1, frac)) * Math.max(1, hit.t1 - hit.t0);
+  let best = hit.pts[0];
+  let bestD = Infinity;
+  for (const p of hit.pts) {
+    const d = Math.abs(parseTimeMs(p.stateTime) - tHit);
+    if (d < bestD) {
+      bestD = d;
+      best = p;
+    }
+  }
+  if (!best) return;
+  selectUxFusionId(fid, { skipCamera: true, pinPoint: best });
+  if (best.pointId && !best._verticalOnly) {
+    map.onPick?.(best, "fusion_point");
+    seekMapToCommittedPoint(best);
+    if (track3d) track3d.selectPointId(best.pointId);
+  }
+});
+window.addEventListener("resize", () => {
+  if (uxSelectedFusionId) drawAltitudeChart(uxSelectedFusionId);
+});

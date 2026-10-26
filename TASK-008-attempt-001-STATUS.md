@@ -1,0 +1,9 @@
+﻿# TASK-008 attempt-001 STATUS
+
+See `reports/task008/r6/STATUS.md` (Round 6-v5).
+
+```
+STATUS=AWAITING_INDEPENDENT_REVIEW
+ROUND=6-v5
+URL=http://127.0.0.1:18099/
+```

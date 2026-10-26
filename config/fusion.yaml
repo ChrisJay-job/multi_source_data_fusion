@@ -1,5 +1,5 @@
-algorithmVersion: "mvp-0.1.0"
-configVersion: "mvp-0.1.0"
+algorithmVersion: "mvp-0.1.0+task008-3d"
+configVersion: "mvp-0.1.0+task008-3d"
 noiseCalibrated: false
 origin:
   latitude: 39.13
@@ -29,7 +29,11 @@ rid_fresh_s: 2.5
 reorder_window_s: 2.0
 # Same-event-time main position source preference (stable; input array order must not win).
 primary_source_order: [rid, spectrum, radar]
-session_ttl_s: 3600
+# Idle recycle (last activity). Active sessions are not dropped solely for age.
+session_idle_ttl_s: 3600
+# Optional hard max lifetime from create; omit or null to disable.
+# session_max_lifetime_s: 86400
+session_ttl_s: 3600  # legacy alias → idle TTL
 track_ttl_s: 600
 idempotency_ttl_s: 1800
 max_tracks: 400
@@ -76,7 +80,9 @@ multisensor_v1:
   max_consumed: 64
   # Remembered batch ids (live cache + evicted). Further new batches are
   # rejected with idempotency_capacity instead of being forgotten in-window.
-  max_idempotency_ids: 4096
+  # Size for ~5 Hz new batches * idempotency_ttl_s(1800) * margin:
+  #   5 * 1800 * 1.5 ≈ 13500 → use 24576+ so a 30min window does not trip capacity.
+  max_idempotency_ids: 24576
   hover_speed_mps: 1.5
   heading_gate_deg: 70.0
   coast_s: 4.0
@@ -91,3 +97,15 @@ multisensor_v1:
   trajectory_batch_cap: 500
   committed_history_cap: 80
   primary_source_order: [rid, spectrum, radar]
+
+# Independent vertical KF for multisensor-3d-v1 (MSL metres). Engineering defaults.
+multisensor_3d_v1:
+  q_alt: 1.0
+  q_vspeed: 0.5
+  altitude_std_m:
+    rid: 5.0
+    spectrum: 15.0
+    radar: 25.0
+  altitude_innov_m: 80.0
+  altitude_predict_horizon_s: 4.0
+  mapping_version: database_altitude_msl_v1

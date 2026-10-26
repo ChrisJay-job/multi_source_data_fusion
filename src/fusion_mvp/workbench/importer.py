@@ -13,6 +13,12 @@ from zoneinfo import ZoneInfo
 
 from fusion_mvp.sql_stream import COLUMNS as FLIGHT_COLUMNS
 from fusion_mvp.sql_stream import parse_sql_tuple
+from fusion_mvp.workbench.altitude_mapping import (
+    COMPANY_SN_MAPPING_VERSION,
+    MAPPING_VERSION,
+    apply_database_altitude_msl_v1,
+    resolve_aircraft_id,
+)
 
 FLIGHT_PREFIX = 'INSERT INTO "public"."aircraft_flight_data" VALUES ('
 _INSERT_WITH_COLS = re.compile(
@@ -31,6 +37,14 @@ class MappingTemplate:
     assume_utc_naive: bool = False
     treat_raw_id_as_aircraftId: bool = False
     time_unit: str = "auto"  # auto|s|ms
+    # When set to database_altitude_msl_v1, DB altitude→MSL for 3d profile paths.
+    # Default empty keeps legacy unknown datum semantics for old profiles.
+    # Callers that intentionally process Navicat/DB dumps with Asia/Shanghai may
+    # set this explicitly; HTTP run/import with multisensor-3d-v1 auto-enables it.
+    altitude_mapping_version: str = ""
+    # company_source_id_sn_v1 = company DB id→SN (default for real files);
+    # confirmed_sn_v1 = legacy source_data-only SN extraction.
+    sn_mapping_version: str = COMPANY_SN_MAPPING_VERSION
     notes: str = ""
 
     def to_dict(self) -> dict:
@@ -337,11 +351,30 @@ def row_to_observation(row: dict, tmpl: MappingTemplate, line_no: int) -> tuple[
             return None, {"line": line_no, "reason": "missing_detectorId", "sheet": sheet, "row": prow}
 
     aircraft_id = _get(row, fm.get("aircraftId") or "aircraftId")
-    if aircraft_id is None and tmpl.treat_raw_id_as_aircraftId and source in ("rid", "spectrum"):
-        aircraft_id = stid
-        flags.append("raw_id_as_aircraftId")
-    elif aircraft_id in (None, "") and source in ("rid", "spectrum") and not tmpl.treat_raw_id_as_aircraftId:
-        flags.append("aircraftId_unconfirmed")
+    sn_evidence: list[str] = []
+    raw_sd = row.get("source_data")
+    source_data: Any = {}
+    if isinstance(raw_sd, dict):
+        source_data = raw_sd
+    elif isinstance(raw_sd, str) and raw_sd.strip():
+        try:
+            parsed = json.loads(raw_sd)
+            if isinstance(parsed, dict):
+                source_data = parsed
+        except (TypeError, ValueError, json.JSONDecodeError):
+            source_data = {}
+    sn_ver = (tmpl.sn_mapping_version or COMPANY_SN_MAPPING_VERSION).strip() or COMPANY_SN_MAPPING_VERSION
+    # Shared with scripts/task008_csv_mqtt_sender.py via resolve_aircraft_id.
+    aircraft_id, sn_flags, sn_extra = resolve_aircraft_id(
+        source=source,
+        source_track_id=str(stid),
+        aircraft_id_field=aircraft_id,
+        source_data=source_data,
+        sn_mapping_version=sn_ver,
+        treat_raw_id_as_aircraftId=tmpl.treat_raw_id_as_aircraftId,
+    )
+    flags.extend(sn_flags)
+    sn_evidence = list(sn_extra.get("snEvidencePaths") or [])
 
     alt, ok_alt = _finite_float(_get(row, fm.get("altitude") or "altitude"))
     if not ok_alt:
@@ -387,8 +420,18 @@ def row_to_observation(row: dict, tmpl: MappingTemplate, line_no: int) -> tuple[
             "row": prow,
             "receivedAtBasis": received_basis,
             "sourceRaw": str(source_raw) if source_raw is not None else None,
+            "sourceTimezone": tmpl.source_timezone,
+            "assumeUtcNaive": tmpl.assume_utc_naive,
+            "originalMeasurementTime": mt,
+            "dbId": str(stid),
+            "sourceId": str(stid),
+            "snMappingVersion": sn_extra.get("snMappingVersion", sn_ver),
+            "snEvidencePaths": sn_evidence,
+            **{k: v for k, v in sn_extra.items() if k not in {"snMappingVersion", "snEvidencePaths"}},
         },
     }
+    use_msl = (tmpl.altitude_mapping_version or "") == MAPPING_VERSION
+    obs = apply_database_altitude_msl_v1(obs, enabled=use_msl, source_row=row)
     return obs, None
 
 
@@ -777,6 +820,15 @@ def import_tabular(
         lat_min=lat_min,
         lat_max=lat_max,
     )
+    # Shared DB altitude mapping: explicit version wins; otherwise Navicat/DB dump
+    # field signature (measurementTime←created_at) + Asia/* timezone selects v1.
+    # Arbitrary external files without that signature keep unknown datum.
+    tmpl = MappingTemplate.from_dict(tmpl.to_dict())
+    if not (tmpl.altitude_mapping_version or "").strip():
+        mt_src = str((tmpl.field_map or {}).get("measurementTime") or "")
+        tz = str(tmpl.source_timezone or "")
+        if mt_src == "created_at" and tz.startswith("Asia/"):
+            tmpl.altitude_mapping_version = MAPPING_VERSION
 
     error_count = 0
     scanned = 0

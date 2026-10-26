@@ -1,0 +1,26 @@
+{
+  "reviewedBundle": {
+    "name": "TASK-009-attempt-001-rework-r2-review-bundle.zip",
+    "bytes": 6457621,
+    "sha256": "82d5536a0e9104def9ba2194c1bf8d5adebc31c93a388ab5041b433aa4bc80c7"
+  },
+  "task009Closeout": {
+    "bytes": 8247,
+    "sha256": "48fb06766cda8b1857f1468ff7020a944ddeaf7e4c081498ea5d5f3505fd80fa"
+  },
+  "sourceSha256": {
+    "demo/workbench/app.js": "67c11ee3f5a8d9d345cab111504f34dcdeb2ba9b5465d809de560e29fb98733f",
+    "demo/workbench/track3d.js": "1f933bf2e0050319e9d88a3d87cc7739a55c2d88ee89da18fcb928c331845bc6",
+    "demo/workbench/ux_query.js": "2876d466401b54e2caee1b96aae34b63dc0eb933d44b176cb30cd8afe10eb99c",
+    "demo/workbench/ux_panel.js": "f2713a7553b6e5ecb216839e1623e4f75bddb071030106cc8cb94f175ec8e632",
+    "demo/workbench/ux_helpers.js": "7702bd07e1dc739b9ff477b98e495d6888825c6a822475025f591aa8c5020eb8",
+    "demo/workbench/canvas.js": "15e8268e1743873d672fff35c2fd3c48d46326023d49f5d45c5cde73d6365cb6",
+    "demo/workbench/styles.css": "9db094ded8ed8ad6a9191f76459e0c57809da3a2e306e9412fce23a5d9188e18",
+    "demo/workbench/index.html": "26717ad5a67972c670ff27335ec1d752481c4021d42d9660399f1d3c80d5b483",
+    "src/fusion_mvp/multisensor.py": "f4dfbc6379a5c58d0fd75b73e476e0bc07e6a7587c0cff9346527eb10ebcfa66",
+    "config/fusion.yaml": "e25f3560d59935763f21370055fe8cd4f764da2a39b2ad001fe58e70477df518",
+    "src/fusion_mvp/api.py": "12ce8bd706f01de7797f0360cb8883b53c3a90cfd4f2714410f7f44ab1a86f66",
+    "src/fusion_mvp/workbench/mqtt_stream_job.py": "1390adf09ce03ab7cc6ad3cb679aea7fb08d9d28a7bb5d0ec2e4a7f5bc771bf5",
+    "src/fusion_mvp/integration/mqtt_bridge.py": "d5daeeb9abc40cb5cf640a8dc7063f64cf912e12be139747664ffe48b7d93a51"
+  }
+}

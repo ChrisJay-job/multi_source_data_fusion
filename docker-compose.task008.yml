@@ -1,0 +1,18 @@
+# Isolated local MQTT Broker for TASK-008.
+# Does not replace or stop other project containers. Does not use port 18089.
+# Broker is bound to 127.0.0.1 only. Pair with an isolated HTTP core on 18099:
+#   uvicorn fusion_mvp.api:app --host 127.0.0.1 --port 18099
+
+services:
+  mosquitto-task008:
+    image: eclipse-mosquitto:2.0.20
+    container_name: mosquitto-task008
+    ports:
+      - "127.0.0.1:1883:1883"
+    volumes:
+      - ./config/mosquitto.task008.conf:/mosquitto/config/mosquitto.conf:ro
+      - task008_mosquitto_data:/mosquitto/data
+    restart: unless-stopped
+
+volumes:
+  task008_mosquitto_data:

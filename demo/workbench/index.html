@@ -11,8 +11,11 @@
     <div>
       <h1>多源轨迹融合验证台</h1>
       <div class="sub">复用真实融合服务 · 真值不传算法 · 合成参数≠设备实测</div>
+      <div class="sub" id="buildBanner" style="color:#b45309;font-weight:600">TASK-009 UI 候选 · 18099 · 待独立审查 · 非生产</div>
     </div>
     <div class="top-actions">
+      <button id="btnFoldLeft" type="button" title="折叠左栏给地图让位">折叠左栏</button>
+      <button id="btnFoldRight" type="button" title="折叠右栏给地图让位">折叠右栏</button>
       <button id="btnHealth" type="button">检查服务</button>
       <span id="svcStatus" class="pill">未检查</span>
     </div>
@@ -89,7 +92,14 @@
             <option value="Asia/Shanghai" selected>命名时区 Asia/Shanghai</option>
           </select>
         </label>
-        <label><input type="checkbox" id="rawIdAsSn" /> 将原始 id 当作可信 aircraftId（默认关）</label>
+        <p class="hint" id="companyIdHint">本公司模板：RID/频谱 <code>id</code>=业务SN；雷达 <code>id</code>=局部目标跟踪ID（自身SN未知）。映射版本 <code>company_source_id_sn_v1</code>。</p>
+        <label><input type="checkbox" id="rawIdAsSn" /> 旧模板兼容：将原始 id 当作可信 aircraftId（仅 confirmed_sn_v1）</label>
+        <label>SN映射版本
+          <select id="snMappingVersion">
+            <option value="company_source_id_sn_v1" selected>company_source_id_sn_v1（公司默认）</option>
+            <option value="confirmed_sn_v1">confirmed_sn_v1（旧 source_data 确认）</option>
+          </select>
+        </label>
         <h3>字段映射（候选≠已确认）</h3>
         <div id="fieldMapForm" class="editor"></div>
         <div class="row">
@@ -99,10 +109,18 @@
         </div>
         <label>融合剖面
           <select id="fusionProfile">
-            <option value="legacy" selected>legacy</option>
-            <option value="multisensor-v1">multisensor-v1</option>
+            <option value="legacy">legacy（二维旧引擎）</option>
+            <option value="multisensor-v1">multisensor-v1（二维水平）</option>
+            <option value="multisensor-3d-v1" selected>multisensor-3d-v1（海拔垂直滤波）</option>
           </select>
         </label>
+        <label>海拔映射（与发送器共用版本）
+          <select id="altitudeMappingVersion">
+            <option value="">无（保留 unknown，旧剖面默认）</option>
+            <option value="database_altitude_msl_v1" selected>database_altitude_msl_v1（DB altitude→海拔米约定）</option>
+          </select>
+        </label>
+        <p id="altitudeMappingHint" class="hint">按数据库约定作海拔MSL米输入；设备基准未核实（USER_ASSUMED）。原始 height 保留证据，不代替海拔。不声称现场高程转换已完成。</p>
         <label>maxRows（命中上限，非完整文件） <input id="maxRows" type="number" value="5000" /></label>
         <label>时间窗起 <input id="timeFrom" type="text" placeholder="2026-04-09T12:00:03+00:00" /></label>
         <label>时间窗止 <input id="timeTo" type="text" placeholder="2026-04-09T12:00:04+00:00" /></label>
@@ -114,11 +132,25 @@
         <div class="row">
           <button id="btnPreview" class="primary" type="button">预览映射（上传）</button>
           <button id="btnLocalPreview" type="button">预览本地选中</button>
-          <button id="btnRunImport" type="button">回放融合</button>
+        </div>
+        <div class="row" style="margin-top:6px">
+          <button id="btnRunImport" type="button">离线回放融合</button>
+          <button id="btnMqttStreamStart" class="primary" type="button">实时MQTT推流（1×）</button>
+          <button id="btnMqttStreamStop" type="button">停止推流</button>
+          <button id="btnMqttStreamRestart" type="button">重新开始</button>
+        </div>
+        <pre id="mqttStreamStatus" class="report">推流未启动 · 先预览再点「实时MQTT推流」</pre>
+        <div id="mqttResumeBar" class="row" hidden style="margin-top:6px;gap:8px;flex-wrap:wrap">
+          <button id="btnMqttContinueView" type="button">继续显示（分批挂接，不重发）</button>
+          <button id="btnMqttOpenControl" type="button">打开轻量控制页</button>
+          <a href="/demo/workbench/control.html" target="_blank" rel="noopener">轻量控制</a>
+          <a href="/workbench-static/control.html" target="_blank" rel="noopener">/workbench-static/control.html</a>
+        </div>
+        <div class="row">
           <button id="btnMsDemo" type="button">无SN多设备演示</button>
           <button id="btnRunMulti" type="button">多文件合成回放</button>
         </div>
-        <p class="hint">大 XLS 请用「本地 data/」选择后点「预览本地选中」，避免浏览器重复上传；映射时区建议 Asia/Shanghai（待设备确认）。</p>
+        <p class="hint">大 XLS 请用「本地 data/」选择后点「预览本地选中」。实时MQTT推流固定 <b>1×墙钟</b>（保留原始时刻差），不是播放倍速、也不是 Z×10。播放 speed / Z 夸张仅影响离线回放与三维显示。关闭浏览器标签页不会停止后台推流——请用「停止推流」或轻量控制页。倍速/暂停/seek 推流侧本轮不做。</p>
         <div class="row">
           <button id="btnPageObs" type="button">有界翻页读</button>
           <button id="btnPagePrev" type="button">上一页</button>
@@ -140,7 +172,22 @@
     </aside>
 
     <main class="center">
-      <div class="canvas-wrap">
+      <div class="row view-toggle" style="gap:8px;align-items:center;margin:4px 0 6px;flex-wrap:wrap">
+        <strong>视图</strong>
+        <button type="button" id="btnView2d" class="primary">二维俯视</button>
+        <button type="button" id="btnView3d">三维航迹</button>
+        <span class="hint" id="viewMeta">服务/剖面见顶栏 · 三维东/北/海拔(MSL)米 · 默认Z×1</span>
+        <label class="hint">Z夸大
+          <select id="zExag"><option value="1" selected>1×</option><option value="3">3×</option><option value="5">5×</option><option value="10">10×</option></select>
+        </label>
+        <button type="button" id="btn3dTop">俯视</button>
+        <button type="button" id="btn3dSide">侧视</button>
+        <button type="button" id="btn3dFit">适配可见</button>
+        <button type="button" id="btn3dReset">恢复视角</button>
+        <button type="button" id="btn3dCompare">固定/比较选中点</button>
+        <span class="hint">三维：拖动旋转 · Shift/右键平移 · 滚轮缩放 · 点击选点</span>
+      </div>
+      <div class="canvas-wrap" id="wrap2d">
         <canvas id="cv" width="1100" height="720"></canvas>
         <div class="overlay">
           <span id="clock">播放时刻 — · 水位 — · 最后实测 —</span>
@@ -150,14 +197,22 @@
         <div class="legend-bar" id="legendBar" aria-label="图层图例">
           <span class="lg plan" title="真值折线作计划参考（当前实现）">计划/真值折线</span>
           <span class="lg truth">真值已飞</span>
-          <span class="lg rid">RID观测连线</span>
-          <span class="lg spectrum">频谱观测连线</span>
-          <span class="lg radar">雷达观测连线</span>
+          <span class="lg rid">RID原始观测</span>
+          <span class="lg spectrum">频谱原始观测</span>
+          <span class="lg radar">雷达原始观测</span>
           <span class="lg fused">融合提交历史</span>
           <span class="lg current">当前估计</span>
-          <span class="lg pred">预测历史</span>
+          <span class="lg pred">水平/未来预测</span>
         </div>
-        <p class="legend-note" id="legendNote">观测连线＝时间顺序离散点，非额外实测；预测≠新测量；提交历史≠已验证现场精度。</p>
+        <p class="legend-note" id="legendNote">观测连线＝时间顺序离散点，非额外实测；水平预测≠海拔估计≠新测量；提交历史≠已验证现场精度。</p>
+      </div>
+      <div class="canvas-wrap" id="wrap3d" hidden>
+        <canvas id="cv3d" width="1100" height="720"></canvas>
+        <div class="overlay">
+          <span id="track3dStatus">三维未加载</span>
+          <span id="track3dCompare">比较：—</span>
+        </div>
+        <p class="legend-note">有效三维折线在缺海拔/过期处断开；实线含已提交XY（海拔估计以空心环标）；虚线＝水平/未来预测；总览过密时请选中目标后「查看航迹」。unknown/非MSL不落0平面。</p>
       </div>
       <div class="transport">
         <button id="btnPlay" type="button">播放</button>
@@ -203,36 +258,109 @@
       <div id="nearDist" class="hint">真值最近距：—</div>
       <div id="runBanner" class="hint">草稿／运行结果：尚未运行</div>
 
+      <div class="right-tabs" role="tablist">
+        <button type="button" class="rtab active" data-rtab="targets">目标</button>
+        <button type="button" class="rtab" data-rtab="detail">详情</button>
+        <button type="button" class="rtab" data-rtab="altitude">海拔</button>
+        <button type="button" class="rtab" data-rtab="diag">诊断</button>
+      </div>
+      <p id="layerEmptyHint" class="hint" hidden></p>
+      <p id="targetFilterHint" class="hint">目标过滤：空选＝显示全部目标</p>
+
+      <div class="rtab-panel" data-rtab-panel="targets">
       <h2>显示图层</h2>
       <div class="layer-defaults">
         <label><input type="checkbox" class="layer" data-layer="fused" checked /> 融合提交历史</label>
         <label><input type="checkbox" class="layer" data-layer="current" checked /> 当前位置</label>
-        <label><input type="checkbox" class="layer" data-layer="pred" /> 预测历史（虚线）</label>
+        <label><input type="checkbox" class="layer" data-layer="pred" /> 水平/未来预测（虚线；≠海拔估计）</label>
         <label><input type="checkbox" class="layer" data-layer="plan" /> 计划/真值折线</label>
         <label><input type="checkbox" class="layer" data-layer="truth" checked /> 真值已飞</label>
       </div>
       <details id="advLayers" class="adv-layers">
         <summary>原始三源观测（按需）</summary>
-        <label><input type="checkbox" class="layer" data-layer="rid" /> RID 观测连线</label>
-        <label><input type="checkbox" class="layer" data-layer="spectrum" /> 频谱观测连线</label>
-        <label><input type="checkbox" class="layer" data-layer="radar" /> 雷达观测连线</label>
-        <p class="hint">仿真默认不叠满；真实文件预览会按样本自动开启存在的来源层。图层开关不影响算法输入。</p>
+        <label><input type="checkbox" class="layer" data-layer="rid" /> RID 原始观测（三维散点）</label>
+        <label><input type="checkbox" class="layer" data-layer="spectrum" /> 频谱原始观测（三维散点）</label>
+        <label><input type="checkbox" class="layer" data-layer="radar" /> 雷达原始观测（三维散点）</label>
+        <label><input type="checkbox" id="chkShowUnlinkedRaw" /> 显示全部未关联原始观测（默认关；过滤目标时不悄悄混入）</label>
+        <p class="hint">仿真默认不叠满；真实文件预览会按样本自动开启存在的来源层。图层开关不影响算法输入。无真值数据时计划/真值层无效。</p>
         <p id="layerHint" class="hint" hidden></p>
       </details>
 
-      <h2>目标（按飞机／融合目标）</h2>
-      <div id="targetFilters" class="filters"></div>
-      <p class="hint">空选＝全部。详情含 label／SN／fusionId／局部源 ID。</p>
+      <h2>目标列表（分页）</h2>
+      <div class="row tight">
+        <input id="targetSearch" type="search" placeholder="搜索 SN / fusionId / detector / sourceTrackId" style="flex:1;min-width:120px" />
+        <select id="targetPageSize" title="每页条数">
+          <option value="30" selected>30</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+      <div class="row tight">
+        <input id="targetStatusFilter" type="text" placeholder="状态含…" style="width:7em" />
+        <select id="targetSourceFilter">
+          <option value="">来源不限</option>
+          <option value="rid">rid</option>
+          <option value="spectrum">spectrum</option>
+          <option value="radar">radar</option>
+        </select>
+        <label class="hint"><input type="checkbox" id="chkOnlySelected" /> 仅显示勾选</label>
+        <button type="button" id="btnClearTargetFilter">清除筛选</button>
+        <button type="button" id="btnShowAllTargets">全部目标</button>
+      </div>
+      <div id="targetPager" class="row tight"></div>
+      <div id="targetFilters" class="filters tfilt-bounded"></div>
+      <p class="hint">空选＝全部（见上方提示）。多选状态保存在数据层，翻页不丢。</p>
 
-      <h2>为什么这样关联</h2>
-      <div id="explainAssoc" class="summary-box">点击目标后显示算法已输出的绑定／事件；未输出的候选距离标「当前未输出」。</div>
-
-      <h2>结果摘要</h2>
+      <h2>结果摘要（计数）</h2>
       <div id="resultSummary" class="summary-box">运行后显示</div>
       <div id="metricsDisplay" class="summary-box">指标分列：运行后显示（缺值≠0）</div>
       <div id="capabilityNote" class="hint">高歧义场景会显示可辨识性说明；原始评估 FAIL 不会被界面标绿掩盖。</div>
+      </div>
 
-      <h2>逐飞机</h2>
+      <div class="rtab-panel hidden" data-rtab-panel="detail">
+      <h2>选中航迹</h2>
+      <div id="trackCard" class="summary-box">未选中</div>
+      <div class="row tight">
+        <button type="button" id="btnOnlySelectedTrack">只看此航迹</button>
+        <button type="button" id="btnShowAllTracksView">显示全部</button>
+        <button type="button" id="btnLocateSelected2">定位当前位置</button>
+        <button type="button" id="btnViewHistSelected2">查看已发生航迹</button>
+      </div>
+      <h2>为什么这样关联</h2>
+      <div id="explainAssoc" class="summary-box">点击目标后显示算法已输出的绑定／事件；未输出的候选距离标「当前未输出」。</div>
+      <h2>观测／目标检查器</h2>
+      <div id="inspector" class="inspector">点击轨迹点查看</div>
+      <div id="pickCandidates" class="pick-cands"></div>
+      <h3>轨迹点表（选中航迹 · 分页）</h3>
+      <div class="row">
+        <input id="ptFilterFid" type="text" placeholder="fusionId" />
+        <input id="ptFilterSrc" type="text" placeholder="source" />
+        <button id="btnPtFollowSel" type="button" title="点表筛选跟随选中目标">随选中</button>
+        <button id="btnPtRefresh" type="button">刷新点表</button>
+      </div>
+      <div class="row tight">
+        <label class="hint"><input type="checkbox" id="chkFullHistoryView" /> 全程已保存历史（点表/海拔；不改游标）</label>
+        <span id="ptFilterLockHint" class="hint"></span>
+      </div>
+      <div id="pointTableWrap" class="point-table-wrap">
+        <table class="mini" id="pointTable">
+          <thead><tr><th>pointId</th><th>t</th><th>alt</th><th>mode</th><th>oids</th></tr></thead>
+          <tbody id="pointTableBody"></tbody>
+        </table>
+      </div>
+      <div id="pointPager" class="row tight"></div>
+      </div>
+
+      <div class="rtab-panel hidden" data-rtab-panel="altitude">
+      <h2 id="altChartTitle">海拔—时间</h2>
+      <div id="altChartWrap" class="alt-chart-wrap">
+        <canvas id="altChart" class="alt-chart" width="360" height="200"></canvas>
+      </div>
+      <p class="hint">实线=融合实测/滤波；虚线=海拔估计；圆点=本轨迹声明关联的原始观测。未知/过期断开。设备时区未最终确认时保留映射假设。</p>
+      <button type="button" id="btnAltExpand">展开海拔图</button>
+      </div>
+
+      <div class="rtab-panel hidden" data-rtab-panel="diag">
+      <h2>逐飞机（仿真）</h2>
       <div id="acResultTable" class="table-wrap">
         <table class="mini-table">
           <thead>
@@ -241,15 +369,10 @@
           <tbody id="acResultBody"></tbody>
         </table>
       </div>
-
       <h2>异常（点击跳转）</h2>
       <ul id="anomalyList" class="anomaly-list"><li class="hint">运行后显示</li></ul>
-
-      <h2>观测／目标检查器</h2>
-      <div id="inspector" class="inspector">点击轨迹点查看</div>
-
       <details class="debug-block">
-        <summary>调试：完整 JSON／事件</summary>
+        <summary>调试：完整 JSON／事件（默认折叠）</summary>
         <h3>目标详情 JSON</h3>
         <pre id="detail" class="report">—</pre>
         <h3>来源关联原始</h3>
@@ -259,6 +382,7 @@
         <h3>评估（仅仿真）</h3>
         <pre id="eval" class="report"></pre>
       </details>
+      </div>
     </aside>
   </div>
 

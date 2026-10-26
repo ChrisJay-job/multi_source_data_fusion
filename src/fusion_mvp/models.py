@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 SourceKind = Literal["rid", "spectrum", "radar"]
-Mode = Literal["realtime", "replay"]
+Mode = Literal["realtime", "replay", "flush"]
 TrackStatus = Literal["tentative", "tracked", "coasting", "lost", "terminated"]
 PositionMode = Literal["measured_assisted", "predicted", "stale"]
 
@@ -56,6 +56,10 @@ class TargetSnapshot(BaseModel):
     latitude: Optional[float] = None
     altitude: Optional[float] = None
     altitudeDatum: Optional[str] = None
+    altitudeMode: Optional[str] = None
+    altitudeStateTime: Optional[str] = None
+    lastAltitudeObservedAt: Optional[str] = None
+    altitudeObservationIds: list[str] = Field(default_factory=list)
     speed: Optional[float] = None
     heading: Optional[float] = None
     verticalSpeed: Optional[float] = None
@@ -107,6 +111,7 @@ class ProcessResponse(BaseModel):
     error: Optional[str] = None
     fusionProfile: Optional[str] = None
     trajectoryUpdates: list[dict[str, Any]] = Field(default_factory=list)
+    altitudeUpdates: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ReplayRequest(BaseModel):
@@ -124,6 +129,7 @@ class ReplayResponse(BaseModel):
     summary: dict[str, Any]
     snapshots: list[dict[str, Any]]
     trajectory: list[dict[str, Any]]
+    altitudeUpdates: list[dict[str, Any]] = Field(default_factory=list)
     events: list[dict[str, Any]]
     rejected: list[dict[str, Any]]
     error: Optional[str] = None

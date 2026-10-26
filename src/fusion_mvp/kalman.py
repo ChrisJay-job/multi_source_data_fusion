@@ -47,3 +47,40 @@ class ConstantVelocityKF:
     @property
     def vel(self) -> tuple[float, float]:
         return float(self.x[2]), float(self.x[3])
+
+
+class ConstantVelocity1D:
+    """Independent vertical [altitude_m, vertical_speed_mps] linear KF (MSL)."""
+
+    def __init__(self, z: float, q_pos: float, q_vel: float, r: float):
+        self.x = np.array([float(z), 0.0], dtype=float)
+        self.P = np.diag([float(r), 25.0]).astype(float)
+        self.q_pos = float(q_pos)
+        self.q_vel = float(q_vel)
+
+    def predict(self, dt: float) -> None:
+        dt = max(float(dt), 1e-3)
+        F = np.array([[1.0, dt], [0.0, 1.0]], dtype=float)
+        Q = np.diag([self.q_pos * dt, self.q_vel * dt])
+        self.x = F @ self.x
+        self.P = F @ self.P @ F.T + Q
+
+    def update(self, z: float, r: float) -> float:
+        H = np.array([[1.0, 0.0]], dtype=float)
+        zz = np.array([float(z)], dtype=float)
+        R = np.array([[float(r)]], dtype=float)
+        y = zz - H @ self.x
+        S = H @ self.P @ H.T + R
+        K = self.P @ H.T @ np.linalg.inv(S)
+        self.x = self.x + (K @ y).reshape(2)
+        I = np.eye(2)
+        self.P = (I - K @ H) @ self.P
+        return float(abs(y[0]))
+
+    @property
+    def alt(self) -> float:
+        return float(self.x[0])
+
+    @property
+    def vspeed(self) -> float:
+        return float(self.x[1])

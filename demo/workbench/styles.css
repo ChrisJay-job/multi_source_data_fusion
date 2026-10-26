@@ -44,6 +44,12 @@ h1 { margin: 0; font-size: 18px; letter-spacing: .02em; }
   min-height: 520px;
   max-width: 100%;
 }
+.layout.fold-left { grid-template-columns: 0 minmax(0, 1fr) minmax(240px, 320px); }
+.layout.fold-left .left.panel { display: none; }
+.layout.fold-right { grid-template-columns: minmax(220px, 260px) minmax(0, 1fr) 0; }
+.layout.fold-right .right.panel { display: none; }
+.layout.fold-left.fold-right { grid-template-columns: 0 minmax(0, 1fr) 0; }
+.disabled-layer { opacity: 0.55; }
 .panel {
   background: rgba(24,34,49,.92); border: 1px solid var(--line);
   border-radius: 10px; padding: 10px;
@@ -62,16 +68,32 @@ h1 { margin: 0; font-size: 18px; letter-spacing: .02em; }
 }
 .center { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .canvas-wrap { position: relative; flex: 1; min-height: 0; }
-canvas {
+.canvas-wrap > canvas,
+#cv, #cv3d {
   width: 100%; height: 100%; min-height: 360px;
   background: linear-gradient(180deg, #0d121a, #121a26);
   border: 1px solid var(--line); border-radius: 10px; cursor: grab;
   display: block;
 }
+/* Altitude chart must NOT inherit map canvas height/min-height. */
+.alt-chart-wrap {
+  width: 100%; height: 200px; min-height: 180px; max-height: 420px;
+  border: 1px solid var(--line); border-radius: 8px; background: #0f1622;
+  overflow: hidden;
+}
+.alt-chart-wrap.expanded { height: 360px; }
+canvas.alt-chart {
+  width: 100% !important; height: 100% !important; min-height: 0 !important;
+  background: #0f1622; border: none; border-radius: 0; cursor: crosshair;
+  display: block;
+}
 .overlay {
   position: absolute; left: 10px; top: 8px; display: flex; gap: 10px; flex-wrap: wrap;
   font-size: 11px; color: var(--muted); pointer-events: none; max-width: calc(100% - 20px);
+  line-height: 1.35; background: rgba(13,18,26,.55); padding: 4px 6px; border-radius: 6px;
 }
+.pt-row.sel { outline: 1px solid var(--accent); background: rgba(58,134,255,.12); }
+.track-card .muted { color: var(--muted); font-size: 11px; }
 .legend-note { margin: 0; padding: 2px 8px; font-size: 11px; color: var(--muted); }
 .view-presets button { font-size: 12px; }
 .legend-bar {
@@ -196,11 +218,39 @@ h3 { font-size: 11px; color: var(--muted); margin: 6px 0 4px; }
 .debug-block { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 6px; }
 .debug-block summary { cursor: pointer; color: var(--muted); font-size: 12px; }
 
+.right-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 4px 0 8px; }
+.rtab {
+  font-size: 12px; padding: 5px 10px; border-radius: 6px;
+  background: #1c2a3d; color: var(--muted);
+}
+.rtab.active { color: var(--text); border-color: var(--accent); background: rgba(58,134,255,.22); }
+.rtab-panel { min-width: 0; }
+.tfilt-bounded {
+  max-height: 280px; overflow: auto; border: 1px solid var(--line);
+  border-radius: 8px; padding: 4px 6px; background: #0f1622;
+}
+.tfilt-row {
+  border-bottom: 1px solid var(--line); padding: 6px 2px; font-size: 12px;
+}
+.tfilt-row.sel { background: rgba(58,134,255,.12); }
+.tfilt-lab { display: flex !important; align-items: center; gap: 6px; margin: 0 !important; }
+.swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
+.tfilt-page-meta { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.track-card { font-size: 12px; line-height: 1.45; }
+.track-card .warn, .summary-box .warn { color: #e9a23b; }
+.point-table-wrap { max-height: 200px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+.panel.right { overflow: auto; max-height: calc(100vh - 110px); }
+
 @media (max-width: 1366px) {
   .layout {
-    grid-template-columns: 240px minmax(0, 1fr) 260px;
+    grid-template-columns: 240px minmax(0, 1fr) 280px;
     height: calc(100vh - 100px);
   }
   h1 { font-size: 16px; }
-  canvas { min-height: 320px; }
+  .canvas-wrap > canvas, #cv, #cv3d { min-height: 320px; }
+  .alt-chart-wrap { height: 180px; }
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; height: auto; overflow-x: hidden; }
+  .panel.right { max-height: none; }
 }

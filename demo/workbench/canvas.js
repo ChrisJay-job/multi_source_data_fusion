@@ -172,20 +172,26 @@ export class MapView {
     }
   }
 
-  setLayers(layers) { Object.assign(this.layers, layers); this.draw(); }
-  setTargetFilter(set) { this.targetFilter = set; this.draw(); }
-  setSelectedFusionId(fid) {
-    this.selectedFusionId = fid || null;
-    this.draw();
+  setLayers(layers, { draw = true } = {}) {
+    Object.assign(this.layers, layers);
+    if (draw) this.draw();
   }
-  setState(state, { fit = true, resetTime = true } = {}) {
+  setTargetFilter(set, { draw = true } = {}) {
+    this.targetFilter = set;
+    if (draw) this.draw();
+  }
+  setSelectedFusionId(fid, { draw = true } = {}) {
+    this.selectedFusionId = fid || null;
+    if (draw) this.draw();
+  }
+  setState(state, { fit = true, resetTime = true, draw = true } = {}) {
     this.state = state;
     this.displayIndex = buildDisplayIndex(state || {});
     this._fitted = false;
     this._viewManual = false;
     if (resetTime) this.tIndex = 0;
     if (fit) this.fitToData();
-    this.draw();
+    if (draw) this.draw();
   }
   setTimeIndex(i) {
     const n = this.state?.snapshots?.length || 1;
@@ -1164,23 +1170,100 @@ export class MapView {
   _pick(sx, sy) {
     if (!this.state || !this.onPick) return;
     const now = this.currentTimeMs();
-    let best = null, bestD = 12, kind = null;
+    // Hit radius is 12 CSS px, converted to buffer space (matches _eventXY).
+    const { sx: cssSx } = this._cssScale();
+    const hitR = 12 * Math.max(cssSx || 1, 1e-6);
+    const candidates = [];
+    const layers = this.layers || {};
+
     for (const o of this.state.observations || []) {
       if (parseT(o.measurementTime) > now + 1) continue;
       if (!this._allowedByFilter("obs", o)) continue;
+      // Match draw: per-source layer (rid/spectrum/radar), not a generic "obs" flag.
+      if (o.source && layers[o.source] === false) continue;
       const [x, y] = this._llToXY(o.latitude, o.longitude);
       const [px, py] = this.worldToScreen(x, y);
       const d = Math.hypot(px - sx, py - sy);
-      if (d < bestD) { bestD = d; best = o; kind = "obs"; }
+      if (d <= hitR) {
+        candidates.push({ kind: "obs", d, obj: o, label: `obs ${o.observationId || ""}` });
+      }
     }
-    const snap = this.state.snapshots?.[this.tIndex];
-    for (const tr of snap?.tracks || []) {
-      if (!this._allowedByFilter("fusion", tr)) continue;
-      const [x, y] = this._llToXY(tr.latitude, tr.longitude);
-      const [px, py] = this.worldToScreen(x, y);
-      const d = Math.hypot(px - sx, py - sy);
-      if (d < bestD) { bestD = d; best = tr; kind = "track"; }
+
+    // Fusion history: same rolling union as draw (not last-80 snapshot alone).
+    if (layers.fused !== false) {
+      const fids = new Set();
+      const endIdx = Math.min(this.tIndex, (this.state.snapshots?.length || 1) - 1);
+      for (let i = 0; i <= endIdx; i++) {
+        for (const tr of this.state.snapshots[i]?.tracks || []) {
+          if (tr.fusionId && this._allowedByFilter("fusion", tr)) fids.add(tr.fusionId);
+        }
+      }
+      for (const fid of fids) {
+        const collected = this.collectFusionTrackPoints(fid, { includeFuture: false });
+        for (const p of collected.pts) {
+          if (!p.pointId) continue;
+          const [px, py] = this.worldToScreen(p.xy[0], p.xy[1]);
+          const d = Math.hypot(px - sx, py - sy);
+          if (d > hitR) continue;
+          // Recover full commit payload from any snapshot that still holds it.
+          let ptObj = null;
+          for (let i = endIdx; i >= 0 && !ptObj; i--) {
+            for (const tr of this.state.snapshots[i]?.tracks || []) {
+              if (tr.fusionId !== fid) continue;
+              const hit = (tr.committedHistory || []).find((c) => c.pointId === p.pointId);
+              if (hit) {
+                ptObj = {
+                  ...hit,
+                  fusionId: hit.fusionId || fid,
+                  _linkedObservations: (hit.observationIds || [])
+                    .map((id) => (this.state.observations || []).find((o) => o.observationId === id))
+                    .filter(Boolean),
+                };
+                break;
+              }
+            }
+          }
+          if (!ptObj) {
+            ptObj = {
+              pointId: p.pointId,
+              fusionId: fid,
+              stateTime: p.t,
+              _linkedObservations: [],
+            };
+          }
+          candidates.push({
+            kind: "fusion_point",
+            d,
+            obj: ptObj,
+            label: `fusionPoint ${p.pointId}`,
+          });
+        }
+      }
     }
-    if (best) this.onPick(best, kind);
+
+    // Current markers only when current layer is visible.
+    if (layers.current !== false) {
+      const snap = this.state.snapshots?.[this.tIndex];
+      for (const tr of snap?.tracks || []) {
+        if (!this._allowedByFilter("fusion", tr)) continue;
+        if (!this._isValidLatLon(tr.latitude, tr.longitude)) continue;
+        const [x, y] = this._llToXY(tr.latitude, tr.longitude);
+        const [px, py] = this.worldToScreen(x, y);
+        const d = Math.hypot(px - sx, py - sy);
+        if (d <= hitR) {
+          candidates.push({ kind: "track", d, obj: tr, label: `track ${tr.fusionId || ""}` });
+        }
+      }
+    }
+
+    if (!candidates.length) return;
+    candidates.sort((a, b) => a.d - b.d);
+    const best = candidates[0];
+    if (candidates.length > 1 && this.onPickCandidates) {
+      // Present chooser; do NOT auto-overwrite with onPick.
+      this.onPickCandidates(candidates.slice(0, 8), best);
+      return;
+    }
+    this.onPick(best.obj, best.kind);
   }
 }
